@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory - Inventory Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-boxes me-2"></i>Your Inventory
+    </h2>
+    <div>
+        <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Add Item
+        </a>
+        <a href="{{ url_for('categories') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-tags me-1"></i>Manage Categories
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary">{{ total_items }}</h5>
+                <p class="card-text">Total Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">${{ "%.2f"|format(total_value) }}</h5>
+                <p class="card-text">Total Value</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title {{ 'text-warning' if low_stock_count > 0 else 'text-muted' }}">
+                    {{ low_stock_count }}
+                </h5>
+                <p class="card-text">Low Stock Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info">{{ categories|length }}</h5>
+                <p class="card-text">Categories</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search }}" placeholder="Search items by name, description, or SKU">
+            </div>
+            <div class="col-md-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category">
+                    <option value="all" {{ 'selected' if category_filter == 'all' else '' }}>All Categories</option>
+                    <option value="none" {{ 'selected' if category_filter == 'none' else '' }}>No Category</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" 
+                                {{ 'selected' if category_filter == category.id|string else '' }}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="sort" class="form-label">Sort By</label>
+                <select class="form-select" id="sort" name="sort">
+                    <option value="name" {{ 'selected' if sort_by == 'name' else '' }}>Name</option>
+                    <option value="quantity" {{ 'selected' if sort_by == 'quantity' else '' }}>Quantity</option>
+                    <option value="price" {{ 'selected' if sort_by == 'price' else '' }}>Price</option>
+                    <option value="created_at" {{ 'selected' if sort_by == 'created_at' else '' }}>Date Added</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Inventory Table -->
+{% if items %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>SKU</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total Value</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>{{ item.name }}</strong>
+                                {% if item.is_low_stock %}
+                                    <i class="fas fa-exclamation-triangle low-stock ms-1" 
+                                       title="Low stock warning"></i>
+                                {% endif %}
+                            </div>
+                            {% if item.description %}
+                                <small class="text-muted">{{ item.description[:50] }}{% if item.description|length > 50 %}...{% endif %}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <code>{{ item.sku or '-' }}</code>
+                        </td>
+                        <td>
+                            {% if item.category_ref %}
+                                <span class="badge bg-secondary">{{ item.category_ref.name }}</span>
+                            {% else %}
+                                <span class="text-muted">No Category</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="{{ 'low-stock' if item.is_low_stock else '' }}">
+                                {{ item.quantity }}
+                            </span>
+                            {% if item.is_low_stock %}
+                                <br><small class="text-warning">Min: {{ item.minimum_stock }}</small>
+                            {% endif %}
+                        </td>
+                        <td>${{ "%.2f"|format(item.price) }}</td>
+                        <td><strong>${{ "%.2f"|format(item.total_value) }}</strong></td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('edit_item', item_id=item.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="confirmDelete('{{ item.name }}', {{ item.id }})" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No items found</h5>
+        <p class="text-muted">
+            {% if search or category_filter != 'all' %}
+                Try adjusting your search criteria or 
+                <a href="{{ url_for('inventory') }}">clear all filters</a>
+            {% else %}
+                Start by adding your first inventory item
+            {% endif %}
+        </p>
+        <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Add First Item
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="itemName"></strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(itemName, itemId) {
+    document.getElementById('itemName').textContent = itemName;
+    document.getElementById('deleteForm').action = '/delete_item/' + itemId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

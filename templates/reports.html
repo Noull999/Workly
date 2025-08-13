@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Inventory Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-chart-bar me-2"></i>Inventory Reports
+    </h2>
+    <a href="{{ url_for('inventory') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i>Back to Inventory
+    </a>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-boxes fa-2x text-primary mb-2"></i>
+                <h4 class="text-primary">{{ total_items }}</h4>
+                <p class="card-text">Total Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                <h4 class="text-success">${{ "%.2f"|format(total_value) }}</h4>
+                <p class="card-text">Total Value</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-exclamation-triangle fa-2x {{ 'text-warning' if low_stock_items else 'text-muted' }} mb-2"></i>
+                <h4 class="{{ 'text-warning' if low_stock_items else 'text-muted' }}">{{ low_stock_items|length }}</h4>
+                <p class="card-text">Low Stock Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-tags fa-2x text-info mb-2"></i>
+                <h4 class="text-info">{{ category_stats|length + (1 if uncategorized_count > 0 else 0) }}</h4>
+                <p class="card-text">Categories Used</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Low Stock Alert -->
+{% if low_stock_items %}
+<div class="alert alert-warning mb-4">
+    <h5 class="alert-heading">
+        <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert
+    </h5>
+    <p>The following items are running low and may need restocking:</p>
+    <div class="row">
+        {% for item in low_stock_items %}
+            <div class="col-md-6 col-lg-4 mb-2">
+                <div class="d-flex justify-content-between">
+                    <span><strong>{{ item.name }}</strong></span>
+                    <span class="text-danger">{{ item.quantity }}/{{ item.minimum_stock }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <hr>
+    <a href="{{ url_for('inventory') }}?sort=quantity" class="btn btn-warning btn-sm">
+        <i class="fas fa-eye me-1"></i>View All Items by Quantity
+    </a>
+</div>
+{% endif %}
+
+<!-- Category Breakdown -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Inventory by Category
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if category_stats or uncategorized_count > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="text-center">Items</th>
+                                    <th class="text-end">Total Value</th>
+                                    <th class="text-center">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category_name, item_count, category_value in category_stats %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ category_name }}</span>
+                                    </td>
+                                    <td class="text-center">{{ item_count }}</td>
+                                    <td class="text-end">${{ "%.2f"|format(category_value or 0) }}</td>
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ ((category_value or 0) / total_value * 100) if total_value > 0 else 0 }}%">
+                                                {{ "%.1f"|format(((category_value or 0) / total_value * 100) if total_value > 0 else 0) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% if uncategorized_count > 0 %}
+                                <tr>
+                                    <td>
+                                        <span class="text-muted">No Category</span>
+                                    </td>
+                                    <td class="text-center">{{ uncategorized_count }}</td>
+                                    <td class="text-end">${{ "%.2f"|format(uncategorized_value) }}</td>
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-secondary" role="progressbar" 
+                                                 style="width: {{ (uncategorized_value / total_value * 100) if total_value > 0 else 0 }}%">
+                                                {{ "%.1f"|format((uncategorized_value / total_value * 100) if total_value > 0 else 0) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">No inventory data available</h6>
+                        <p class="text-muted">Add some items to see category breakdown</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add New Item
+                    </a>
+                    <a href="{{ url_for('categories') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-tags me-1"></i>Manage Categories
+                    </a>
+                    {% if low_stock_items %}
+                        <a href="{{ url_for('inventory') }}?sort=quantity" class="btn btn-outline-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Review Low Stock
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('inventory') }}" class="btn btn-outline-info">
+                        <i class="fas fa-list me-1"></i>View All Items
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% if total_items > 0 %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-calculator me-2"></i>Value Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2 d-flex justify-content-between">
+                    <span>Average Item Value:</span>
+                    <strong>${{ "%.2f"|format(total_value / total_items) }}</strong>
+                </div>
+                {% if low_stock_items %}
+                <div class="mb-2 d-flex justify-content-between">
+                    <span>Low Stock Value:</span>
+                    <strong class="text-warning">
+                        ${{ "%.2f"|format(low_stock_items|sum(attribute='total_value')) }}
+                    </strong>
+                </div>
+                {% endif %}
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span><strong>Total Portfolio:</strong></span>
+                    <strong class="text-success">${{ "%.2f"|format(total_value) }}</strong>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

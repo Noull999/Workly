@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ item.name }} - Inventory Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Item: {{ item.name }}
+                </h4>
+                <div>
+                    <small class="text-muted">
+                        Created: {{ item.created_at.strftime('%Y-%m-%d') }}
+                        {% if item.updated_at != item.created_at %}
+                            | Updated: {{ item.updated_at.strftime('%Y-%m-%d') }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                            {% for error in form.name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.sku.label(class="form-label") }}
+                            {{ form.sku(class="form-control" + (" is-invalid" if form.sku.errors else ""), placeholder="Optional") }}
+                            {% for error in form.sku.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">Unique identifier (optional)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="3", placeholder="Item description...") }}
+                        {% for error in form.description.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Current Values Display -->
+                    <div class="alert alert-info mb-3">
+                        <h6 class="alert-heading">Current Values</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Quantity:</strong> {{ item.quantity }}
+                                {% if item.is_low_stock %}
+                                    <span class="badge bg-warning ms-1">Low Stock</span>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Price:</strong> ${{ "%.2f"|format(item.price) }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Total Value:</strong> ${{ "%.2f"|format(item.total_value) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.quantity.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-cubes"></i>
+                                </span>
+                                {{ form.quantity(class="form-control" + (" is-invalid" if form.quantity.errors else "")) }}
+                                {% for error in form.quantity.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.price.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), step="0.01") }}
+                                {% for error in form.price.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.minimum_stock.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </span>
+                                {{ form.minimum_stock(class="form-control" + (" is-invalid" if form.minimum_stock.errors else "")) }}
+                                {% for error in form.minimum_stock.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="form-text">Low stock alert threshold</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.category_id.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-tags"></i>
+                            </span>
+                            {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+                            {% for error in form.category_id.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-text">
+                            Don't see your category? 
+                            <a href="{{ url_for('categories') }}" target="_blank">Manage categories</a>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i>Update Item
+                        </button>
+                        <a href="{{ url_for('inventory') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Inventory
+                        </a>
+                        <button type="button" class="btn btn-danger ms-auto" 
+                                onclick="confirmDelete('{{ item.name }}', {{ item.id }})">
+                            <i class="fas fa-trash me-1"></i>Delete Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="itemName"></strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(itemName, itemId) {
+    document.getElementById('itemName').textContent = itemName;
+    document.getElementById('deleteForm').action = '/delete_item/' + itemId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+// Auto-calculate total value preview
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.getElementById('quantity');
+    const priceInput = document.getElementById('price');
+    
+    function updatePreview() {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+        const total = quantity * price;
+        
+        // You could add a preview element here if desired
+        console.log('Total value preview: $' + total.toFixed(2));
+    }
+    
+    quantityInput.addEventListener('input', updatePreview);
+    priceInput.addEventListener('input', updatePreview);
+});
+</script>
+{% endblock %}
