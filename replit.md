@@ -1,12 +1,15 @@
-# Inventory Management System
+# Sistema de Gestión de Inventario
 
-## Overview
+## Descripción General
 
-A web-based inventory management system built with Flask that allows users to track and manage business inventory. The application provides comprehensive inventory tracking with features for item management, categorization, stock level monitoring, and reporting. Users can create accounts, add/edit inventory items, organize items by categories, and generate reports to monitor stock levels and inventory value.
+Un sistema de gestión de inventario basado en web construido con Flask que permite a los usuarios rastrear y gestionar el inventario empresarial. La aplicación proporciona seguimiento integral del inventario con características para gestión de artículos, categorización, monitoreo de niveles de stock y reportes. Los usuarios pueden crear cuentas, agregar/editar artículos de inventario, organizar artículos por categorías, y generar reportes para monitorear niveles de stock.
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+- Preferred communication style: Simple, everyday language
+- Application must be fully localized in Spanish for Chilean company use
+- Remove price/value fields from all models, forms, and templates as they are not needed
+- Complete category system for organizing inventory items
 
 ## System Architecture
 

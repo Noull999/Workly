@@ -23,9 +23,9 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user)
             next_page = request.args.get('next')
-            flash(f'Welcome back, {user.username}!', 'success')
+            flash(f'¡Bienvenido de nuevo, {user.username}!', 'success')
             return redirect(next_page) if next_page else redirect(url_for('inventory'))
-        flash('Invalid username or password', 'danger')
+        flash('Usuario o contraseña inválidos', 'danger')
     
     return render_template('login.html', form=form)
 
@@ -43,15 +43,15 @@ def register():
         
         if existing_user:
             if existing_user.username == form.username.data:
-                flash('Username already exists', 'danger')
+                flash('El nombre de usuario ya existe', 'danger')
             else:
-                flash('Email already registered', 'danger')
+                flash('El correo electrónico ya está registrado', 'danger')
         else:
             user = User(username=form.username.data, email=form.email.data)
             user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
-            flash('Registration successful! Please log in.', 'success')
+            flash('¡Registro exitoso! Por favor inicia sesión.', 'success')
             return redirect(url_for('login'))
     
     return render_template('register.html', form=form)
@@ -60,7 +60,7 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.', 'info')
+    flash('Has cerrado sesión exitosamente.', 'info')
     return redirect(url_for('index'))
 
 @app.route('/inventory')
@@ -92,8 +92,6 @@ def inventory():
         query = query.order_by(InventoryItem.name)
     elif sort_by == 'quantity':
         query = query.order_by(InventoryItem.quantity.desc())
-    elif sort_by == 'price':
-        query = query.order_by(InventoryItem.price.desc())
     elif sort_by == 'created_at':
         query = query.order_by(InventoryItem.created_at.desc())
     
@@ -102,7 +100,6 @@ def inventory():
     
     # Calculate statistics
     total_items = len(items)
-    total_value = sum(item.total_value for item in items)
     low_stock_items = [item for item in items if item.is_low_stock]
     
     return render_template('inventory.html', 
@@ -112,7 +109,6 @@ def inventory():
                          category_filter=category_filter,
                          sort_by=sort_by,
                          total_items=total_items,
-                         total_value=total_value,
                          low_stock_count=len(low_stock_items))
 
 @app.route('/add_item', methods=['GET', 'POST'])
@@ -124,14 +120,13 @@ def add_item():
         if form.sku.data:
             existing_item = InventoryItem.query.filter_by(sku=form.sku.data).first()
             if existing_item:
-                flash('SKU already exists', 'danger')
+                flash('El SKU ya existe', 'danger')
                 return render_template('add_item.html', form=form)
         
         item = InventoryItem(
             name=form.name.data,
             description=form.description.data,
             quantity=form.quantity.data,
-            price=form.price.data,
             minimum_stock=form.minimum_stock.data,
             sku=form.sku.data if form.sku.data else None,
             category_id=form.category_id.data if form.category_id.data != 0 else None,
@@ -139,7 +134,7 @@ def add_item():
         )
         db.session.add(item)
         db.session.commit()
-        flash('Item added successfully!', 'success')
+        flash('¡Artículo agregado exitosamente!', 'success')
         return redirect(url_for('inventory'))
     
     return render_template('add_item.html', form=form)
@@ -155,19 +150,18 @@ def edit_item(item_id):
         if form.sku.data and form.sku.data != item.sku:
             existing_item = InventoryItem.query.filter_by(sku=form.sku.data).first()
             if existing_item:
-                flash('SKU already exists', 'danger')
+                flash('El SKU ya existe', 'danger')
                 return render_template('edit_item.html', form=form, item=item)
         
         item.name = form.name.data
         item.description = form.description.data
         item.quantity = form.quantity.data
-        item.price = form.price.data
         item.minimum_stock = form.minimum_stock.data
         item.sku = form.sku.data if form.sku.data else None
         item.category_id = form.category_id.data if form.category_id.data != 0 else None
         
         db.session.commit()
-        flash('Item updated successfully!', 'success')
+        flash('¡Artículo actualizado exitosamente!', 'success')
         return redirect(url_for('inventory'))
     
     return render_template('edit_item.html', form=form, item=item)
@@ -178,7 +172,7 @@ def delete_item(item_id):
     item = InventoryItem.query.filter_by(id=item_id, user_id=current_user.id).first_or_404()
     db.session.delete(item)
     db.session.commit()
-    flash('Item deleted successfully!', 'success')
+    flash('¡Artículo eliminado exitosamente!', 'success')
     return redirect(url_for('inventory'))
 
 @app.route('/reports')
@@ -188,14 +182,13 @@ def reports():
     items = InventoryItem.query.filter_by(user_id=current_user.id).all()
     
     total_items = len(items)
-    total_value = sum(item.total_value for item in items)
     low_stock_items = [item for item in items if item.is_low_stock]
     
     # Category breakdown
     category_stats = db.session.query(
         Category.name,
         func.count(InventoryItem.id).label('item_count'),
-        func.sum(InventoryItem.quantity * InventoryItem.price).label('total_value')
+        func.sum(InventoryItem.quantity).label('total_quantity')
     ).join(InventoryItem, Category.id == InventoryItem.category_id)\
      .filter(InventoryItem.user_id == current_user.id)\
      .group_by(Category.name).all()
@@ -206,18 +199,18 @@ def reports():
         category_id=None
     ).count()
     
-    uncategorized_value = db.session.query(
-        func.sum(InventoryItem.quantity * InventoryItem.price)
+    uncategorized_quantity = db.session.query(
+        func.sum(InventoryItem.quantity)
     ).filter(InventoryItem.user_id == current_user.id,
              InventoryItem.category_id.is_(None)).scalar() or 0
     
     return render_template('reports.html',
                          total_items=total_items,
-                         total_value=total_value,
+                         items=items,
                          low_stock_items=low_stock_items,
                          category_stats=category_stats,
                          uncategorized_count=uncategorized_count,
-                         uncategorized_value=uncategorized_value)
+                         uncategorized_quantity=uncategorized_quantity)
 
 @app.route('/categories', methods=['GET', 'POST'])
 @login_required
@@ -226,12 +219,12 @@ def categories():
     if form.validate_on_submit():
         existing_category = Category.query.filter_by(name=form.name.data).first()
         if existing_category:
-            flash('Category already exists', 'danger')
+            flash('La categoría ya existe', 'danger')
         else:
             category = Category(name=form.name.data, description=form.description.data)
             db.session.add(category)
             db.session.commit()
-            flash('Category created successfully!', 'success')
+            flash('¡Categoría creada exitosamente!', 'success')
             return redirect(url_for('categories'))
     
     categories = Category.query.all()
@@ -244,9 +237,9 @@ def delete_category(category_id):
     # Check if category has items
     item_count = InventoryItem.query.filter_by(category_id=category_id).count()
     if item_count > 0:
-        flash(f'Cannot delete category. It contains {item_count} items.', 'danger')
+        flash(f'No se puede eliminar la categoría. Contiene {item_count} artículos.', 'danger')
     else:
         db.session.delete(category)
         db.session.commit()
-        flash('Category deleted successfully!', 'success')
+        flash('¡Categoría eliminada exitosamente!', 'success')
     return redirect(url_for('categories'))

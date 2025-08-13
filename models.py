@@ -39,7 +39,6 @@ class InventoryItem(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     quantity = db.Column(db.Integer, nullable=False, default=0)
-    price = db.Column(db.Float, nullable=False, default=0.0)
     minimum_stock = db.Column(db.Integer, default=5)
     sku = db.Column(db.String(50), unique=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -52,10 +51,6 @@ class InventoryItem(db.Model):
     @property
     def is_low_stock(self):
         return self.quantity <= self.minimum_stock
-    
-    @property
-    def total_value(self):
-        return self.quantity * self.price
     
     def __repr__(self):
         return f'<InventoryItem {self.name}>'

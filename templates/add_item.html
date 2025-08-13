@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Add Item - Inventory Management System{% endblock %}
+{% block title %}Agregar Artículo - Sistema de Gestión de Inventario{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -8,7 +8,7 @@
         <div class="card">
             <div class="card-header">
                 <h4 class="mb-0">
-                    <i class="fas fa-plus me-2"></i>Add New Item
+                    <i class="fas fa-plus me-2"></i>Agregar Nuevo Artículo
                 </h4>
             </div>
             <div class="card-body">
@@ -26,24 +26,24 @@
                         
                         <div class="col-md-4 mb-3">
                             {{ form.sku.label(class="form-label") }}
-                            {{ form.sku(class="form-control" + (" is-invalid" if form.sku.errors else ""), placeholder="Optional") }}
+                            {{ form.sku(class="form-control" + (" is-invalid" if form.sku.errors else ""), placeholder="Opcional") }}
                             {% for error in form.sku.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
-                            <div class="form-text">Unique identifier (optional)</div>
+                            <div class="form-text">Identificador único (opcional)</div>
                         </div>
                     </div>
                     
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
-                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="3", placeholder="Item description...") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="3", placeholder="Descripción del artículo...") }}
                         {% for error in form.description.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             {{ form.quantity.label(class="form-label") }}
                             <div class="input-group">
                                 <span class="input-group-text">
@@ -56,18 +56,7 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-4 mb-3">
-                            {{ form.price.label(class="form-label") }}
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), step="0.01") }}
-                                {% for error in form.price.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             {{ form.minimum_stock.label(class="form-label") }}
                             <div class="input-group">
                                 <span class="input-group-text">
@@ -78,7 +67,7 @@
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            <div class="form-text">Low stock alert threshold</div>
+                            <div class="form-text">Umbral de alerta de stock bajo</div>
                         </div>
                     </div>
                     
@@ -94,17 +83,17 @@
                             {% endfor %}
                         </div>
                         <div class="form-text">
-                            Don't see your category? 
-                            <a href="{{ url_for('categories') }}" target="_blank">Manage categories</a>
+                            ¿No encuentras tu categoría? 
+                            <a href="{{ url_for('categories') }}" target="_blank">Gestionar categorías</a>
                         </div>
                     </div>
                     
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save me-1"></i>Add Item
+                            <i class="fas fa-save me-1"></i>Agregar Artículo
                         </button>
                         <a href="{{ url_for('inventory') }}" class="btn btn-secondary">
-                            <i class="fas fa-times me-1"></i>Cancel
+                            <i class="fas fa-times me-1"></i>Cancelar
                         </a>
                     </div>
                 </form>

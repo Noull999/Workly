@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Inventory Management System{% endblock %}</title>
+    <title>{% block title %}Sistema de Gestión de Inventario{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
@@ -37,7 +37,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-boxes me-2"></i>Inventory Manager
+                <i class="fas fa-boxes me-2"></i>Gestor de Inventario
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -49,22 +49,22 @@
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('inventory') }}">
-                                <i class="fas fa-list me-1"></i>Inventory
+                                <i class="fas fa-list me-1"></i>Inventario
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('add_item') }}">
-                                <i class="fas fa-plus me-1"></i>Add Item
+                                <i class="fas fa-plus me-1"></i>Agregar Artículo
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('categories') }}">
-                                <i class="fas fa-tags me-1"></i>Categories
+                                <i class="fas fa-tags me-1"></i>Categorías
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('reports') }}">
-                                <i class="fas fa-chart-bar me-1"></i>Reports
+                                <i class="fas fa-chart-bar me-1"></i>Reportes
                             </a>
                         </li>
                     {% endif %}
@@ -78,19 +78,19 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                                    <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
                                 </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('login') }}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                                <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('register') }}">
-                                <i class="fas fa-user-plus me-1"></i>Register
+                                <i class="fas fa-user-plus me-1"></i>Registrarse
                             </a>
                         </li>
                     {% endif %}
@@ -121,7 +121,7 @@
     <!-- Footer -->
     <footer class="bg-dark text-light py-3 mt-5">
         <div class="container text-center">
-            <small>&copy; 2025 Inventory Management System. Built with Flask & Bootstrap.</small>
+            <small>&copy; 2025 Sistema de Gestión de Inventario. Construido con Flask & Bootstrap.</small>
         </div>
     </footer>
 
