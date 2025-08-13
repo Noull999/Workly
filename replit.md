@@ -1,8 +1,8 @@
-# Sistema de Gestión de Inventario
+# Inventario INTAC
 
 ## Descripción General
 
-Un sistema de gestión de inventario basado en web construido con Flask que permite a los usuarios rastrear y gestionar el inventario empresarial. La aplicación proporciona seguimiento integral del inventario con características para gestión de artículos, categorización, monitoreo de niveles de stock y reportes. Los usuarios pueden crear cuentas, agregar/editar artículos de inventario, organizar artículos por categorías, y generar reportes para monitorear niveles de stock.
+Sistema de gestión de inventario empresarial "Inventario INTAC" basado en web construido con Flask para una empresa chilena. La aplicación proporciona seguimiento integral del inventario con características para gestión de artículos, categorización, monitoreo de niveles de stock y reportes. Los usuarios pueden crear cuentas, agregar/editar artículos de inventario, organizar artículos por categorías, y generar reportes para monitorear niveles de stock.
 
 ## User Preferences
 
@@ -10,6 +10,7 @@ Un sistema de gestión de inventario basado en web construido con Flask que perm
 - Application must be fully localized in Spanish for Chilean company use
 - Remove price/value fields from all models, forms, and templates as they are not needed
 - Complete category system for organizing inventory items
+- Application name changed to "Inventario INTAC" throughout the system
 
 ## System Architecture
 
