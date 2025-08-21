@@ -61,6 +61,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Barcode input formatting
+    const barcodeInput = document.getElementById('barcode');
+    if (barcodeInput) {
+        barcodeInput.addEventListener('input', function() {
+            // Allow only numbers and basic barcode characters
+            this.value = this.value.replace(/[^A-Z0-9-]/g, '');
+        });
+    }
+
     // Price input formatting
     const priceInputs = document.querySelectorAll('input[type="number"][step="0.01"]');
     priceInputs.forEach(function(input) {
