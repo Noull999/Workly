@@ -51,10 +51,10 @@
 <div class="card mb-4">
     <div class="card-body">
         <form method="GET" class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="search" class="form-label">Buscar</label>
                 <input type="text" class="form-control" id="search" name="search" 
-                       value="{{ search }}" placeholder="Buscar por nombre, descripción o SKU">
+                       value="{{ search }}" placeholder="Buscar por nombre, SKU o código de barras">
             </div>
             <div class="col-md-3">
                 <label for="category" class="form-label">Categoría</label>
@@ -70,9 +70,22 @@
                 </select>
             </div>
             <div class="col-md-3">
+                <label for="warehouse" class="form-label">Almacén</label>
+                <select class="form-select" id="warehouse" name="warehouse">
+                    <option value="all" {{ 'selected' if warehouse_filter == 'all' else '' }}>Todos los Almacenes</option>
+                    {% for warehouse in warehouses %}
+                        <option value="{{ warehouse.id }}" 
+                                {{ 'selected' if warehouse_filter == warehouse.id|string else '' }}>
+                            {{ warehouse.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label for="sort" class="form-label">Ordenar Por</label>
                 <select class="form-select" id="sort" name="sort">
                     <option value="name" {{ 'selected' if sort_by == 'name' else '' }}>Nombre</option>
+                    <option value="warehouse" {{ 'selected' if sort_by == 'warehouse' else '' }}>Almacén</option>
                     <option value="quantity" {{ 'selected' if sort_by == 'quantity' else '' }}>Cantidad</option>
                     <option value="created_at" {{ 'selected' if sort_by == 'created_at' else '' }}>Fecha Agregado</option>
                 </select>
@@ -98,7 +111,8 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>
-                        <th>SKU</th>
+                        <th>SKU / Código</th>
+                        <th>Almacén</th>
                         <th>Categoría</th>
                         <th>Cantidad</th>
                         <th>Acciones</th>
@@ -120,7 +134,25 @@
                             {% endif %}
                         </td>
                         <td>
-                            <code>{{ item.sku or '-' }}</code>
+                            <div>
+                                {% if item.sku %}
+                                    <code class="small">SKU: {{ item.sku }}</code>
+                                {% endif %}
+                                {% if item.barcode %}
+                                    <br><code class="small text-info">{{ item.barcode }}</code>
+                                {% endif %}
+                                {% if not item.sku and not item.barcode %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.warehouse %}
+                                <span class="badge bg-info">{{ item.warehouse.name }}</span>
+                                <br><small class="text-muted">{{ item.warehouse.code }}</small>
+                            {% else %}
+                                <span class="text-muted">Sin Almacén</span>
+                            {% endif %}
                         </td>
                         <td>
                             {% if item.category_ref %}

@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Almacenes - Inventario INTAC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-warehouse me-2"></i>Gestión de Almacenes
+    </h2>
+    <a href="{{ url_for('inventory') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Volver al Inventario
+    </a>
+</div>
+
+<!-- Add New Warehouse Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-plus me-2"></i>Agregar Nuevo Almacén
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="col-md-4">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                    {% for error in form.name.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                
+                <div class="col-md-3">
+                    {{ form.code.label(class="form-label") }}
+                    {{ form.code(class="form-control" + (" is-invalid" if form.code.errors else "")) }}
+                    {% for error in form.code.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">Código único del almacén</div>
+                </div>
+                
+                <div class="col-md-5">
+                    {{ form.address.label(class="form-label") }}
+                    {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), placeholder="Opcional") }}
+                    {% for error in form.address.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Crear Almacén
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Warehouses List -->
+{% if warehouses %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>Almacenes Activos ({{ warehouses|length }})
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Código</th>
+                        <th>Dirección</th>
+                        <th>Creado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for warehouse in warehouses %}
+                    <tr>
+                        <td>
+                            <strong>{{ warehouse.name }}</strong>
+                        </td>
+                        <td>
+                            <code>{{ warehouse.code }}</code>
+                        </td>
+                        <td>
+                            {{ warehouse.address or '-' }}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ warehouse.created_at.strftime('%d/%m/%Y') }}</small>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="confirmDeleteWarehouse('{{ warehouse.name }}', {{ warehouse.id }})" title="Desactivar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-warehouse fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No hay almacenes configurados</h5>
+        <p class="text-muted">Crea tu primer almacén usando el formulario de arriba.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Desactivación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas desactivar el almacén <strong id="warehouseName"></strong>?</p>
+                <p class="text-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Esta acción marcará el almacén como inactivo pero conservará todos los datos.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Desactivar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDeleteWarehouse(warehouseName, warehouseId) {
+    document.getElementById('warehouseName').textContent = warehouseName;
+    document.getElementById('deleteForm').action = '/delete_warehouse/' + warehouseId;
+    
+    var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

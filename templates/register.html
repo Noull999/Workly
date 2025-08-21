@@ -8,7 +8,7 @@
         <div class="card">
             <div class="card-header text-center">
                 <h4 class="mb-0">
-                    <i class="fas fa-user-plus me-2"></i>Create Account
+                    <i class="fas fa-user-plus me-2"></i>Crear Cuenta Empresarial
                 </h4>
             </div>
             <div class="card-body">
@@ -16,12 +16,21 @@
                     {{ form.hidden_tag() }}
                     
                     <div class="mb-3">
+                        {{ form.company_name.label(class="form-label") }}
+                        {{ form.company_name(class="form-control" + (" is-invalid" if form.company_name.errors else "")) }}
+                        {% for error in form.company_name.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Nombre de tu empresa u organización</div>
+                    </div>
+                    
+                    <div class="mb-3">
                         {{ form.username.label(class="form-label") }}
                         {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
                         {% for error in form.username.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
-                        <div class="form-text">Must be 3-64 characters long</div>
+                        <div class="form-text">Debe tener entre 3-64 caracteres</div>
                     </div>
                     
                     <div class="mb-3">
