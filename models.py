@@ -17,9 +17,11 @@ class Company(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     
     # Módulos activados
+    module_inventory = db.Column(db.Boolean, default=True)  # Base del sistema
     module_pos = db.Column(db.Boolean, default=False)
     module_appointments = db.Column(db.Boolean, default=False)
     module_portfolio = db.Column(db.Boolean, default=False)
+    module_scrum = db.Column(db.Boolean, default=False)
     
     # Configuración para página de presentación
     portfolio_description = db.Column(db.Text, nullable=True)
@@ -40,6 +42,7 @@ class Company(db.Model):
     services = db.relationship('Service', backref='company', lazy=True, cascade='all, delete-orphan')
     appointments = db.relationship('Appointment', backref='company', lazy=True, cascade='all, delete-orphan')
     pos_sales = db.relationship('Sale', backref='company', lazy=True, cascade='all, delete-orphan')
+    scrum_boards = db.relationship('Board', backref='company', lazy=True, cascade='all, delete-orphan')
     
     @classmethod
     def generate_code(cls):
@@ -283,3 +286,108 @@ class SaleItem(db.Model):
     
     def __repr__(self):
         return f'<SaleItem {self.quantity}x {self.inventory_item.name if self.inventory_item else "Unknown"}>'
+
+
+# ===== SCRUM LITE MODULE =====
+
+class Board(db.Model):
+    """Tableros Kanban para Scrum Lite"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    columns = db.relationship('Column', backref='board', lazy=True, cascade='all, delete-orphan', order_by='Column.position')
+    sprints = db.relationship('Sprint', backref='board', lazy=True, cascade='all, delete-orphan')
+    tasks = db.relationship('Task', backref='board', lazy=True, cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<Board {self.name}>'
+
+
+class Column(db.Model):
+    """Columnas del tablero Kanban"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    color = db.Column(db.String(7), default='#6c757d')
+    board_id = db.Column(db.Integer, db.ForeignKey('board.id'), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    tasks = db.relationship('Task', backref='column', lazy=True, order_by='Task.position')
+    
+    def __repr__(self):
+        return f'<Column {self.name}>'
+
+
+class Sprint(db.Model):
+    """Sprints/Iteraciones"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    start_date = db.Column(db.DateTime, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(20), default='active')  # active, completed, cancelled
+    board_id = db.Column(db.Integer, db.ForeignKey('board.id'), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    tasks = db.relationship('Task', backref='sprint', lazy=True)
+    
+    def __repr__(self):
+        return f'<Sprint {self.name}>'
+
+
+class Task(db.Model):
+    """Tareas del tablero"""
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    status = db.Column(db.String(20), default='to_do')  # to_do, in_progress, done
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high, critical
+    position = db.Column(db.Integer, nullable=False, default=0)
+    story_points = db.Column(db.Integer, default=1)
+    due_date = db.Column(db.DateTime, nullable=True)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    board_id = db.Column(db.Integer, db.ForeignKey('board.id'), nullable=False)
+    column_id = db.Column(db.Integer, db.ForeignKey('column.id'), nullable=False)
+    sprint_id = db.Column(db.Integer, db.ForeignKey('sprint.id'), nullable=True)
+    assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    comments = db.relationship('TaskComment', backref='task', lazy=True, cascade='all, delete-orphan')
+    assignee = db.relationship('User', foreign_keys=[assignee_id], backref='assigned_tasks')
+    creator = db.relationship('User', foreign_keys=[creator_id], backref='created_tasks')
+    
+    def __repr__(self):
+        return f'<Task {self.title[:30]}>'
+
+
+class TaskComment(db.Model):
+    """Comentarios en tareas"""
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    author = db.relationship('User', backref='task_comments')
+    
+    def __repr__(self):
+        return f'<TaskComment by {self.author.username if self.author else "Unknown"}>'

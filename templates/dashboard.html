@@ -16,7 +16,8 @@
 
     <!-- Tarjetas de estadísticas principales -->
     <div class="row mb-4">
-        <!-- Inventario (siempre presente) -->
+        <!-- Inventario (si está activo) -->
+        {% if company.module_inventory %}
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
@@ -28,6 +29,8 @@
                                 <small class="text-warning">
                                     <i class="fas fa-exclamation-triangle me-1"></i>{{ stats.inventory.low_stock_items }} con stock bajo
                                 </small>
+                            {% else %}
+                                <small class="text-muted">Stock en orden</small>
                             {% endif %}
                         </div>
                         <div class="col-auto">
@@ -37,6 +40,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- POS (si está activo) -->
         {% if company.module_pos %}
@@ -78,6 +82,26 @@
         </div>
         {% endif %}
 
+        <!-- Scrum Lite (si está activo) -->
+        {% if company.module_scrum %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-purple shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-purple text-uppercase mb-1">Scrum Lite</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.scrum.total_boards }} tableros</div>
+                            <small class="text-info">{{ stats.scrum.pending_tasks }} tareas pendientes</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Páginas Públicas (si están activas) -->
         {% if company.module_portfolio or company.module_appointments %}
         <div class="col-xl-3 col-md-6 mb-4">
@@ -105,6 +129,7 @@
     <!-- Contenido específico por módulos -->
     <div class="row">
         <!-- Panel de inventario -->
+        {% if company.module_inventory %}
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
@@ -114,19 +139,51 @@
                 </div>
                 <div class="card-body">
                     {% if stats.inventory.total_items > 0 %}
-                        <div class="text-center">
-                            <p class="mb-3">Gestiona tu inventario completo</p>
-                            <a href="{{ url_for('inventory') }}" class="btn btn-primary">
-                                <i class="fas fa-list me-1"></i>Ver Inventario
-                            </a>
-                            <a href="{{ url_for('add_item') }}" class="btn btn-outline-primary">
-                                <i class="fas fa-plus me-1"></i>Agregar Artículo
-                            </a>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <p class="mb-1">{{ stats.inventory.total_items }} artículos en inventario</p>
+                                {% if stats.inventory.low_stock_items > 0 %}
+                                    <small class="text-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ stats.inventory.low_stock_items }} con stock bajo
+                                    </small>
+                                {% else %}
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Stock en orden
+                                    </small>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <a href="{{ url_for('inventory') }}" class="btn btn-primary me-2">
+                                    <i class="fas fa-list me-1"></i>Ver Todo
+                                </a>
+                                <a href="{{ url_for('add_item') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus me-1"></i>Agregar
+                                </a>
+                            </div>
                         </div>
-                        {% if stats.inventory.low_stock_items > 0 %}
-                            <div class="alert alert-warning mt-3">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                Hay {{ stats.inventory.low_stock_items }} artículo(s) con stock bajo
+
+                        <!-- Lista de productos con stock bajo -->
+                        {% if stats.inventory.low_stock_products %}
+                            <h6 class="text-warning mb-2">Productos con Stock Bajo:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Stock</th>
+                                            <th>Mínimo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in stats.inventory.low_stock_products %}
+                                        <tr>
+                                            <td>{{ item.name }}</td>
+                                            <td><span class="badge bg-warning">{{ item.quantity }}</span></td>
+                                            <td>{{ item.minimum_stock }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         {% endif %}
                     {% else %}
@@ -141,6 +198,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Panel POS -->
         {% if company.module_pos %}
@@ -162,6 +220,84 @@
                         <div class="alert alert-info mt-3">
                             <i class="fas fa-info-circle me-2"></i>
                             Has realizado {{ stats.pos.today_sales }} venta(s) hoy
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Panel Scrum Lite -->
+        {% if company.module_scrum %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-purple">
+                        <i class="fas fa-tasks me-2"></i>Scrum Lite
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if stats.scrum.total_boards > 0 %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <p class="mb-1">{{ stats.scrum.total_boards }} tableros activos</p>
+                                <small class="text-info">{{ stats.scrum.pending_tasks }} tareas pendientes</small>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('scrum_dashboard') }}" class="btn btn-purple me-2">
+                                    <i class="fas fa-project-diagram me-1"></i>Ver Tableros
+                                </a>
+                                <a href="{{ url_for('create_scrum_board') }}" class="btn btn-outline-purple">
+                                    <i class="fas fa-plus me-1"></i>Nuevo
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Mis tareas -->
+                        {% if stats.scrum.my_tasks %}
+                            <h6 class="text-purple mb-2">Mis Tareas Asignadas:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarea</th>
+                                            <th>Prioridad</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for task in stats.scrum.my_tasks %}
+                                        <tr>
+                                            <td>{{ task.title[:30] }}{{ '...' if task.title|length > 30 else '' }}</td>
+                                            <td>
+                                                {% if task.priority == 'high' %}
+                                                    <span class="badge bg-danger">Alta</span>
+                                                {% elif task.priority == 'medium' %}
+                                                    <span class="badge bg-warning">Media</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Baja</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if task.status == 'in_progress' %}
+                                                    <span class="badge bg-primary">En Progreso</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Pendiente</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-tasks fa-3x mb-3"></i>
+                            <p>No tienes tableros Scrum configurados</p>
+                            <a href="{{ url_for('create_scrum_board') }}" class="btn btn-purple">
+                                <i class="fas fa-plus me-1"></i>Crear tu primer tablero
+                            </a>
                         </div>
                     {% endif %}
                 </div>
@@ -291,26 +427,71 @@
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-md-3">
-                            <a href="{{ url_for('categories') }}" class="btn btn-outline-primary w-100 mb-2">
+                        <!-- Inventario -->
+                        {% if company.module_inventory %}
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{{ url_for('categories') }}" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-tags fa-2x d-block mb-2"></i>
                                 Categorías
                             </a>
                         </div>
-                        <div class="col-md-3">
-                            <a href="{{ url_for('warehouses') }}" class="btn btn-outline-primary w-100 mb-2">
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{{ url_for('warehouses') }}" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-warehouse fa-2x d-block mb-2"></i>
                                 Almacenes
                             </a>
                         </div>
-                        <div class="col-md-3">
-                            <a href="{{ url_for('reports') }}" class="btn btn-outline-primary w-100 mb-2">
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{{ url_for('reports') }}" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-chart-bar fa-2x d-block mb-2"></i>
                                 Reportes
                             </a>
                         </div>
-                        <div class="col-md-3">
-                            <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary w-100 mb-2">
+                        {% endif %}
+
+                        <!-- POS -->
+                        {% if company.module_pos %}
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{{ url_for('pos_sales') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-cash-register fa-2x d-block mb-2"></i>
+                                POS
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- Scrum -->
+                        {% if company.module_scrum %}
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{{ url_for('scrum_dashboard') }}" class="btn btn-outline-purple w-100">
+                                <i class="fas fa-project-diagram fa-2x d-block mb-2"></i>
+                                Scrum
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- Citas -->
+                        {% if company.module_appointments %}
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{{ url_for('manage_services') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-concierge-bell fa-2x d-block mb-2"></i>
+                                Servicios
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- Portfolio -->
+                        {% if company.module_portfolio %}
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{{ url_for('portfolio_config') }}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-globe fa-2x d-block mb-2"></i>
+                                Portfolio
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- Perfil (siempre disponible) -->
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary w-100">
                                 <i class="fas fa-user-edit fa-2x d-block mb-2"></i>
                                 Mi Perfil
                             </a>
@@ -334,6 +515,30 @@
 }
 .border-left-warning {
     border-left: .25rem solid #f6c23e !important;
+}
+.border-left-purple {
+    border-left: .25rem solid #6f42c1 !important;
+}
+.text-purple {
+    color: #6f42c1 !important;
+}
+.btn-purple {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+}
+.btn-purple:hover {
+    background-color: #5a359d;
+    border-color: #5a359d;
+}
+.btn-outline-purple {
+    border-color: #6f42c1;
+    color: #6f42c1;
+}
+.btn-outline-purple:hover {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
 }
 </style>
 {% endblock %}

@@ -1,30 +1,69 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Módulo No Disponible</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center min-vh-100 align-items-center">
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-body text-center">
-                        <i class="fas fa-exclamation-triangle fa-4x text-warning mb-4"></i>
-                        <h2 class="text-warning">Módulo No Disponible</h2>
-                        <p class="text-muted">
-                            Lo sentimos, este módulo no está activo para esta empresa.
-                        </p>
-                        <a href="/" class="btn btn-primary">
-                            <i class="fas fa-home me-1"></i>Ir al Inicio
+{% extends "base.html" %}
+
+{% block title %}Módulo No Disponible{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-lg mt-5">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
+                    </div>
+                    
+                    <h3 class="mb-3">Módulo No Disponible</h3>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <strong>El módulo "{{ module_name.replace('_', ' ').title() }}" no está activo</strong> para tu empresa.
+                    </div>
+                    
+                    <p class="text-muted mb-4">
+                        Este módulo no está incluido en tu plan actual o no ha sido activado. 
+                        {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
+                        Puedes activarlo desde la configuración de la empresa.
+                        {% else %}
+                        Contacta con tu administrador para activar este módulo.
+                        {% endif %}
+                    </p>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Volver al Inicio
                         </a>
+                        
+                        {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
+                        <a href="{{ url_for('company_settings') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-cogs me-2"></i>Configuración
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información de contacto -->
+            <div class="card mt-4">
+                <div class="card-body text-center">
+                    <h6 class="card-title">¿Necesitas activar más módulos?</h6>
+                    <p class="card-text small text-muted">
+                        Inventario INTAC es un sistema modular. Contacta al desarrollador para obtener información sobre módulos adicionales.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <span class="badge bg-primary">Inventario Base</span>
+                        <span class="badge bg-success">POS</span>
+                        <span class="badge bg-info">Citas</span>
+                        <span class="badge bg-warning">Portfolio</span>
+                        <span class="badge bg-purple">Scrum Lite</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<style>
+.badge.bg-purple {
+    background-color: #6f42c1 !important;
+}
+</style>
+{% endblock %}

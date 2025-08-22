@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, request, jsonify, g
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from app import app, db
-from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem
+from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem, Board, Sprint, Task, Column, TaskComment
 from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm, ModuleSettingsForm, ServiceForm, AppointmentForm, PublicAppointmentForm, PortfolioForm, SaleForm
 from utils import company_query, log_audit, setup_new_company, validate_company_access
 from sqlalchemy import or_, func
@@ -26,6 +26,24 @@ def admin_required(f):
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
+
+def module_required(module_name):
+    """Decorator to check if a module is active for the current company"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_authenticated:
+                return redirect(url_for('login'))
+            
+            company = current_user.company
+            module_active = getattr(company, f'module_{module_name}', False)
+            
+            if not module_active:
+                return render_template('errors/module_disabled.html', module_name=module_name), 403
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 @app.route('/')
 def index():
@@ -77,21 +95,36 @@ def dashboard():
     # Obtener estadísticas según módulos activos
     stats = {}
     
-    # Siempre mostrar estadísticas de inventario (base del sistema)
-    total_items = company_query(InventoryItem).count()
-    low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= InventoryItem.minimum_stock).count()
-    stats['inventory'] = {
-        'total_items': total_items,
-        'low_stock_items': low_stock_items
-    }
+    # Estadísticas de inventario si está activo
+    if company.module_inventory:
+        total_items = company_query(InventoryItem).count()
+        low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= InventoryItem.minimum_stock).count()
+        # Obtener productos con stock bajo (máximo 5)
+        low_stock_products = company_query(InventoryItem).filter(
+            InventoryItem.quantity <= InventoryItem.minimum_stock
+        ).limit(5).all()
+        
+        stats['inventory'] = {
+            'total_items': total_items,
+            'low_stock_items': low_stock_items,
+            'low_stock_products': low_stock_products
+        }
     
     # Estadísticas de POS si está activo
     if company.module_pos:
         total_sales = company_query(Sale).count()
         today_sales = company_query(Sale).filter(func.date(Sale.created_at) == func.current_date()).count()
+        # Calcular total de ventas de hoy
+        from sqlalchemy import func as sql_func
+        today_revenue = db.session.query(sql_func.sum(Sale.total_amount)).filter(
+            Sale.company_id == current_user.company_id,
+            func.date(Sale.created_at) == func.current_date()
+        ).scalar() or 0
+        
         stats['pos'] = {
             'total_sales': total_sales,
-            'today_sales': today_sales
+            'today_sales': today_sales,
+            'today_revenue': float(today_revenue)
         }
     
     # Estadísticas de citas si está activo
@@ -111,6 +144,22 @@ def dashboard():
         ).order_by(Appointment.appointment_date.asc()).limit(5).all()
         stats['appointments']['upcoming'] = upcoming_appointments
     
+    # Estadísticas de Scrum Lite si está activo
+    if company.module_scrum:
+        total_boards = company_query(Board).filter_by(is_active=True).count()
+        # Tareas asignadas al usuario actual
+        my_tasks = company_query(Task).filter_by(assignee_id=current_user.id).filter(
+            Task.status != 'done'
+        ).limit(5).all()
+        # Tareas pendientes en general
+        pending_tasks = company_query(Task).filter(Task.status != 'done').count()
+        
+        stats['scrum'] = {
+            'total_boards': total_boards,
+            'my_tasks': my_tasks,
+            'pending_tasks': pending_tasks
+        }
+    
     # URLs de páginas públicas si están activas
     public_urls = {}
     if company.module_portfolio:
@@ -122,6 +171,7 @@ def dashboard():
 
 @app.route('/inventory')
 @login_required
+@module_required('inventory')
 def inventory():
     search = request.args.get('search', '')
     category_filter = request.args.get('category', '')
@@ -182,6 +232,7 @@ def inventory():
 
 @app.route('/add_item', methods=['GET', 'POST'])
 @login_required
+@module_required('inventory')
 def add_item():
     form = InventoryItemForm()
     if form.validate_on_submit():
@@ -232,6 +283,7 @@ def add_item():
 
 @app.route('/edit_item/<int:item_id>', methods=['GET', 'POST'])
 @login_required
+@module_required('inventory')
 def edit_item(item_id):
     item = company_query(InventoryItem).filter_by(id=item_id).first_or_404()
     
@@ -296,6 +348,7 @@ def edit_item(item_id):
 
 @app.route('/delete_item/<int:item_id>', methods=['POST'])
 @login_required
+@module_required('inventory')
 def delete_item(item_id):
     item = company_query(InventoryItem).filter_by(id=item_id).first_or_404()
     
@@ -317,6 +370,7 @@ def delete_item(item_id):
 
 @app.route('/reports')
 @login_required
+@module_required('inventory')
 def reports():
     # Calculate comprehensive statistics using multi-tenant queries
     items = company_query(InventoryItem).all()
@@ -361,6 +415,7 @@ def reports():
 
 @app.route('/categories', methods=['GET', 'POST'])
 @login_required
+@module_required('inventory')
 def categories():
     form = CategoryForm()
     if form.validate_on_submit():
@@ -412,6 +467,7 @@ def delete_category(category_id):
 # New route for warehouse management
 @app.route('/warehouses', methods=['GET', 'POST'])
 @login_required
+@module_required('inventory')
 def warehouses():
     form = WarehouseForm()
     if form.validate_on_submit():
@@ -953,3 +1009,159 @@ def booking_confirmation(company_code, appointment_id):
     
     return render_template('public/booking_confirmation.html', 
                          company=company, appointment=appointment)
+
+
+# ===== SCRUM LITE MODULE =====
+
+@app.route('/scrum')
+@login_required
+@module_required('scrum')
+def scrum_dashboard():
+    """Dashboard principal de Scrum Lite"""
+    company = current_user.company
+    boards = company_query(Board).filter_by(is_active=True).all()
+    
+    # Estadísticas rápidas
+    my_tasks = company_query(Task).filter_by(assignee_id=current_user.id).filter(
+        Task.status != 'done'
+    ).all()
+    
+    return render_template('modules/scrum/dashboard.html', boards=boards, my_tasks=my_tasks)
+
+
+@app.route('/scrum/board/<int:board_id>')
+@login_required
+@module_required('scrum')
+def scrum_board(board_id):
+    """Vista del tablero Kanban"""
+    board = company_query(Board).filter_by(id=board_id, is_active=True).first_or_404()
+    columns = company_query(Column).filter_by(board_id=board_id).order_by(Column.position).all()
+    
+    # Organizar tareas por columna
+    board_data = []
+    for column in columns:
+        tasks = company_query(Task).filter_by(column_id=column.id).order_by(Task.position).all()
+        board_data.append({
+            'column': column,
+            'tasks': tasks
+        })
+    
+    return render_template('modules/scrum/board.html', board=board, board_data=board_data)
+
+
+@app.route('/scrum/create-board', methods=['GET', 'POST'])
+@login_required
+@module_required('scrum')
+@admin_required
+def create_scrum_board():
+    """Crear nuevo tablero"""
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description', '')
+        
+        if not name:
+            flash('El nombre del tablero es obligatorio', 'danger')
+            return redirect(url_for('create_scrum_board'))
+        
+        # Crear tablero
+        board = Board(
+            name=name,
+            description=description,
+            company_id=current_user.company_id
+        )
+        db.session.add(board)
+        db.session.flush()  # Get board ID
+        
+        # Crear columnas por defecto
+        default_columns = [
+            {'name': 'To Do', 'position': 0, 'color': '#dc3545'},
+            {'name': 'In Progress', 'position': 1, 'color': '#ffc107'},
+            {'name': 'Done', 'position': 2, 'color': '#28a745'}
+        ]
+        
+        for col_data in default_columns:
+            column = Column(
+                name=col_data['name'],
+                position=col_data['position'],
+                color=col_data['color'],
+                board_id=board.id,
+                company_id=current_user.company_id
+            )
+            db.session.add(column)
+        
+        db.session.commit()
+        flash(f'Tablero "{name}" creado exitosamente', 'success')
+        return redirect(url_for('scrum_board', board_id=board.id))
+    
+    return render_template('modules/scrum/create_board.html')
+
+
+@app.route('/scrum/task/create/<int:board_id>/<int:column_id>', methods=['POST'])
+@login_required
+@module_required('scrum')
+def create_task(board_id, column_id):
+    """Crear nueva tarea"""
+    board = company_query(Board).filter_by(id=board_id).first_or_404()
+    column = company_query(Column).filter_by(id=column_id, board_id=board_id).first_or_404()
+    
+    title = request.form.get('title')
+    if not title:
+        flash('El título de la tarea es obligatorio', 'danger')
+        return redirect(url_for('scrum_board', board_id=board_id))
+    
+    # Calcular posición (última + 1)
+    last_position = db.session.query(func.max(Task.position)).filter_by(
+        column_id=column_id, company_id=current_user.company_id
+    ).scalar() or 0
+    
+    task = Task(
+        title=title,
+        description=request.form.get('description', ''),
+        board_id=board_id,
+        column_id=column_id,
+        position=last_position + 1,
+        creator_id=current_user.id,
+        assignee_id=current_user.id,  # Por defecto, asignar al creador
+        company_id=current_user.company_id
+    )
+    
+    db.session.add(task)
+    db.session.commit()
+    
+    flash('Tarea creada exitosamente', 'success')
+    return redirect(url_for('scrum_board', board_id=board_id))
+
+
+@app.route('/scrum/task/move', methods=['POST'])
+@login_required
+@module_required('scrum')
+def move_task():
+    """Mover tarea entre columnas (AJAX)"""
+    data = request.get_json()
+    task_id = data.get('task_id')
+    new_column_id = data.get('column_id')
+    new_position = data.get('position', 0)
+    
+    task = company_query(Task).filter_by(id=task_id).first()
+    if not task:
+        return jsonify({'error': 'Tarea no encontrada'}), 404
+    
+    # Actualizar tarea
+    task.column_id = new_column_id
+    task.position = new_position
+    
+    # Actualizar status basado en la columna
+    column = company_query(Column).filter_by(id=new_column_id).first()
+    if column:
+        if 'done' in column.name.lower() or 'terminado' in column.name.lower():
+            task.status = 'done'
+            from datetime import datetime
+            task.completed_at = datetime.utcnow()
+        elif 'progress' in column.name.lower() or 'progreso' in column.name.lower():
+            task.status = 'in_progress'
+        else:
+            task.status = 'to_do'
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Tablero - Scrum Lite{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0 text-purple">
+                        <i class="fas fa-plus me-2"></i>Crear Nuevo Tablero
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre del Tablero *</label>
+                            <input type="text" class="form-control" id="name" name="name" required 
+                                   placeholder="Ej: Desarrollo Web, Marketing Q1, etc.">
+                            <div class="form-text">Un nombre descriptivo para identificar este tablero</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Describe el propósito y objetivos de este tablero..."></textarea>
+                            <div class="form-text">Opcional: Información adicional sobre este proyecto</div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Columnas por defecto:</strong> Se crearán automáticamente las columnas "To Do", "In Progress" y "Done". Podrás personalizarlas después.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('scrum_dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-purple">
+                                <i class="fas fa-plus me-1"></i>Crear Tablero
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">
+                        <i class="fas fa-lightbulb me-2"></i>¿Qué es Scrum Lite?
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>Tableros Kanban visuales
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>Gestión de tareas simple
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>Asignación de responsables
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>Prioridades por tarea
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>Comentarios colaborativos
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>Seguimiento de progreso
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.text-purple {
+    color: #6f42c1 !important;
+}
+.btn-purple {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+}
+.btn-purple:hover {
+    background-color: #5a359d;
+    border-color: #5a359d;
+    color: white;
+}
+</style>
+{% endblock %}

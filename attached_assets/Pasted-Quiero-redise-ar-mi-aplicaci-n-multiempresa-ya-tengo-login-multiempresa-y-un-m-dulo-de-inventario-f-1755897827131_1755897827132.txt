@@ -1,0 +1,146 @@
+Quiero rediseñar mi aplicación multiempresa (ya tengo login multiempresa y un módulo de inventario funcionando) para que:
+	•	Exista un Dashboard principal post‑login que muestre widgets de cada módulo activo por empresa.
+	•	Todos los módulos estén aislados (Inventario, POS, Citas, Página de presentación, Scrum Lite).
+	•	Inventario deje de ser la pantalla principal y pase a ser un módulo activable como los demás.
+	•	La activación de módulos sea por empresa (multi‑tenant), con personalización visual (logo y colores) y roles existentes (admin_global, admin_empresa, empleado).
+
+1) Alcance y tecnología
+	•	Backend en Python (FastAPI o Flask).
+	•	DB SQLite en desarrollo y PostgreSQL en producción.
+	•	Templates o frontend simple (Jinja/HTMX/React mínimo) para el dashboard con widgets y las vistas por módulo.
+	•	Mantener autenticación y multiempresa existentes; migrar Inventario a módulo aislado.
+
+2) Multiempresa y personalización
+	•	Cada empresa tiene: nombre, logo_url, color_primario, color_secundario, slug público.
+	•	Aislamiento de datos por empresa (multi‑tenant): ningún usuario ve datos de otra empresa.
+	•	El tema visual (logo/colores) se aplica al dashboard y a cada módulo del usuario autenticado.
+	•	Slug público por empresa para páginas externas (citas/presentación), p. ej.:
+/p/vanidades (presentación) y /citas/vanidades.
+
+3) Roles y permisos (usar los que ya tengo)
+	•	admin_global: gestiona empresas, usuarios globales y qué módulos tiene cada empresa.
+	•	admin_empresa: gestiona usuarios de su empresa, configura sus módulos y su página pública.
+	•	empleado: solo usa los módulos activos, sin configurar.
+	•	Matriz de autorización: cada endpoint/acción valida empresa + rol.
+
+4) Sistema de módulos activables
+	•	Módulos disponibles:
+	1.	Inventario (mover lo existente aquí)
+	•	Productos, stock, categorías, alertas de bajo stock, reportes simples.
+	2.	POS (Punto de Venta)
+	•	Ventas integradas al inventario, caja, tickets, reportes de ventas.
+	3.	Citas y Reservas
+	•	Interno (privado): gestión de servicios, agendas, profesionales, duración, estado de citas.
+	•	Público (sin login): página simple y responsive para que clientes finales vean servicios/horarios, reserven y reciban confirmación visual (opcional email/WhatsApp).
+	4.	Página de Presentación / Portafolio
+	•	Página pública con logo, colores, texto, servicios/portafolio, contacto, y botón “Reservar ahora” si Citas está activo.
+	5.	Scrum Lite (Gestión Ágil)
+	•	Tableros Kanban, sprints/iteraciones, tareas (to‑do/doing/done), responsables, fechas, etiquetas, checklists, comentarios.
+	•	Activación por empresa: tabla de vinculación empresa↔módulo con estado activo/inactivo y configuración básica por módulo.
+	•	El menú lateral y el dashboard solo muestran módulos activos.
+
+5) Dashboard principal (nuevo “home” post‑login)
+	•	Mostrar tarjetas/widgets por cada módulo activo de esa empresa con resumen y atajos:
+	•	Inventario: “X productos con stock bajo”, “Top 5 más vendidos”.
+	•	POS: “Ventas de hoy/semana”, “Ticket promedio”.
+	•	Citas: “Próximas N citas”, “Huecos libres hoy”.
+	•	Página de Presentación: estado publicación (publicada/no publicada), CTA “Editar”.
+	•	Scrum Lite: “Tareas de hoy”, “Cards en curso por responsable”.
+	•	Cada widget tiene CTA hacia la vista del módulo correspondiente.
+	•	Rendimiento: cachear widgets por 60–120s y paginar listados internos.
+	•	Accesos rápidos (si rol lo permite): “Crear venta”, “Nueva cita”, “Nueva tarea”.
+
+6) Navegación y UX
+	•	Layout con sidebar (módulos activos) + topbar (logo, nombre empresa, usuario, menú cuenta).
+	•	Si el usuario pertenece a varias empresas, selector de empresa en topbar que recarga tema y módulos.
+	•	Estado vacío por módulo (si no hay datos) con CTA para crear el primer elemento.
+
+7) Datos y entidades (sin código, solo estructura)
+	•	Empresa: id, nombre, slug, logo_url, color_primario, color_secundario, created_at, updated_at.
+	•	Usuario: id, empresa_id, nombre, email (único), password_hash, rol, activo, created_at.
+	•	Módulo: id, clave (“inventario”, “pos”, “citas”, “presentacion”, “scrum”), nombre.
+	•	Empresa_Módulo: id, empresa_id, modulo_id, activo, config_json, created_at, updated_at.
+	•	Inventario (ya existente, mover a su espacio): producto, categoría, stock, umbral_bajo, precio, etc.
+	•	POS: venta, items_venta, caja/sesión, cliente opcional, total, impuestos, método pago.
+	•	Citas: servicio, profesional/agenda, franja horaria, cita (cliente_nombre, contacto, estado, fuente=interno/público).
+	•	Página Presentación: secciones (hero, about, servicios/portfolio), links de contacto, estado publicación.
+	•	Scrum Lite: tablero, sprint, tarea (título, descripción, estado, responsable, fecha límite, etiquetas, checklist, comentarios, prioridad).
+	•	Auditoría (global): logs por acción, usuario, empresa, módulo, timestamp.
+	•	Notificaciones (opcional): recordatorios de citas, menciones en tareas, etc.
+
+8) Endpoints y vistas (solo enumerar, la IA implementa)
+	•	Auth: login, logout, me (devuelve empresa, rol, módulos activos, tema).
+	•	Empresas (admin_global): CRUD empresas, activar/desactivar módulos por empresa, edición de branding.
+	•	Módulos: listar disponibles, listar activos para empresa, activar/desactivar.
+	•	Dashboard: endpoint que reúne widgets por módulo activo (con cache).
+	•	Inventario: CRUD productos/categorías/stock (aislado por empresa).
+	•	POS: crear venta, listar ventas, abrir/cerrar caja, reportes.
+	•	Citas (interno): CRUD servicios, agendas, citas; reprogramar, cancelar.
+	•	Citas (público):
+	•	GET /citas/:slug → catálogo servicios + calendario
+	•	POST /citas/:slug/reservar → crear cita pública (validaciones/anti-spam básico)
+	•	Página de Presentación (público):
+	•	GET /p/:slug → landing corporativa (logo/colores/sections/CTA)
+	•	Scrum Lite: CRUD tableros, sprints, tareas, columnas (kanban), comentarios, adjuntos, filtros por responsable y sprint.
+
+9) Seguridad y cumplimiento
+	•	Autorización empresa + rol en cada acción.
+	•	Validación de tenant en queries (scopes por empresa).
+	•	Rate limiting en endpoints públicos de citas y presentación.
+	•	Campos de contacto público con protección anti‑spam (honeypot o captcha ligero).
+	•	Logs de auditoría en cambios críticos (ventas, citas, tareas).
+	•	Manejo de timezones por empresa (importante para Citas y Scrum).
+
+10) Migración desde el estado actual
+	•	Crear entidades Módulo y Empresa_Módulo.
+	•	Marcar Inventario como módulo activo para todas las empresas que hoy lo usan.
+	•	Mover rutas/páginas del inventario a su namespace de módulo (sin cambiar datos).
+	•	Crear el nuevo Dashboard y establecerlo como home post‑login.
+	•	Actualizar navegación para que muestre solo módulos activos.
+
+11) Widgets: reglas y ejemplos
+	•	Cada widget devuelve: título, métrica principal, subtítulo, CTA, y lista breve (máx. 5 ítems).
+	•	Inventario: “Stock bajo (N)”, lista de productos bajo umbral; CTA “Ver inventario”.
+	•	POS: “Ventas hoy $X”, sub: “Tickets: Y | Promedio: Z”; CTA “Nueva venta”.
+	•	Citas: “Próximas citas (N)”, lista con hora/servicio/cliente; CTA “Ver agenda”.
+	•	Presentación: “Página publicada / no publicada”; CTA “Editar página”.
+	•	Scrum: “Tareas hoy (N)”, tarjetas asignadas al usuario; CTA “Ver tablero”.
+
+12) UX público (Citas/Presentación)
+	•	Páginas públicas deben heredar tema (logo/colores) de la empresa por slug.
+	•	Citas: selección servicio → fecha/hora → datos cliente → confirmación.
+(No requiere crear cuenta).
+	•	Presentación: hero con logo, texto, servicios/portfolio, contacto, botón Reservar si Citas activo.
+
+13) Métricas y reportes
+	•	POS: ventas por día/semana/mes, ticket promedio, top productos.
+	•	Inventario: rotación, reposiciones, alertas.
+	•	Citas: ocupación por franja, no‑shows, servicios más solicitados.
+	•	Scrum: throughput (tareas completadas por sprint), lead/cycle time simples.
+
+14) Pruebas y calidad
+	•	Casos de prueba clave por rol y módulo (crear/editar/borrar, límites, permisos).
+	•	Tests para aislamiento de empresas (un usuario jamás ve datos de otra).
+	•	Tests de endpoints públicos: reservas válidas/duplicadas/cancelaciones.
+	•	Verificación de dashboard: widgets solo de módulos activos.
+
+15) Entregables
+	•	Proyecto ejecutable con:
+	•	Dashboard funcional y widgets por módulo.
+	•	Navegación que solo muestre módulos activos.
+	•	Módulos: Inventario (migrado), POS, Citas (privado + público), Presentación (público), Scrum Lite (mínimo kanban).
+	•	Panel admin_global para activar/desactivar módulos.
+	•	Panel admin_empresa para configurar sus módulos y branding.
+	•	Seed de datos opcional para demo (1–2 empresas con combinaciones distintas de módulos).
+
+16) Criterios de aceptación
+	•	Tras login, el usuario llega al Dashboard (no a Inventario).
+	•	El sidebar solo muestra módulos activos de su empresa.
+	•	Cada módulo funciona aislado (no “filtra” UI de otros módulos).
+	•	Las páginas públicas funcionan por slug de empresa, con su branding.
+	•	Inventario opera como módulo, no como home.
+	•	Scrum Lite permite al menos crear columnas, tareas y moverlas.
+
+⸻
+
+Con este prompt, genera el código y la estructura completa cumpliendo todo lo anterior, reutilizando mi login multiempresa actual y migrando el Inventario a un módulo aislado.

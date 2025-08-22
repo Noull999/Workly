@@ -109,9 +109,12 @@
                                 <i class="fas fa-home me-1"></i>Inicio
                             </a>
                         </li>
+                        
+                        <!-- Inventario (si está activo) -->
+                        {% if current_user.company.module_inventory %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('inventory') }}">
-                                <i class="fas fa-list me-1"></i>Inventario
+                                <i class="fas fa-boxes me-1"></i>Inventario
                             </a>
                         </li>
                         <li class="nav-item">
@@ -134,8 +137,9 @@
                                 <i class="fas fa-chart-bar me-1"></i>Reportes
                             </a>
                         </li>
+                        {% endif %}
                         
-                        <!-- Módulos adicionales según empresa -->
+                        <!-- POS (si está activo) -->
                         {% if current_user.company.module_pos %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('pos_sales') }}">
@@ -144,6 +148,26 @@
                         </li>
                         {% endif %}
                         
+                        <!-- Scrum Lite (si está activo) -->
+                        {% if current_user.company.module_scrum %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="scrumDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-tasks me-1"></i>Scrum
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('scrum_dashboard') }}">
+                                    <i class="fas fa-project-diagram me-1"></i>Tableros
+                                </a></li>
+                                {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
+                                <li><a class="dropdown-item" href="{{ url_for('create_scrum_board') }}">
+                                    <i class="fas fa-plus me-1"></i>Nuevo Tablero
+                                </a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                        
+                        <!-- Citas (si está activo) -->
                         {% if current_user.company.module_appointments %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="appointmentsDropdown" role="button" data-bs-toggle="dropdown">
