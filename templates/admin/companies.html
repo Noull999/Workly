@@ -154,6 +154,9 @@
                                                 <a href="{{ url_for('edit_company', company_id=company.id) }}" class="btn btn-outline-primary" title="Editar Empresa">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                <a href="{{ url_for('edit_admin_credentials', company_id=company.id) }}" class="btn btn-outline-info" title="Editar Credenciales del Admin">
+                                                    <i class="fas fa-user-cog"></i>
+                                                </a>
                                                 <form method="POST" action="{{ url_for('toggle_company_status', company_id=company.id) }}" class="d-inline">
                                                     {% if company.is_active %}
                                                         <button type="submit" class="btn btn-outline-warning" onclick="return confirm('¿Desactivar la empresa {{ company.name }}?')" title="Desactivar">

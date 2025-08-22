@@ -90,3 +90,11 @@ class CompanySettingsForm(FlaskForm):
     logo_url = StringField('URL del Logo', validators=[Optional(), Length(max=255)])
     primary_color = StringField('Color Primario', validators=[DataRequired(), Length(min=7, max=7)])
     secondary_color = StringField('Color Secundario', validators=[DataRequired(), Length(min=7, max=7)])
+
+class EditAdminCredentialsForm(FlaskForm):
+    username = StringField('Nuevo Usuario', validators=[DataRequired(), Length(min=3, max=64)])
+    email = EmailField('Nuevo Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Nueva Contraseña', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirmar Contraseña', validators=[
+        DataRequired(), EqualTo('password', message='Las contraseñas deben coincidir')
+    ])

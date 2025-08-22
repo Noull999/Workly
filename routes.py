@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from app import app, db
 from models import User, InventoryItem, Category, Company, Warehouse, AuditLog
-from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm
+from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm
 from utils import company_query, log_audit, setup_new_company, validate_company_access
 from sqlalchemy import or_, func
 from functools import wraps
@@ -503,7 +503,7 @@ def manage_companies():
         
         db.session.commit()
         
-        flash(f'¡Empresa "{company.name}" creada exitosamente! Admin: {admin_user.username}, contraseña: empresa123. Usa el botón "Editar" para personalizar logo y colores.', 'success')
+        flash(f'¡Empresa "{company.name}" creada exitosamente! Admin: {admin_user.username}, contraseña: empresa123. Usa los botones "Editar" y "Credenciales" para personalizar.', 'success')
         return redirect(url_for('manage_companies'))
     
     companies = Company.query.filter_by(is_active=True).all()
@@ -528,6 +528,51 @@ def edit_company(company_id):
         return redirect(url_for('manage_companies'))
     
     return render_template('admin/edit_company.html', form=form, company=company)
+
+@app.route('/admin/edit_admin_credentials/<int:company_id>', methods=['GET', 'POST'])
+@login_required
+@admin_global_required
+def edit_admin_credentials(company_id):
+    """Editar credenciales del administrador de empresa"""
+    company = Company.query.get_or_404(company_id)
+    
+    # Buscar el administrador de la empresa
+    admin_user = User.query.filter_by(company_id=company_id, role='admin_empresa').first()
+    if not admin_user:
+        flash('No se encontró un administrador para esta empresa.', 'danger')
+        return redirect(url_for('manage_companies'))
+    
+    form = EditAdminCredentialsForm()
+    
+    # Pre-llenar el formulario con los datos actuales
+    if request.method == 'GET':
+        form.username.data = admin_user.username
+        form.email.data = admin_user.email
+    
+    if form.validate_on_submit():
+        # Verificar si el username ya existe (excluyendo el usuario actual)
+        existing_user = User.query.filter(User.username == form.username.data, User.id != admin_user.id).first()
+        if existing_user:
+            flash('El nombre de usuario ya está registrado.', 'danger')
+            return render_template('admin/edit_admin_credentials.html', form=form, company=company, admin_user=admin_user)
+        
+        # Verificar si el email ya existe (excluyendo el usuario actual)
+        existing_user = User.query.filter(User.email == form.email.data, User.id != admin_user.id).first()
+        if existing_user:
+            flash('El correo electrónico ya está registrado.', 'danger')
+            return render_template('admin/edit_admin_credentials.html', form=form, company=company, admin_user=admin_user)
+        
+        # Actualizar credenciales
+        admin_user.username = form.username.data
+        admin_user.email = form.email.data
+        admin_user.set_password(form.password.data)
+        
+        db.session.commit()
+        
+        flash(f'¡Credenciales del administrador de "{company.name}" actualizadas exitosamente! Nuevas credenciales: {admin_user.username} / {form.password.data}', 'success')
+        return redirect(url_for('manage_companies'))
+    
+    return render_template('admin/edit_admin_credentials.html', form=form, company=company, admin_user=admin_user)
 
 @app.route('/admin/users', methods=['GET', 'POST'])
 @login_required
