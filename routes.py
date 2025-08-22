@@ -79,7 +79,7 @@ def dashboard():
     
     # Siempre mostrar estadísticas de inventario (base del sistema)
     total_items = company_query(InventoryItem).count()
-    low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= InventoryItem.low_stock_alert).count()
+    low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= InventoryItem.minimum_stock).count()
     stats['inventory'] = {
         'total_items': total_items,
         'low_stock_items': low_stock_items
