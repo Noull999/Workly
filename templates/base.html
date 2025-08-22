@@ -110,8 +110,8 @@
                             </a>
                         </li>
                         
-                        <!-- Inventario (si está activo) -->
-                        {% if current_user.company.module_inventory %}
+                        <!-- Inventario (si está activo o es super admin) -->
+                        {% if current_user.company.module_inventory or current_user.is_admin_global() %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('inventory') }}">
                                 <i class="fas fa-boxes me-1"></i>Inventario
@@ -139,8 +139,8 @@
                         </li>
                         {% endif %}
                         
-                        <!-- POS (si está activo) -->
-                        {% if current_user.company.module_pos %}
+                        <!-- POS (si está activo o es super admin) -->
+                        {% if current_user.company.module_pos or current_user.is_admin_global() %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('pos_sales') }}">
                                 <i class="fas fa-cash-register me-1"></i>POS
@@ -148,8 +148,8 @@
                         </li>
                         {% endif %}
                         
-                        <!-- Scrum Lite (si está activo) -->
-                        {% if current_user.company.module_scrum %}
+                        <!-- Scrum Lite (si está activo o es super admin) -->
+                        {% if current_user.company.module_scrum or current_user.is_admin_global() %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="scrumDropdown" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-tasks me-1"></i>Scrum
@@ -167,8 +167,8 @@
                         </li>
                         {% endif %}
                         
-                        <!-- Citas (si está activo) -->
-                        {% if current_user.company.module_appointments %}
+                        <!-- Citas (si está activo o es super admin) -->
+                        {% if current_user.company.module_appointments or current_user.is_admin_global() %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="appointmentsDropdown" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-calendar-alt me-1"></i>Citas

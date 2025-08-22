@@ -35,6 +35,10 @@ def module_required(module_name):
             if not current_user.is_authenticated:
                 return redirect(url_for('login'))
             
+            # Super admin tiene acceso a todos los módulos
+            if current_user.is_admin_global():
+                return f(*args, **kwargs)
+            
             company = current_user.company
             module_active = getattr(company, f'module_{module_name}', False)
             
@@ -48,6 +52,9 @@ def module_required(module_name):
 @app.route('/')
 def index():
     if current_user.is_authenticated:
+        # Super admin va directo a panel de administración
+        if current_user.is_admin_global():
+            return redirect(url_for('admin_dashboard'))
         return redirect(url_for('dashboard'))
     return render_template('index.html')
 
@@ -544,6 +551,40 @@ def admin_panel():
                          total_companies=total_companies,
                          total_users=total_users,
                          company_stats=company_stats)
+
+@app.route('/admin/dashboard')
+@login_required
+@admin_global_required
+def admin_dashboard():
+    """Dashboard principal para super admin"""
+    companies = Company.query.all()
+    users = User.query.all()
+    total_companies = len(companies)
+    total_users = len(users)
+    active_companies = len([c for c in companies if c.is_active])
+    
+    # Estadísticas de uso de módulos
+    module_stats = {
+        'inventory': sum(1 for c in companies if c.module_inventory and c.is_active),
+        'pos': sum(1 for c in companies if c.module_pos and c.is_active),
+        'appointments': sum(1 for c in companies if c.module_appointments and c.is_active),
+        'portfolio': sum(1 for c in companies if c.module_portfolio and c.is_active),
+        'scrum': sum(1 for c in companies if c.module_scrum and c.is_active)
+    }
+    
+    modules_active = sum(module_stats.values())
+    
+    # Empresas más recientes
+    recent_companies = Company.query.order_by(Company.created_at.desc()).limit(5).all()
+    
+    return render_template('admin/dashboard.html',
+                         companies=companies,
+                         recent_companies=recent_companies,
+                         total_companies=total_companies,
+                         total_users=total_users,
+                         active_companies=active_companies,
+                         modules_active=modules_active,
+                         module_stats=module_stats)
 
 @app.route('/admin/companies', methods=['GET', 'POST'])
 @login_required

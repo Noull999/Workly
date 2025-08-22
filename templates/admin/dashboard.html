@@ -1,82 +1,77 @@
 {% extends "base.html" %}
 
-{% block title %}Panel de Administración Global{% endblock %}
+{% block title %}Panel de Administración - Inventario INTAC{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1><i class="fas fa-tachometer-alt me-2"></i>Panel de Administración Global</h1>
-                <div class="d-flex gap-2">
-                    <a href="{{ url_for('manage_companies') }}" class="btn btn-primary">
-                        <i class="fas fa-building me-1"></i>Gestionar Empresas
-                    </a>
-                    <a href="{{ url_for('manage_users') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-users me-1"></i>Gestionar Usuarios
-                    </a>
-                </div>
+                <h1 class="h3">
+                    <i class="fas fa-cogs text-primary me-2"></i>Panel de Administración Global
+                </h1>
+                <span class="badge bg-danger fs-6">SUPER ADMIN</span>
             </div>
         </div>
     </div>
 
-    <!-- Estadísticas Principales -->
+    <!-- Estadísticas generales -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="card bg-primary text-white">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="card-title">{{ total_companies }}</h3>
-                            <p class="card-text">Empresas Activas</p>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ total_companies }}</h5>
+                            <p class="card-text mb-0">Empresas Totales</p>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-building fa-2x"></i>
+                        <div>
+                            <i class="fas fa-building fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="card bg-success text-white">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="card-title">{{ total_users }}</h3>
-                            <p class="card-text">Usuarios Totales</p>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ total_users }}</h5>
+                            <p class="card-text mb-0">Usuarios Totales</p>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-users fa-2x"></i>
+                        <div>
+                            <i class="fas fa-users fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="card bg-info text-white">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="card-title">{{ company_stats|length }}</h3>
-                            <p class="card-text">Empresas con Datos</p>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ modules_active }}</h5>
+                            <p class="card-text mb-0">Módulos Activos</p>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-chart-line fa-2x"></i>
+                        <div>
+                            <i class="fas fa-puzzle-piece fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-dark">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="card-title">Sistema</h3>
-                            <p class="card-text">Operativo</p>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ active_companies }}</h5>
+                            <p class="card-text mb-0">Empresas Activas</p>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-server fa-2x"></i>
+                        <div>
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
@@ -84,87 +79,156 @@
         </div>
     </div>
 
-    <!-- Lista de Empresas -->
+    <!-- Panel de administración -->
     <div class="row">
-        <div class="col-12">
-            <div class="card">
+        <div class="col-lg-8">
+            <!-- Gestión rápida -->
+            <div class="card shadow mb-4">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-building me-2"></i>Empresas Registradas
-                    </h5>
+                    <h6 class="m-0 font-weight-bold text-primary">Gestión Rápida</h6>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Empresa</th>
-                                    <th>Código</th>
-                                    <th>Branding</th>
-                                    <th>Usuarios</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for company in companies %}
-                                <tr>
-                                    <td>
-                                        {% if company.logo_url %}
-                                            <img src="{{ company.logo_url }}" alt="{{ company.name }}" class="company-logo me-2" style="max-height: 25px;">
-                                        {% endif %}
-                                        <strong>{{ company.name }}</strong>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">{{ company.code }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex gap-1">
-                                            <div class="color-box" style="width: 20px; height: 20px; background-color: {{ company.primary_color }}; border: 1px solid #ccc; border-radius: 3px;" title="Color Primario"></div>
-                                            <div class="color-box" style="width: 20px; height: 20px; background-color: {{ company.secondary_color }}; border: 1px solid #ccc; border-radius: 3px;" title="Color Secundario"></div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ company_stats.get(company.id, {}).get('users', 0) }} usuarios</span>
-                                    </td>
-                                    <td>
-                                        {% if company.is_active %}
-                                            <span class="badge bg-success">Activa</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Inactiva</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('edit_company', company_id=company.id) }}" class="btn btn-outline-primary" title="Editar Empresa">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="{{ url_for('edit_admin_credentials', company_id=company.id) }}" class="btn btn-outline-info" title="Editar Credenciales del Admin">
-                                                <i class="fas fa-user-cog"></i>
-                                            </a>
-                                            <form method="POST" action="{{ url_for('toggle_company_status', company_id=company.id) }}" class="d-inline">
-                                                {% if company.is_active %}
-                                                    <button type="submit" class="btn btn-outline-warning" onclick="return confirm('¿Desactivar esta empresa?')" title="Desactivar">
-                                                        <i class="fas fa-pause"></i>
-                                                    </button>
-                                                {% else %}
-                                                    <button type="submit" class="btn btn-outline-success" onclick="return confirm('¿Activar esta empresa?')" title="Activar">
-                                                        <i class="fas fa-play"></i>
-                                                    </button>
-                                                {% endif %}
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted">
-                                        <i class="fas fa-building me-2"></i>No hay empresas registradas
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('manage_modules') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-puzzle-piece fa-lg mb-2"></i><br>
+                                <strong>Gestionar Módulos</strong><br>
+                                <small class="text-muted">Activar/desactivar módulos por empresa</small>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('admin_companies') }}" class="btn btn-outline-success w-100 py-3">
+                                <i class="fas fa-building fa-lg mb-2"></i><br>
+                                <strong>Gestionar Empresas</strong><br>
+                                <small class="text-muted">Crear y administrar empresas</small>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info w-100 py-3">
+                                <i class="fas fa-users fa-lg mb-2"></i><br>
+                                <strong>Gestionar Usuarios</strong><br>
+                                <small class="text-muted">Administrar usuarios del sistema</small>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100 py-3">
+                                <i class="fas fa-home fa-lg mb-2"></i><br>
+                                <strong>Dashboard Usuario</strong><br>
+                                <small class="text-muted">Ver como usuario normal</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acceso a módulos como super admin -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Acceso a Módulos (Super Admin)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Como super admin, tienes acceso completo a todos los módulos para pruebas y administración.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ url_for('inventory') }}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-boxes me-1"></i>Inventario
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ url_for('pos_sales') }}" class="btn btn-outline-success btn-sm w-100">
+                                <i class="fas fa-cash-register me-1"></i>POS
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ url_for('manage_appointments') }}" class="btn btn-outline-info btn-sm w-100">
+                                <i class="fas fa-calendar-alt me-1"></i>Citas
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ url_for('portfolio_config') }}" class="btn btn-outline-warning btn-sm w-100">
+                                <i class="fas fa-globe me-1"></i>Portfolio
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ url_for('scrum_dashboard') }}" class="btn btn-outline-secondary btn-sm w-100" style="color: #6f42c1; border-color: #6f42c1;">
+                                <i class="fas fa-tasks me-1"></i>Scrum Lite
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Empresas recientes -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Empresas Recientes</h6>
+                </div>
+                <div class="card-body">
+                    {% if companies %}
+                        {% for company in companies[:5] %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ company.name }}</h6>
+                                <small class="text-muted">
+                                    {{ company.code }} - 
+                                    {% if company.is_active %}
+                                        <span class="text-success">Activa</span>
+                                    {% else %}
+                                        <span class="text-danger">Inactiva</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="text-muted">
+                                <small>{{ company.created_at.strftime('%d/%m/%Y') }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No hay empresas registradas</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Resumen de módulos -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Uso de Módulos</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-boxes me-1 text-primary"></i>Inventario</span>
+                            <span class="badge bg-primary">{{ module_stats.inventory if module_stats else 0 }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-cash-register me-1 text-success"></i>POS</span>
+                            <span class="badge bg-success">{{ module_stats.pos if module_stats else 0 }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-calendar-alt me-1 text-info"></i>Citas</span>
+                            <span class="badge bg-info">{{ module_stats.appointments if module_stats else 0 }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-globe me-1 text-warning"></i>Portfolio</span>
+                            <span class="badge bg-warning">{{ module_stats.portfolio if module_stats else 0 }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-tasks me-1" style="color: #6f42c1;"></i>Scrum</span>
+                            <span class="badge" style="background-color: #6f42c1;">{{ module_stats.scrum if module_stats else 0 }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
