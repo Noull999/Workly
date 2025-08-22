@@ -19,11 +19,11 @@
             <div class="col-md-6">
                 <div class="card h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
-                        <h5 class="card-title">¿Usuario Nuevo?</h5>
-                        <p class="card-text">Crea una cuenta para comenzar a gestionar tu inventario hoy.</p>
-                        <a href="{{ url_for('register') }}" class="btn btn-success">
-                            <i class="fas fa-user-plus me-1"></i>Registrarse Ahora
+                        <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">¿Necesitas Acceso?</h5>
+                        <p class="card-text">Sistema empresarial de pago. Solicita una cotización personalizada.</p>
+                        <a href="{{ url_for('register') }}" class="btn btn-info">
+                            <i class="fas fa-envelope me-1"></i>Obtener Información
                         </a>
                     </div>
                 </div>
@@ -32,8 +32,8 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-sign-in-alt fa-3x text-primary mb-3"></i>
-                        <h5 class="card-title">¿Usuario Existente?</h5>
-                        <p class="card-text">Inicia sesión para acceder a tu panel de inventario y gestionar artículos.</p>
+                        <h5 class="card-title">¿Eres Cliente?</h5>
+                        <p class="card-text">Inicia sesión con las credenciales que recibiste por email.</p>
                         <a href="{{ url_for('login') }}" class="btn btn-primary">
                             <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
                         </a>
@@ -78,23 +78,25 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="fas fa-info-circle me-2"></i>Key Features
+                            <i class="fas fa-star me-2"></i>Características Principales
                         </h5>
                         <div class="row">
                             <div class="col-md-6">
                                 <ul class="list-unstyled">
-                                    <li><i class="fas fa-check text-success me-2"></i>User authentication and authorization</li>
-                                    <li><i class="fas fa-check text-success me-2"></i>Complete CRUD operations for inventory</li>
-                                    <li><i class="fas fa-check text-success me-2"></i>Search and filter capabilities</li>
-                                    <li><i class="fas fa-check text-success me-2"></i>Category management</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Sistema multiempresa con datos aislados</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Gestión completa de inventario y almacenes</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Búsqueda y filtros avanzados</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Gestión de categorías y códigos de barras</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Control de roles y permisos de usuario</li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
                                 <ul class="list-unstyled">
-                                    <li><i class="fas fa-check text-success me-2"></i>Low stock alerts and monitoring</li>
-                                    <li><i class="fas fa-check text-success me-2"></i>Inventory valuation tracking</li>
-                                    <li><i class="fas fa-check text-success me-2"></i>Comprehensive reporting dashboard</li>
-                                    <li><i class="fas fa-check text-success me-2"></i>Responsive design for all devices</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Alertas de stock bajo y monitoreo</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Reportes completos y panel de control</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Branding personalizado por empresa</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Diseño responsivo para todos los dispositivos</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Sistema seguro y escalable</li>
                                 </ul>
                             </div>
                         </div>
