@@ -503,11 +503,31 @@ def manage_companies():
         
         db.session.commit()
         
-        flash(f'¡Empresa "{company.name}" creada exitosamente! Admin: {admin_user.username}, contraseña: empresa123', 'success')
+        flash(f'¡Empresa "{company.name}" creada exitosamente! Admin: {admin_user.username}, contraseña: empresa123. Usa el botón "Editar" para personalizar logo y colores.', 'success')
         return redirect(url_for('manage_companies'))
     
     companies = Company.query.filter_by(is_active=True).all()
     return render_template('admin/companies.html', form=form, companies=companies)
+
+@app.route('/admin/edit_company/<int:company_id>', methods=['GET', 'POST'])
+@login_required
+@admin_global_required
+def edit_company(company_id):
+    """Editar empresa existente"""
+    company = Company.query.get_or_404(company_id)
+    form = CompanyForm(obj=company)
+    
+    if form.validate_on_submit():
+        company.name = form.name.data
+        company.logo_url = form.logo_url.data if form.logo_url.data else None
+        company.primary_color = form.primary_color.data
+        company.secondary_color = form.secondary_color.data
+        
+        db.session.commit()
+        flash(f'¡Empresa "{company.name}" actualizada exitosamente!', 'success')
+        return redirect(url_for('manage_companies'))
+    
+    return render_template('admin/edit_company.html', form=form, company=company)
 
 @app.route('/admin/users', methods=['GET', 'POST'])
 @login_required
