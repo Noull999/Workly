@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Principal - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Título principal dinámico -->
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-home me-2"></i>Panel Principal
+                <span class="h4 text-muted">- {{ company.name }}</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Tarjetas de estadísticas principales -->
+    <div class="row mb-4">
+        <!-- Inventario (siempre presente) -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Inventario</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.inventory.total_items }} artículos</div>
+                            {% if stats.inventory.low_stock_items > 0 %}
+                                <small class="text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ stats.inventory.low_stock_items }} con stock bajo
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POS (si está activo) -->
+        {% if company.module_pos %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Ventas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pos.total_sales }} total</div>
+                            <small class="text-success">{{ stats.pos.today_sales }} hoy</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cash-register fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Citas (si está activo) -->
+        {% if company.module_appointments %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Citas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.appointments.pending }} pendientes</div>
+                            <small class="text-info">{{ stats.appointments.today }} hoy</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Páginas Públicas (si están activas) -->
+        {% if company.module_portfolio or company.module_appointments %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Páginas Públicas</div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                {% if company.module_portfolio %}Portfolio{% endif %}
+                                {% if company.module_appointments %}{{ " + Reservas" if company.module_portfolio else "Reservas" }}{% endif %}
+                            </div>
+                            <small class="text-muted">Activas para clientes</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-globe fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Contenido específico por módulos -->
+    <div class="row">
+        <!-- Panel de inventario -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-boxes me-2"></i>Inventario
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if stats.inventory.total_items > 0 %}
+                        <div class="text-center">
+                            <p class="mb-3">Gestiona tu inventario completo</p>
+                            <a href="{{ url_for('inventory') }}" class="btn btn-primary">
+                                <i class="fas fa-list me-1"></i>Ver Inventario
+                            </a>
+                            <a href="{{ url_for('add_item') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-1"></i>Agregar Artículo
+                            </a>
+                        </div>
+                        {% if stats.inventory.low_stock_items > 0 %}
+                            <div class="alert alert-warning mt-3">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Hay {{ stats.inventory.low_stock_items }} artículo(s) con stock bajo
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-boxes fa-3x mb-3"></i>
+                            <p>No tienes artículos en inventario</p>
+                            <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Agregar tu primer artículo
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel POS -->
+        {% if company.module_pos %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-cash-register me-2"></i>Punto de Venta
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <p class="mb-3">Procesa ventas y controla tu caja</p>
+                        <a href="{{ url_for('pos_sales') }}" class="btn btn-success">
+                            <i class="fas fa-cash-register me-1"></i>Abrir POS
+                        </a>
+                    </div>
+                    {% if stats.pos.today_sales > 0 %}
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Has realizado {{ stats.pos.today_sales }} venta(s) hoy
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Segunda fila de módulos -->
+    {% if company.module_appointments %}
+    <div class="row">
+        <!-- Panel de citas -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-calendar-alt me-2"></i>Gestión de Citas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <p class="mb-1">Sistema de reservas y servicios</p>
+                            {% if public_urls.booking %}
+                                <small class="text-muted">
+                                    <i class="fas fa-link me-1"></i>
+                                    Página pública: <a href="{{ public_urls.booking }}" target="_blank">Reservar Cita</a>
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="{{ url_for('manage_appointments') }}" class="btn btn-info me-2">
+                                <i class="fas fa-calendar-check me-1"></i>Gestionar Citas
+                            </a>
+                            <a href="{{ url_for('manage_services') }}" class="btn btn-outline-info">
+                                <i class="fas fa-concierge-bell me-1"></i>Servicios
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Próximas citas -->
+                    {% if stats.appointments.upcoming %}
+                        <h6 class="text-muted">Próximas Citas:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Servicio</th>
+                                        <th>Fecha</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in stats.appointments.upcoming %}
+                                    <tr>
+                                        <td>{{ appointment.client_name }}</td>
+                                        <td>{{ appointment.service.name }}</td>
+                                        <td>{{ appointment.appointment_date.strftime('%d/%m %H:%M') }}</td>
+                                        <td>
+                                            {% if appointment.status == 'pendiente' %}
+                                                <span class="badge bg-warning">Pendiente</span>
+                                            {% elif appointment.status == 'confirmada' %}
+                                                <span class="badge bg-success">Confirmada</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                            <p>No hay citas próximas</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de páginas públicas -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-globe me-2"></i>Páginas Públicas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if company.module_portfolio %}
+                        <div class="mb-3">
+                            <h6 class="text-primary">Página de Presentación</h6>
+                            <p class="small text-muted">Tu página pública con información de la empresa</p>
+                            <a href="{{ public_urls.portfolio }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i>Ver Página
+                            </a>
+                            <a href="{{ url_for('portfolio_config') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-edit me-1"></i>Configurar
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {% if company.module_appointments %}
+                        <div>
+                            <h6 class="text-success">Sistema de Reservas</h6>
+                            <p class="small text-muted">Página donde tus clientes pueden reservar citas</p>
+                            <a href="{{ public_urls.booking }}" target="_blank" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-calendar-plus me-1"></i>Reservar Cita
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Accesos rápidos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-dark">
+                        <i class="fas fa-bolt me-2"></i>Accesos Rápidos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('categories') }}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-tags fa-2x d-block mb-2"></i>
+                                Categorías
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('warehouses') }}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-warehouse fa-2x d-block mb-2"></i>
+                                Almacenes
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('reports') }}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-chart-bar fa-2x d-block mb-2"></i>
+                                Reportes
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary w-100 mb-2">
+                                <i class="fas fa-user-edit fa-2x d-block mb-2"></i>
+                                Mi Perfil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: .25rem solid #4e73df !important;
+}
+.border-left-success {
+    border-left: .25rem solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: .25rem solid #36b9cc !important;
+}
+.border-left-warning {
+    border-left: .25rem solid #f6c23e !important;
+}
+</style>
+{% endblock %}

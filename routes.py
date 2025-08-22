@@ -30,13 +30,13 @@ def admin_required(f):
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for('inventory'))
+        return redirect(url_for('dashboard'))
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('inventory'))
+        return redirect(url_for('dashboard'))
     
     form = LoginForm()
     if form.validate_on_submit():
@@ -45,7 +45,7 @@ def login():
             login_user(user)
             next_page = request.args.get('next')
             flash(f'¡Bienvenido de nuevo, {user.username}!', 'success')
-            return redirect(next_page) if next_page else redirect(url_for('inventory'))
+            return redirect(next_page) if next_page else redirect(url_for('dashboard'))
         flash('Usuario o contraseña inválidos', 'danger')
     
     return render_template('login.html', form=form)
@@ -67,6 +67,58 @@ def load_user_company():
     """Load user company for all requests to enable multi-tenant queries"""
     if current_user.is_authenticated:
         g.company_id = current_user.company_id
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Panel principal dinámico según módulos activos de la empresa"""
+    company = current_user.company
+    
+    # Obtener estadísticas según módulos activos
+    stats = {}
+    
+    # Siempre mostrar estadísticas de inventario (base del sistema)
+    total_items = company_query(InventoryItem).count()
+    low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= InventoryItem.low_stock_alert).count()
+    stats['inventory'] = {
+        'total_items': total_items,
+        'low_stock_items': low_stock_items
+    }
+    
+    # Estadísticas de POS si está activo
+    if company.module_pos:
+        total_sales = company_query(Sale).count()
+        today_sales = company_query(Sale).filter(func.date(Sale.sale_date) == func.current_date()).count()
+        stats['pos'] = {
+            'total_sales': total_sales,
+            'today_sales': today_sales
+        }
+    
+    # Estadísticas de citas si está activo
+    if company.module_appointments:
+        pending_appointments = company_query(Appointment).filter_by(status='pendiente').count()
+        today_appointments = company_query(Appointment).filter(func.date(Appointment.appointment_date) == func.current_date()).count()
+        stats['appointments'] = {
+            'pending': pending_appointments,
+            'today': today_appointments
+        }
+        
+        # Obtener próximas citas (5 más próximas)
+        from datetime import datetime
+        upcoming_appointments = company_query(Appointment).filter(
+            Appointment.appointment_date >= datetime.now(),
+            Appointment.status.in_(['pendiente', 'confirmada'])
+        ).order_by(Appointment.appointment_date.asc()).limit(5).all()
+        stats['appointments']['upcoming'] = upcoming_appointments
+    
+    # URLs de páginas públicas si están activas
+    public_urls = {}
+    if company.module_portfolio:
+        public_urls['portfolio'] = url_for('public_portfolio', company_code=company.code, _external=True)
+    if company.module_appointments:
+        public_urls['booking'] = url_for('public_booking', company_code=company.code, _external=True)
+    
+    return render_template('dashboard.html', stats=stats, company=company, public_urls=public_urls)
 
 @app.route('/inventory')
 @login_required
