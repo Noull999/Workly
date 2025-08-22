@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Servicios - {{ current_user.company.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-concierge-bell me-2"></i>Servicios Disponibles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if services %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Servicio</th>
+                                        <th>Duración</th>
+                                        <th>Precio</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ service.name }}</strong>
+                                            {% if service.description %}
+                                                <br><small class="text-muted">{{ service.description[:50] }}{% if service.description|length > 50 %}...{% endif %}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ service.duration_minutes }} min</td>
+                                        <td>
+                                            {% if service.price %}
+                                                ${{ service.price }}
+                                            {% else %}
+                                                <span class="text-muted">Sin precio</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if service.is_active %}
+                                                <span class="badge bg-success">Activo</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('edit_service', service_id=service.id) }}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-concierge-bell fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No hay servicios configurados aún.</p>
+                            <p class="small">Agrega tu primer servicio usando el formulario de la derecha.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Agregar Nuevo Servicio</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="3") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.duration_minutes.label(class="form-label") }}
+                            {{ form.duration_minutes(class="form-control", value="60") }}
+                            {% if form.duration_minutes.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.duration_minutes.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.price.label(class="form-label") }}
+                            {{ form.price(class="form-control", placeholder="0.00") }}
+                            <small class="text-muted">Opcional - puedes dejarlo en blanco</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_active(class="form-check-input", checked=True) }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-plus me-1"></i>Agregar Servicio
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información
+                    </h6>
+                </div>
+                <div class="card-body small">
+                    <p><strong>Servicios:</strong> Define los servicios que ofrece tu empresa para que los clientes puedan reservar citas.</p>
+                    <p><strong>Duración:</strong> Tiempo estimado en minutos para cada servicio.</p>
+                    <p><strong>Precio:</strong> Opcional, puedes mostrar precios o mantenerlos privados.</p>
+                    <p><strong>Estado:</strong> Solo los servicios activos aparecen en la página pública de reservas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,8 +2,8 @@ from flask import render_template, redirect, url_for, flash, request, jsonify, g
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from app import app, db
-from models import User, InventoryItem, Category, Company, Warehouse, AuditLog
-from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm
+from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem
+from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm, ModuleSettingsForm, ServiceForm, AppointmentForm, PublicAppointmentForm, PortfolioForm, SaleForm
 from utils import company_query, log_audit, setup_new_company, validate_company_access
 from sqlalchemy import or_, func
 from functools import wraps
@@ -688,3 +688,216 @@ def company_settings():
             flash('No tienes permisos para modificar la configuración de la empresa.', 'danger')
     
     return render_template('company_settings.html', form=form, company=company)
+
+
+# ===== RUTAS PARA MÓDULOS ADICIONALES =====
+
+@app.route('/admin/modules', methods=['GET', 'POST'])
+@login_required
+@admin_global_required
+def manage_modules():
+    """Gestionar módulos activos por empresa"""
+    companies = Company.query.filter_by(is_active=True).all()
+    
+    if request.method == 'POST':
+        company_id = request.form.get('company_id')
+        company = Company.query.get_or_404(company_id)
+        
+        # Actualizar módulos
+        company.module_pos = 'module_pos' in request.form
+        company.module_appointments = 'module_appointments' in request.form
+        company.module_portfolio = 'module_portfolio' in request.form
+        
+        db.session.commit()
+        flash(f'Módulos actualizados para {company.name}', 'success')
+        return redirect(url_for('manage_modules'))
+    
+    return render_template('admin/modules.html', companies=companies)
+
+@app.route('/portfolio/config', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def portfolio_config():
+    """Configurar página de presentación de la empresa"""
+    if not current_user.company.module_portfolio:
+        flash('El módulo de página de presentación no está activo para tu empresa.', 'warning')
+        return redirect(url_for('inventory'))
+    
+    company = current_user.company
+    form = PortfolioForm(obj=company)
+    
+    if form.validate_on_submit():
+        company.portfolio_description = form.portfolio_description.data
+        company.portfolio_services = form.portfolio_services.data
+        company.contact_phone = form.contact_phone.data
+        company.contact_whatsapp = form.contact_whatsapp.data
+        company.contact_email = form.contact_email.data
+        company.contact_address = form.contact_address.data
+        company.social_facebook = form.social_facebook.data
+        company.social_instagram = form.social_instagram.data
+        company.social_linkedin = form.social_linkedin.data
+        
+        db.session.commit()
+        flash('¡Página de presentación configurada exitosamente!', 'success')
+        return redirect(url_for('portfolio_config'))
+    
+    # URL de la página pública
+    portfolio_url = url_for('public_portfolio', company_code=company.code, _external=True)
+    
+    return render_template('modules/portfolio_config.html', 
+                         form=form, company=company, portfolio_url=portfolio_url)
+
+@app.route('/services', methods=['GET', 'POST'])
+@login_required
+def manage_services():
+    """Gestionar servicios para citas"""
+    if not current_user.company.module_appointments:
+        flash('El módulo de citas no está activo para tu empresa.', 'warning')
+        return redirect(url_for('inventory'))
+    
+    form = ServiceForm()
+    if form.validate_on_submit():
+        service = Service(
+            name=form.name.data,
+            description=form.description.data,
+            duration_minutes=form.duration_minutes.data,
+            price=form.price.data,
+            is_active=form.is_active.data,
+            company_id=current_user.company_id
+        )
+        db.session.add(service)
+        db.session.commit()
+        flash(f'Servicio "{service.name}" agregado exitosamente!', 'success')
+        return redirect(url_for('manage_services'))
+    
+    services = company_query(Service).all()
+    return render_template('modules/services.html', form=form, services=services)
+
+@app.route('/services/<int:service_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_service(service_id):
+    """Editar servicio"""
+    service = company_query(Service).filter_by(id=service_id).first_or_404()
+    form = ServiceForm(obj=service)
+    
+    if form.validate_on_submit():
+        service.name = form.name.data
+        service.description = form.description.data
+        service.duration_minutes = form.duration_minutes.data
+        service.price = form.price.data
+        service.is_active = form.is_active.data
+        db.session.commit()
+        flash(f'Servicio "{service.name}" actualizado exitosamente!', 'success')
+        return redirect(url_for('manage_services'))
+    
+    return render_template('modules/edit_service.html', form=form, service=service)
+
+@app.route('/appointments', methods=['GET', 'POST'])
+@login_required
+def manage_appointments():
+    """Gestionar citas"""
+    if not current_user.company.module_appointments:
+        flash('El módulo de citas no está activo para tu empresa.', 'warning')
+        return redirect(url_for('inventory'))
+    
+    form = AppointmentForm()
+    if form.validate_on_submit():
+        appointment = Appointment(
+            client_name=form.client_name.data,
+            client_phone=form.client_phone.data,
+            client_email=form.client_email.data,
+            appointment_date=form.appointment_date.data,
+            service_id=form.service_id.data,
+            status=form.status.data,
+            notes=form.notes.data,
+            is_public=False,
+            company_id=current_user.company_id,
+            user_id=current_user.id
+        )
+        db.session.add(appointment)
+        db.session.commit()
+        flash(f'Cita para {appointment.client_name} agendada exitosamente!', 'success')
+        return redirect(url_for('manage_appointments'))
+    
+    appointments = company_query(Appointment).order_by(Appointment.appointment_date.desc()).all()
+    
+    # URL de la página pública de reservas
+    booking_url = url_for('public_booking', company_code=current_user.company.code, _external=True)
+    
+    return render_template('modules/appointments.html', 
+                         form=form, appointments=appointments, booking_url=booking_url)
+
+@app.route('/pos', methods=['GET', 'POST'])
+@login_required
+def pos_sales():
+    """Punto de venta"""
+    if not current_user.company.module_pos:
+        flash('El módulo POS no está activo para tu empresa.', 'warning')
+        return redirect(url_for('inventory'))
+    
+    form = SaleForm()
+    
+    # Obtener items de inventario con stock
+    items = company_query(InventoryItem).filter(InventoryItem.quantity > 0).all()
+    
+    return render_template('modules/pos.html', form=form, items=items)
+
+# ===== RUTAS PÚBLICAS (SIN LOGIN) =====
+
+@app.route('/empresa/<company_code>')
+def public_portfolio(company_code):
+    """Página pública de presentación de empresa"""
+    company = Company.query.filter_by(code=company_code, is_active=True).first_or_404()
+    
+    if not company.module_portfolio:
+        return render_template('errors/module_disabled.html'), 404
+    
+    # URL de reserva si tiene módulo de citas activo
+    booking_url = None
+    if company.module_appointments:
+        booking_url = url_for('public_booking', company_code=company.code)
+    
+    return render_template('public/portfolio.html', company=company, booking_url=booking_url)
+
+@app.route('/empresa/<company_code>/reservar', methods=['GET', 'POST'])
+def public_booking(company_code):
+    """Página pública para reservar citas"""
+    company = Company.query.filter_by(code=company_code, is_active=True).first_or_404()
+    
+    if not company.module_appointments:
+        return render_template('errors/module_disabled.html'), 404
+    
+    form = PublicAppointmentForm()
+    
+    # Cargar servicios activos
+    services = Service.query.filter_by(company_id=company.id, is_active=True).all()
+    form.service_id.choices = [(s.id, f"{s.name} ({s.duration_minutes} min)") for s in services]
+    
+    if form.validate_on_submit():
+        appointment = Appointment(
+            client_name=form.client_name.data,
+            client_phone=form.client_phone.data,
+            client_email=form.client_email.data,
+            appointment_date=form.appointment_date.data,
+            service_id=form.service_id.data,
+            notes=form.notes.data,
+            is_public=True,
+            company_id=company.id,
+            status='pendiente'
+        )
+        db.session.add(appointment)
+        db.session.commit()
+        
+        flash('¡Reserva realizada exitosamente! Te contactaremos pronto para confirmar.', 'success')
+        return redirect(url_for('booking_confirmation', company_code=company.code, appointment_id=appointment.id))
+    
+    return render_template('public/booking.html', company=company, form=form, services=services)
+
+@app.route('/empresa/<company_code>/reserva/<int:appointment_id>/confirmacion')
+def booking_confirmation(company_code, appointment_id):
+    """Confirmación de reserva"""
+    company = Company.query.filter_by(code=company_code, is_active=True).first_or_404()
+    appointment = Appointment.query.filter_by(id=appointment_id, company_id=company.id).first_or_404()
+    
+    return render_template('public/booking_confirmation.html', 
+                         company=company, appointment=appointment)

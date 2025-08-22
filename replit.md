@@ -2,7 +2,7 @@
 
 ## Descripción General
 
-Sistema de gestión de inventario empresarial "Inventario INTAC" basado en web construido con Flask. Es una solución de pago para empresas que requiere contacto directo con el desarrollador para obtener acceso. La aplicación proporciona seguimiento integral del inventario multiempresa con características para gestión de artículos, categorización, monitoreo de niveles de stock, reportes, control de roles y branding personalizado. Sistema comercial sin registro público disponible.
+Sistema de gestión empresarial modular "Inventario INTAC" basado en web construido con Flask. Es una solución de pago para empresas que requiere contacto directo con el desarrollador para obtener acceso. La aplicación proporciona un sistema integral multiempresa con inventario base y módulos opcionales: POS (Punto de Venta), Sistema de Citas/Reservas (con página pública), y Página de Presentación personalizable. Incluye control de roles, branding personalizado por empresa, y activación modular según necesidades del cliente. Sistema comercial sin registro público disponible.
 
 ## User Preferences
 
@@ -13,6 +13,8 @@ Sistema de gestión de inventario empresarial "Inventario INTAC" basado en web c
 - Application name changed to "Inventario INTAC" throughout the system
 - Business model: Paid service - no public registration allowed, users must contact developer for access
 - Professional access control: Only authorized users can access the system through provided credentials
+- Modular system: Inventory base + optional POS, Appointments, and Portfolio modules per company
+- Public pages: Company portfolio and booking system accessible without login when modules are active
 
 ## System Architecture
 
@@ -72,14 +74,28 @@ Sistema de gestión de inventario empresarial "Inventario INTAC" basado en web c
 - **Font Awesome 6**: Icon library loaded via CDN
 - **JavaScript**: Vanilla JS for enhanced interactivity
 
+### Modular System Architecture
+- **Company-based modules**: Each enterprise can activate specific business modules
+- **Module control**: Super admin can enable/disable modules per company
+- **Dynamic navigation**: UI adapts to show only active modules for each company
+- **Public pages**: External-facing portfolio and booking pages when modules are active
+
+#### Available Modules
+- **POS Module**: Point-of-sale system integrated with inventory for retail operations
+- **Appointments Module**: Service management with public booking pages for clients
+- **Portfolio Module**: Public-facing company presentation pages with contact forms
+
 ### Database Support
 - **SQLite**: Default embedded database (configurable)
 - **Database URL**: Environment variable configuration for production databases
+- **Multi-tenant isolation**: Company-based data segregation across all modules
+- **Extended models**: Service, Sale, Appointment, SaleItem tables for module functionality
 
 ### Deployment Infrastructure
 - **ProxyFix**: WSGI middleware for handling proxy headers
 - **Environment variables**: Configuration management for secrets and database URLs
 - **Logging**: Python standard logging for debugging and monitoring
+- **Public routing**: External access for portfolio and booking pages
 
 ### Development Tools
 - **Debug mode**: Flask development server with auto-reload

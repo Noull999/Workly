@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Configurar Mi Página - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-globe me-2"></i>Configurar Página de Presentación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.portfolio_description.label(class="form-label") }}
+                            {{ form.portfolio_description(class="form-control", rows="4", placeholder="Describe tu empresa, misión, visión, experiencia...") }}
+                            {% if form.portfolio_description.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.portfolio_description.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.portfolio_services.label(class="form-label") }}
+                            {{ form.portfolio_services(class="form-control", rows="4", placeholder="Lista los servicios o productos que ofreces...") }}
+                            {% if form.portfolio_services.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.portfolio_services.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <h6 class="border-bottom pb-2">Información de Contacto</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.contact_phone.label(class="form-label") }}
+                                {{ form.contact_phone(class="form-control", placeholder="+56 9 1234 5678") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.contact_whatsapp.label(class="form-label") }}
+                                {{ form.contact_whatsapp(class="form-control", placeholder="+56 9 1234 5678") }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.contact_email.label(class="form-label") }}
+                                {{ form.contact_email(class="form-control", placeholder="contacto@empresa.com") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.contact_address.label(class="form-label") }}
+                                {{ form.contact_address(class="form-control", placeholder="Dirección física") }}
+                            </div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2">Redes Sociales</h6>
+                        
+                        <div class="mb-3">
+                            {{ form.social_facebook.label(class="form-label") }}
+                            {{ form.social_facebook(class="form-control", placeholder="https://facebook.com/tuempresa") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.social_instagram.label(class="form-label") }}
+                            {{ form.social_instagram(class="form-control", placeholder="https://instagram.com/tuempresa") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.social_linkedin.label(class="form-label") }}
+                            {{ form.social_linkedin(class="form-control", placeholder="https://linkedin.com/company/tuempresa") }}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Guardar Configuración
+                            </button>
+                            <a href="{{ portfolio_url }}" target="_blank" class="btn btn-outline-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>Ver Página Pública
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Vista Previa</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if company.logo_url %}
+                            <img src="{{ company.logo_url }}" alt="{{ company.name }}" style="max-height: 60px;">
+                        {% endif %}
+                        <h5 class="mt-2" style="color: {{ company.primary_color }}">{{ company.name }}</h5>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>URL Pública:</strong><br>
+                        <code class="small">{{ portfolio_url }}</code>
+                    </div>
+                    
+                    {% if company.module_appointments %}
+                    <div class="alert alert-success small">
+                        <i class="fas fa-calendar-check me-1"></i>
+                        Tu página incluirá botón de "Reservar Cita" porque tienes el módulo de citas activo.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card bg-light">
+                        <div class="card-body small">
+                            <h6>Colores de Marca:</h6>
+                            <div class="d-flex gap-2">
+                                <div style="width: 30px; height: 30px; background-color: {{ company.primary_color }}; border-radius: 4px;" title="Color Primario"></div>
+                                <div style="width: 30px; height: 30px; background-color: {{ company.secondary_color }}; border-radius: 4px;" title="Color Secundario"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+
+Quiero extender mi aplicación multiempresa que ya tiene login y un inventario multiempresa funcionando.
+Deseo agregar módulos opcionales que se activen por empresa según necesidad.
+
+⸻
+
+🔹 Nuevos módulos a implementar
+	1.	POS (Punto de Venta)
+	•	Ventas integradas con el inventario existente.
+	•	Control de caja y emisión de tickets.
+	•	Reportes básicos de ventas.
+	2.	Citas y reservas
+	•	Interno (privado, con login):
+	•	La empresa gestiona servicios, horarios y agenda de citas.
+	•	Los empleados pueden ver y administrar las reservas.
+	•	Externo (público, sin login):
+	•	Página simple y responsive para clientes finales.
+	•	Muestra logo y colores de la empresa.
+	•	Lista de servicios y horarios disponibles.
+	•	Permite reservar cita indicando nombre y teléfono/correo.
+	•	Confirmación inmediata en pantalla (opcional: por email/WhatsApp).
+	3.	Página de presentación / portafolio
+	•	Página pública y estática con URL única por empresa o persona, por ejemplo:
+
+midominio.com/empresa/vanidades
+midominio.com/usuario/maria-garcia
+
+	•	Configurable por cada empresa desde su panel interno:
+	•	Logo y colores (ya definidos en la app).
+	•	Texto de presentación.
+	•	Lista de servicios o portafolio.
+	•	Datos de contacto (teléfono, WhatsApp, correo, redes).
+	•	Si la empresa también tiene el módulo de Citas, incluir botón “Reservar ahora” que conecte al flujo público de reservas.
+
+⸻
+
+🔹 Reglas de activación
+	•	Cada módulo debe poder activarse o desactivarse por empresa desde el panel de administración.
+	•	Cuando un usuario inicia sesión, la app debe cargar únicamente los módulos activos de su empresa.
+	•	Si un módulo no está activo, no debe aparecer en el menú ni en la interfaz.
+
+⸻
+
+🔹 Roles (mantener lo que ya existe)
+	•	admin_global: activa/desactiva módulos por empresa.
+	•	admin_empresa: configura y gestiona los módulos habilitados de su empresa.
+	•	empleado: solo usa los módulos activos, sin configuraciones.
+
+⸻
+
+👉 Con este prompt quiero que la IA genere la extensión de mi aplicación existente, respetando que ya tengo login multiempresa e inventario funcional, y agregando los módulos de POS, Citas (público/privado) y Página de presentación de manera modular y activable.

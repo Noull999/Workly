@@ -16,11 +16,30 @@ class Company(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     
+    # Módulos activados
+    module_pos = db.Column(db.Boolean, default=False)
+    module_appointments = db.Column(db.Boolean, default=False)
+    module_portfolio = db.Column(db.Boolean, default=False)
+    
+    # Configuración para página de presentación
+    portfolio_description = db.Column(db.Text, nullable=True)
+    portfolio_services = db.Column(db.Text, nullable=True)  # JSON o texto
+    contact_phone = db.Column(db.String(50), nullable=True)
+    contact_whatsapp = db.Column(db.String(50), nullable=True)
+    contact_email = db.Column(db.String(120), nullable=True)
+    contact_address = db.Column(db.String(200), nullable=True)
+    social_facebook = db.Column(db.String(200), nullable=True)
+    social_instagram = db.Column(db.String(200), nullable=True)
+    social_linkedin = db.Column(db.String(200), nullable=True)
+    
     # Relationships
     users = db.relationship('User', backref='company', lazy=True, cascade='all, delete-orphan')
     warehouses = db.relationship('Warehouse', backref='company', lazy=True, cascade='all, delete-orphan')
     categories = db.relationship('Category', backref='company', lazy=True, cascade='all, delete-orphan')
     items = db.relationship('InventoryItem', backref='company', lazy=True, cascade='all, delete-orphan')
+    services = db.relationship('Service', backref='company', lazy=True, cascade='all, delete-orphan')
+    appointments = db.relationship('Appointment', backref='company', lazy=True, cascade='all, delete-orphan')
+    pos_sales = db.relationship('Sale', backref='company', lazy=True, cascade='all, delete-orphan')
     
     @classmethod
     def generate_code(cls):
@@ -181,3 +200,86 @@ class AuditLog(db.Model):
     
     def __repr__(self):
         return f'<AuditLog {self.action} on {self.table_name}>'
+
+
+# ===== MÓDULOS ADICIONALES =====
+
+class Service(db.Model):
+    """Servicios para el módulo de citas"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    duration_minutes = db.Column(db.Integer, nullable=False, default=60)
+    price = db.Column(db.Numeric(10, 2), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    appointments = db.relationship('Appointment', backref='service', lazy=True)
+    
+    def __repr__(self):
+        return f'<Service {self.name}>'
+
+
+class Appointment(db.Model):
+    """Citas/Reservas"""
+    id = db.Column(db.Integer, primary_key=True)
+    client_name = db.Column(db.String(100), nullable=False)
+    client_phone = db.Column(db.String(50), nullable=True)
+    client_email = db.Column(db.String(120), nullable=True)
+    appointment_date = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(20), default='pendiente')  # pendiente, confirmada, cancelada, completada
+    notes = db.Column(db.Text)
+    is_public = db.Column(db.Boolean, default=True)  # Si fue creada desde la página pública
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Usuario que la gestiona
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<Appointment {self.client_name} - {self.appointment_date}>'
+
+
+class Sale(db.Model):
+    """Ventas del módulo POS"""
+    id = db.Column(db.Integer, primary_key=True)
+    sale_number = db.Column(db.String(50), nullable=False)  # Número de venta
+    total_amount = db.Column(db.Numeric(10, 2), nullable=False, default=0)
+    tax_amount = db.Column(db.Numeric(10, 2), nullable=False, default=0)
+    payment_method = db.Column(db.String(50), default='efectivo')  # efectivo, tarjeta, transferencia
+    status = db.Column(db.String(20), default='completada')  # completada, cancelada, pendiente
+    notes = db.Column(db.Text)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Vendedor
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    items = db.relationship('SaleItem', backref='sale', lazy=True, cascade='all, delete-orphan')
+    
+    @classmethod
+    def generate_sale_number(cls, company_id):
+        """Generate unique sale number"""
+        import time
+        timestamp = int(time.time())
+        count = cls.query.filter_by(company_id=company_id).count() + 1
+        return f"V{timestamp}-{count:04d}"
+    
+    def __repr__(self):
+        return f'<Sale {self.sale_number}>'
+
+
+class SaleItem(db.Model):
+    """Items de cada venta"""
+    id = db.Column(db.Integer, primary_key=True)
+    quantity = db.Column(db.Integer, nullable=False)
+    unit_price = db.Column(db.Numeric(10, 2), nullable=False)
+    total_price = db.Column(db.Numeric(10, 2), nullable=False)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sale.id'), nullable=False)
+    inventory_item_id = db.Column(db.Integer, db.ForeignKey('inventory_item.id'), nullable=False)
+    
+    # Relationship
+    inventory_item = db.relationship('InventoryItem', backref='sales')
+    
+    def __repr__(self):
+        return f'<SaleItem {self.quantity}x {self.inventory_item.name if self.inventory_item else "Unknown"}>'

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Módulos - Inventario INTAC{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-puzzle-piece me-2"></i>Gestión de Módulos por Empresa</h2>
+            </div>
+
+            <div class="alert alert-info">
+                <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Módulos Disponibles</h6>
+                <p class="mb-0">
+                    Activa o desactiva módulos específicos para cada empresa según sus necesidades.
+                    Los usuarios solo verán los módulos activos en su navegación.
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Configuración de Módulos</h5>
+                </div>
+                <div class="card-body">
+                    {% for company in companies %}
+                    <div class="row mb-4 p-3 border rounded">
+                        <div class="col-md-4">
+                            <h6>{{ company.name }}</h6>
+                            <small class="text-muted">{{ company.code }}</small>
+                            <div class="mt-2">
+                                {% if company.is_active %}
+                                    <span class="badge bg-success">Activa</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactiva</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="company_id" value="{{ company.id }}">
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="module_pos" id="pos_{{ company.id }}" 
+                                                   {% if company.module_pos %}checked{% endif %}>
+                                            <label class="form-check-label" for="pos_{{ company.id }}">
+                                                <i class="fas fa-cash-register me-1"></i>POS (Punto de Venta)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="module_appointments" id="appointments_{{ company.id }}" 
+                                                   {% if company.module_appointments %}checked{% endif %}>
+                                            <label class="form-check-label" for="appointments_{{ company.id }}">
+                                                <i class="fas fa-calendar-alt me-1"></i>Citas y Reservas
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="module_portfolio" id="portfolio_{{ company.id }}" 
+                                                   {% if company.module_portfolio %}checked{% endif %}>
+                                            <label class="form-check-label" for="portfolio_{{ company.id }}">
+                                                <i class="fas fa-globe me-1"></i>Página de Presentación
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-save me-1"></i>Actualizar Módulos
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Descripción de Módulos</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-cash-register text-success me-2"></i>POS (Punto de Venta)</h6>
+                            <ul class="small">
+                                <li>Ventas integradas con inventario</li>
+                                <li>Control de caja</li>
+                                <li>Emisión de tickets</li>
+                                <li>Reportes de ventas</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-calendar-alt text-info me-2"></i>Citas y Reservas</h6>
+                            <ul class="small">
+                                <li>Gestión interna de servicios</li>
+                                <li>Administración de citas</li>
+                                <li>Página pública de reservas</li>
+                                <li>Confirmaciones automáticas</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-globe text-warning me-2"></i>Página de Presentación</h6>
+                            <ul class="small">
+                                <li>Página pública personalizada</li>
+                                <li>Branding con logo y colores</li>
+                                <li>Información de contacto</li>
+                                <li>Integración con reservas</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Citas - {{ current_user.company.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-calendar-check me-2"></i>Gestión de Citas</h2>
+                <a href="{{ booking_url }}" target="_blank" class="btn btn-outline-success">
+                    <i class="fas fa-external-link-alt me-1"></i>Página Pública de Reservas
+                </a>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Citas Programadas</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if appointments %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Cliente</th>
+                                                <th>Servicio</th>
+                                                <th>Fecha y Hora</th>
+                                                <th>Estado</th>
+                                                <th>Origen</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for appointment in appointments %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ appointment.client_name }}</strong>
+                                                    {% if appointment.client_phone %}
+                                                        <br><small class="text-muted"><i class="fas fa-phone me-1"></i>{{ appointment.client_phone }}</small>
+                                                    {% endif %}
+                                                    {% if appointment.client_email %}
+                                                        <br><small class="text-muted"><i class="fas fa-envelope me-1"></i>{{ appointment.client_email }}</small>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ appointment.service.name }}</td>
+                                                <td>{{ appointment.appointment_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                                                <td>
+                                                    {% if appointment.status == 'pendiente' %}
+                                                        <span class="badge bg-warning">Pendiente</span>
+                                                    {% elif appointment.status == 'confirmada' %}
+                                                        <span class="badge bg-success">Confirmada</span>
+                                                    {% elif appointment.status == 'cancelada' %}
+                                                        <span class="badge bg-danger">Cancelada</span>
+                                                    {% elif appointment.status == 'completada' %}
+                                                        <span class="badge bg-info">Completada</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if appointment.is_public %}
+                                                        <span class="badge bg-primary">Web Pública</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Interna</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-success btn-sm" onclick="updateStatus({{ appointment.id }}, 'confirmada')">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-danger btn-sm" onclick="updateStatus({{ appointment.id }}, 'cancelada')">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No hay citas programadas aún.</p>
+                                    <p class="small">Las citas aparecerán aquí cuando los clientes reserven desde la página pública o cuando las agregues manualmente.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Agregar Cita Manual</h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                {{ form.hidden_tag() }}
+                                
+                                <div class="mb-3">
+                                    {{ form.client_name.label(class="form-label") }}
+                                    {{ form.client_name(class="form-control") }}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.client_phone.label(class="form-label") }}
+                                    {{ form.client_phone(class="form-control") }}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.client_email.label(class="form-label") }}
+                                    {{ form.client_email(class="form-control") }}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.service_id.label(class="form-label") }}
+                                    {{ form.service_id(class="form-control") }}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.appointment_date.label(class="form-label") }}
+                                    {{ form.appointment_date(class="form-control") }}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.status.label(class="form-label") }}
+                                    {{ form.status(class="form-control") }}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.notes.label(class="form-label") }}
+                                    {{ form.notes(class="form-control", rows="3") }}
+                                </div>
+
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-plus me-1"></i>Agregar Cita
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Estadísticas</h6>
+                        </div>
+                        <div class="card-body">
+                            {% set pending = appointments|selectattr("status", "equalto", "pendiente")|list|length %}
+                            {% set confirmed = appointments|selectattr("status", "equalto", "confirmada")|list|length %}
+                            {% set completed = appointments|selectattr("status", "equalto", "completada")|list|length %}
+                            
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="card bg-warning text-white">
+                                        <div class="card-body p-2">
+                                            <h5 class="mb-0">{{ pending }}</h5>
+                                            <small>Pendientes</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body p-2">
+                                            <h5 class="mb-0">{{ confirmed }}</h5>
+                                            <small>Confirmadas</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card bg-info text-white">
+                                        <div class="card-body p-2">
+                                            <h5 class="mb-0">{{ completed }}</h5>
+                                            <small>Completadas</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatus(appointmentId, status) {
+    if (confirm('¿Estás seguro de cambiar el estado de esta cita?')) {
+        // Aquí se puede implementar una llamada AJAX para actualizar el estado
+        fetch(`/appointments/${appointmentId}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({status: status})
+        }).then(() => {
+            location.reload();
+        });
+    }
+}
+</script>
+{% endblock %}
