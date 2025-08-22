@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Empresas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-building me-2"></i>Gestionar Empresas</h1>
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Panel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulario para Crear Nueva Empresa -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus me-2"></i>Crear Nueva Empresa
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.logo_url.label(class="form-label") }}
+                            {{ form.logo_url(class="form-control", placeholder="https://ejemplo.com/logo.png") }}
+                            {% if form.logo_url.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.logo_url.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">URL del logo de la empresa (opcional)</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    {{ form.primary_color.label(class="form-label") }}
+                                    {{ form.primary_color(class="form-control", type="color") }}
+                                    {% if form.primary_color.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.primary_color.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    {{ form.secondary_color.label(class="form-label") }}
+                                    {{ form.secondary_color(class="form-control", type="color") }}
+                                    {% if form.secondary_color.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.secondary_color.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus me-1"></i>Crear Empresa
+                        </button>
+                    </form>
+
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <strong>Nota:</strong> Al crear una empresa se generará automáticamente:
+                            <ul class="mt-2 mb-0">
+                                <li>Un código único de empresa</li>
+                                <li>Un administrador con usuario: admin_[código]</li>
+                                <li>Un almacén principal</li>
+                                <li>Contraseña por defecto: empresa123</li>
+                            </ul>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Empresas Existentes -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Empresas Registradas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if companies %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Empresa</th>
+                                        <th>Código</th>
+                                        <th>Branding</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for company in companies %}
+                                    <tr>
+                                        <td>
+                                            {% if company.logo_url %}
+                                                <img src="{{ company.logo_url }}" alt="{{ company.name }}" class="company-logo me-2" style="max-height: 25px;">
+                                            {% endif %}
+                                            <strong>{{ company.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ company.code }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-1 align-items-center">
+                                                <div class="color-box" style="width: 20px; height: 20px; background-color: {{ company.primary_color }}; border: 1px solid #ccc; border-radius: 3px;" title="Color Primario"></div>
+                                                <div class="color-box" style="width: 20px; height: 20px; background-color: {{ company.secondary_color }}; border: 1px solid #ccc; border-radius: 3px;" title="Color Secundario"></div>
+                                                <small class="text-muted ms-1">{{ company.primary_color }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if company.is_active %}
+                                                <span class="badge bg-success">Activa</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <form method="POST" action="{{ url_for('toggle_company_status', company_id=company.id) }}" class="d-inline">
+                                                    {% if company.is_active %}
+                                                        <button type="submit" class="btn btn-outline-warning" onclick="return confirm('¿Desactivar la empresa {{ company.name }}?')" title="Desactivar">
+                                                            <i class="fas fa-pause"></i>
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-outline-success" onclick="return confirm('¿Activar la empresa {{ company.name }}?')" title="Activar">
+                                                            <i class="fas fa-play"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-building fa-3x mb-3"></i>
+                            <p>No hay empresas registradas aún.</p>
+                            <p>Utiliza el formulario de la izquierda para crear la primera empresa.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="es" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Inventario INTAC{% endblock %}</title>
+    <title>{% block title %}
+        {%- if current_user.is_authenticated -%}
+            {{ current_user.company.name }} - Inventario
+        {%- else -%}
+            Inventario INTAC
+        {%- endif -%}
+    {% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
@@ -11,14 +17,39 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Custom styles -->
+    <!-- White Label Custom Styles -->
     <style>
+        :root {
+            {% if current_user.is_authenticated %}
+                --company-primary: {{ current_user.company.primary_color }};
+                --company-secondary: {{ current_user.company.secondary_color }};
+            {% else %}
+                --company-primary: #007bff;
+                --company-secondary: #6c757d;
+            {% endif %}
+        }
+        
         .low-stock {
             color: var(--bs-warning);
             font-weight: bold;
         }
         .navbar-brand {
             font-weight: bold;
+            color: var(--company-primary) !important;
+        }
+        .btn-primary {
+            background-color: var(--company-primary);
+            border-color: var(--company-primary);
+        }
+        .btn-primary:hover {
+            background-color: var(--company-secondary);
+            border-color: var(--company-secondary);
+        }
+        .text-primary {
+            color: var(--company-primary) !important;
+        }
+        .bg-primary {
+            background-color: var(--company-primary) !important;
         }
         .card {
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
@@ -30,6 +61,18 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
         }
+        .company-logo {
+            max-height: 40px;
+            margin-right: 10px;
+        }
+        .admin-badge {
+            background-color: var(--company-secondary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -37,7 +80,21 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-boxes me-2"></i>Inventario INTAC
+                {% if current_user.is_authenticated and current_user.company.logo_url %}
+                    <img src="{{ current_user.company.logo_url }}" alt="{{ current_user.company.name }}" class="company-logo">
+                {% else %}
+                    <i class="fas fa-boxes me-2"></i>
+                {% endif %}
+                {% if current_user.is_authenticated %}
+                    {{ current_user.company.name }}
+                    {% if current_user.is_admin_global() %}
+                        <span class="admin-badge">SUPER ADMIN</span>
+                    {% elif current_user.is_admin_empresa() %}
+                        <span class="admin-badge">ADMIN</span>
+                    {% endif %}
+                {% else %}
+                    Inventario INTAC
+                {% endif %}
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -72,6 +129,27 @@
                                 <i class="fas fa-chart-bar me-1"></i>Reportes
                             </a>
                         </li>
+                        {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cogs me-1"></i>Administración
+                            </a>
+                            <ul class="dropdown-menu">
+                                {% if current_user.is_admin_global() %}
+                                <li><a class="dropdown-item" href="{{ url_for('admin_panel') }}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Panel Global
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('manage_companies') }}">
+                                    <i class="fas fa-building me-1"></i>Gestionar Empresas
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{{ url_for('manage_users') }}">
+                                    <i class="fas fa-users me-1"></i>Gestionar Usuarios
+                                </a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
                     {% endif %}
                 </ul>
                 

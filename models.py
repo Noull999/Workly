@@ -10,6 +10,9 @@ class Company(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     code = db.Column(db.String(20), unique=True, nullable=False)  # URL-friendly identifier
+    logo_url = db.Column(db.String(255), nullable=True)  # URL del logo
+    primary_color = db.Column(db.String(7), default='#007bff')  # Color primario en hex
+    secondary_color = db.Column(db.String(7), default='#6c757d')  # Color secundario en hex
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     
@@ -56,6 +59,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='empleado')  # admin_global, admin_empresa, empleado
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.Boolean, default=True)
@@ -75,8 +79,33 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
     
+    def is_admin_global(self):
+        return self.role == 'admin_global'
+    
+    def is_admin_empresa(self):
+        return self.role == 'admin_empresa'
+    
+    def is_empleado(self):
+        return self.role == 'empleado'
+    
+    def can_manage_company(self, company_id):
+        """Check if user can manage a specific company"""
+        if self.is_admin_global():
+            return True
+        if self.is_admin_empresa() and self.company_id == company_id:
+            return True
+        return False
+    
+    def can_manage_users(self, target_company_id=None):
+        """Check if user can manage users"""
+        if self.is_admin_global():
+            return True
+        if self.is_admin_empresa() and (target_company_id is None or self.company_id == target_company_id):
+            return True
+        return False
+    
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f'<User {self.username} ({self.role})>'
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)

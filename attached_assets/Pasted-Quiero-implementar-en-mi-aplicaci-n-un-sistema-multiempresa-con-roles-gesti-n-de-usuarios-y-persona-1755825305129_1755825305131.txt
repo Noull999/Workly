@@ -1,0 +1,48 @@
+Quiero implementar en mi aplicación un sistema multiempresa con roles, gestión de usuarios y personalización visual (white label).
+
+🔹 Reglas del sistema
+	1.	Empresas
+	•	Cada empresa debe existir como entidad propia dentro de la aplicación.
+	•	Debe guardar: nombre, logo, colores (primario y secundario) y fecha de creación.
+	•	Desde el panel de admin global puedo crear, editar o eliminar empresas.
+	•	Cuando se crea una empresa, debe generarse automáticamente un usuario con rol admin_empresa (el jefe de esa empresa).
+	2.	Usuarios
+	•	Cada usuario pertenece a una empresa.
+	•	Datos de usuario: nombre, email, contraseña encriptada, rol, empresa asignada, fecha de creación.
+	•	Roles permitidos:
+	•	admin_global: controla todas las empresas y usuarios.
+	•	admin_empresa: controla solo los usuarios de su empresa.
+	•	empleado: solo puede iniciar sesión y usar la aplicación.
+	•	El admin global puede crear y gestionar usuarios en cualquier empresa.
+	•	El admin de empresa puede crear, editar y eliminar únicamente usuarios de su empresa.
+	3.	Login
+	•	El login se hace con email y contraseña.
+	•	Al iniciar sesión, debe devolver:
+	•	Nombre del usuario.
+	•	Rol del usuario.
+	•	Empresa a la que pertenece.
+	•	Datos de personalización de esa empresa (logo y colores).
+	•	Validaciones: usuario no encontrado, contraseña incorrecta, empresa inexistente.
+	4.	Seguridad
+	•	Las contraseñas deben guardarse encriptadas (hash seguro).
+	•	El correo electrónico de cada usuario debe ser único.
+	5.	Funciones necesarias
+	•	Crear empresa (con logo y colores).
+	•	Crear usuario (validando permisos).
+	•	Eliminar usuario (solo admin global o admin de esa empresa).
+	•	Listar usuarios de una empresa (validando permisos).
+	•	Login seguro que devuelva también los datos de personalización.
+	6.	Personalización visual (white label)
+	•	Cada empresa puede definir su logo y colores.
+	•	Cuando un usuario inicia sesión, todas las páginas deben personalizarse según la empresa a la que pertenece.
+	•	Ejemplo esperado:
+	•	Si inicio sesión con un usuario de Vanidades, en el encabezado aparece el logo de Vanidades y sus colores.
+	•	Si inicio sesión con un usuario de Bandidos, la app se adapta a su logo y colores, sin afectar a Vanidades.
+	7.	Flujo esperado
+	•	El admin global crea una empresa (ej. “Vanidades”).
+	•	Se crea automáticamente el usuario jefe (admin_empresa) de Vanidades.
+	•	Ese jefe inicia sesión, ve el logo y colores de Vanidades, y puede crear empleados.
+	•	Si luego se crea otra empresa (ej. “Bandidos”), sus usuarios verán la app con su propia identidad visual.
+	•	Todo debe funcionar en una sola aplicación compartida.
+
+Integra empresas y personas de prueba para interactuar con la aplicación y probarla 

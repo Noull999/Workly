@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Usuarios{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-users me-2"></i>Gestionar Usuarios</h1>
+                <div class="d-flex gap-2">
+                    {% if current_user.is_admin_global() %}
+                    <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Volver al Panel
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulario para Crear Nuevo Usuario -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Crear Nuevo Usuario
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control") }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.username.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control") }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.email.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control") }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.password.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.role.label(class="form-label") }}
+                            {{ form.role(class="form-select") }}
+                            {% if form.role.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.role.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.company_id.label(class="form-label") }}
+                            {{ form.company_id(class="form-select") }}
+                            {% if form.company_id.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.company_id.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-1"></i>Crear Usuario
+                        </button>
+                    </form>
+
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <strong>Roles disponibles:</strong>
+                            <ul class="mt-2 mb-0">
+                                <li><strong>Super Admin:</strong> Acceso completo al sistema</li>
+                                <li><strong>Admin Empresa:</strong> Gestiona su empresa y usuarios</li>
+                                <li><strong>Empleado:</strong> Acceso básico al inventario</li>
+                            </ul>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Usuarios Existentes -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Usuarios Registrados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Email</th>
+                                        <th>Empresa</th>
+                                        <th>Rol</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ user.username }}</strong>
+                                            {% if user.id == current_user.id %}
+                                                <span class="badge bg-info ms-1">Tú</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if user.company.logo_url %}
+                                                    <img src="{{ user.company.logo_url }}" alt="{{ user.company.name }}" class="company-logo me-2" style="max-height: 20px;">
+                                                {% endif %}
+                                                {{ user.company.name }}
+                                                <span class="badge bg-secondary ms-2">{{ user.company.code }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if user.role == 'admin_global' %}
+                                                <span class="badge bg-danger">Super Admin</span>
+                                            {% elif user.role == 'admin_empresa' %}
+                                                <span class="badge bg-warning">Admin Empresa</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Empleado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if user.id != current_user.id and current_user.can_manage_users(user.company_id) %}
+                                                <div class="btn-group btn-group-sm">
+                                                    <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('¿Eliminar al usuario {{ user.username }}? Esta acción no se puede deshacer.')" title="Eliminar Usuario">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-3x mb-3"></i>
+                            <p>No hay usuarios registrados.</p>
+                            <p>Utiliza el formulario de la izquierda para crear el primer usuario.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información de Acceso -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Información de Acceso</h6>
+                <p class="mb-0">
+                    <strong>Credenciales de Prueba:</strong><br>
+                    Super Admin: <code>superadmin</code> / <code>superadmin</code><br>
+                    Admin Empresa: <code>admin</code> / <code>123456</code> | <code>demo</code> / <code>admin</code><br>
+                    Nuevas empresas: <code>admin_[código]</code> / <code>empresa123</code>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

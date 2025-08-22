@@ -3,9 +3,29 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from app import app, db
 from models import User, InventoryItem, Category, Company, Warehouse, AuditLog
-from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm
+from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm
 from utils import company_query, log_audit, setup_new_company, validate_company_access
 from sqlalchemy import or_, func
+from functools import wraps
+
+# Decoradores para control de acceso por roles
+def admin_global_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin_global():
+            flash('Acceso denegado. Se requieren permisos de administrador global.', 'danger')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or (not current_user.is_admin_global() and not current_user.is_admin_empresa()):
+            flash('Acceso denegado. Se requieren permisos de administrador.', 'danger')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 def index():
@@ -414,3 +434,153 @@ def delete_warehouse(warehouse_id):
         
         flash('¡Almacén desactivado exitosamente!', 'success')
     return redirect(url_for('warehouses'))
+
+# ===== RUTAS DE ADMINISTRACIÓN GLOBAL =====
+
+@app.route('/admin')
+@login_required
+@admin_global_required
+def admin_panel():
+    """Panel de administración global - solo para admin_global"""
+    companies = Company.query.filter_by(is_active=True).all()
+    users = User.query.all()
+    total_companies = len(companies)
+    total_users = len(users)
+    
+    # Estadísticas por empresa
+    company_stats = {}
+    for company in companies:
+        company_users = [u for u in users if u.company_id == company.id]
+        company_stats[company.id] = {
+            'users': len(company_users),
+            'items': len(company.items) if hasattr(company, 'items') else 0
+        }
+    
+    return render_template('admin/dashboard.html', 
+                         companies=companies,
+                         total_companies=total_companies,
+                         total_users=total_users,
+                         company_stats=company_stats)
+
+@app.route('/admin/companies', methods=['GET', 'POST'])
+@login_required
+@admin_global_required
+def manage_companies():
+    """Gestión de empresas - crear, editar, listar"""
+    form = CompanyForm()
+    if form.validate_on_submit():
+        # Generar código único
+        code = Company.generate_code()
+        
+        company = Company(
+            name=form.name.data,
+            code=code,
+            logo_url=form.logo_url.data if form.logo_url.data else None,
+            primary_color=form.primary_color.data,
+            secondary_color=form.secondary_color.data
+        )
+        db.session.add(company)
+        db.session.flush()  # Get company ID
+        
+        # Crear admin automático para la empresa
+        admin_user = User(
+            username=f"admin_{code.lower()}",
+            email=f"admin@{company.name.lower().replace(' ', '')}.com",
+            role='admin_empresa',
+            company_id=company.id
+        )
+        admin_user.set_password('empresa123')  # Contraseña por defecto
+        db.session.add(admin_user)
+        
+        # Crear almacén principal automático
+        warehouse = Warehouse(
+            name='Almacén Principal',
+            code='MAIN',
+            address='Almacén principal de la empresa',
+            company_id=company.id
+        )
+        db.session.add(warehouse)
+        
+        db.session.commit()
+        
+        flash(f'¡Empresa "{company.name}" creada exitosamente! Admin: {admin_user.username}, contraseña: empresa123', 'success')
+        return redirect(url_for('manage_companies'))
+    
+    companies = Company.query.filter_by(is_active=True).all()
+    return render_template('admin/companies.html', form=form, companies=companies)
+
+@app.route('/admin/users', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_users():
+    """Gestión de usuarios"""
+    form = UserManagementForm()
+    
+    if form.validate_on_submit():
+        # Validar permisos
+        if not current_user.can_manage_users(form.company_id.data):
+            flash('No tienes permisos para crear usuarios en esa empresa.', 'danger')
+            return render_template('admin/users.html', form=form, users=[])
+        
+        # Verificar email único
+        existing_user = User.query.filter_by(email=form.email.data).first()
+        if existing_user:
+            flash('El correo electrónico ya está registrado.', 'danger')
+        else:
+            user = User(
+                username=form.username.data,
+                email=form.email.data,
+                role=form.role.data,
+                company_id=form.company_id.data
+            )
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            
+            flash(f'¡Usuario "{user.username}" creado exitosamente!', 'success')
+            return redirect(url_for('manage_users'))
+    
+    # Filtrar usuarios según permisos
+    if current_user.is_admin_global():
+        users = User.query.all()
+    else:
+        users = User.query.filter_by(company_id=current_user.company_id).all()
+    
+    return render_template('admin/users.html', form=form, users=users)
+
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    """Eliminar usuario"""
+    user = User.query.get_or_404(user_id)
+    
+    # Validar permisos
+    if not current_user.can_manage_users(user.company_id):
+        flash('No tienes permisos para eliminar este usuario.', 'danger')
+        return redirect(url_for('manage_users'))
+    
+    # No permitir que se elimine a sí mismo
+    if user.id == current_user.id:
+        flash('No puedes eliminarte a ti mismo.', 'danger')
+        return redirect(url_for('manage_users'))
+    
+    username = user.username
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash(f'Usuario "{username}" eliminado exitosamente.', 'success')
+    return redirect(url_for('manage_users'))
+
+@app.route('/admin/company/<int:company_id>/toggle_status', methods=['POST'])
+@login_required
+@admin_global_required
+def toggle_company_status(company_id):
+    """Activar/desactivar empresa"""
+    company = Company.query.get_or_404(company_id)
+    company.is_active = not company.is_active
+    db.session.commit()
+    
+    status = 'activada' if company.is_active else 'desactivada'
+    flash(f'Empresa "{company.name}" {status} exitosamente.', 'success')
+    return redirect(url_for('manage_companies'))
