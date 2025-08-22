@@ -88,7 +88,7 @@ def dashboard():
     # Estadísticas de POS si está activo
     if company.module_pos:
         total_sales = company_query(Sale).count()
-        today_sales = company_query(Sale).filter(func.date(Sale.sale_date) == func.current_date()).count()
+        today_sales = company_query(Sale).filter(func.date(Sale.created_at) == func.current_date()).count()
         stats['pos'] = {
             'total_sales': total_sales,
             'today_sales': today_sales
