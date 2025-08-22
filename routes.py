@@ -50,35 +50,10 @@ def login():
     
     return render_template('login.html', form=form)
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register')
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('inventory'))
-    
-    form = RegisterForm()
-    if form.validate_on_submit():
-        # Setup new company and default warehouse
-        try:
-            company, warehouse = setup_new_company(form.company_name.data)
-            
-            # Create user for the new company
-            user = User(
-                username=form.username.data, 
-                email=form.email.data,
-                company_id=company.id
-            )
-            user.set_password(form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            
-            flash(f'¡Registro exitoso! Empresa "{company.name}" creada. Por favor inicia sesión.', 'success')
-            return redirect(url_for('login'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash('Error al crear la cuenta. Por favor inténtalo de nuevo.', 'danger')
-    
-    return render_template('register.html', form=form)
+    """Página informativa sobre cómo obtener acceso al sistema"""
+    return render_template('access_info.html')
 
 @app.route('/logout')
 @login_required

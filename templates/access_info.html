@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Acceso al Sistema{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-lock me-2"></i>Sistema de Inventario Privado
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-building fa-4x text-primary mb-3"></i>
+                        <h5>Sistema de Gestión de Inventario Empresarial</h5>
+                        <p class="text-muted">Solución profesional para empresas</p>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Acceso Exclusivo para Clientes
+                        </h6>
+                        <p class="mb-0">
+                            Este sistema es una solución empresarial de pago. El registro público no está disponible.
+                        </p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-handshake text-success me-2"></i>¿Eres Cliente?
+                                    </h6>
+                                    <p class="card-text">Si ya adquiriste este sistema, usa las credenciales que recibiste por email.</p>
+                                    <a href="{{ url_for('login') }}" class="btn btn-success">
+                                        <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-shopping-cart text-primary me-2"></i>¿Quieres Adquirirlo?
+                                    </h6>
+                                    <p class="card-text">Solicita una cotización y demo personalizada del sistema.</p>
+                                    <a href="#" class="btn btn-primary" id="contactBtn">
+                                        <i class="fas fa-envelope me-1"></i>Solicitar Cotización
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6><i class="fas fa-star text-warning me-2"></i>Características del Sistema</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-2"></i>Gestión completa de inventario</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Múltiples almacenes</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Categorización de productos</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Códigos de barras</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-2"></i>Gestión de usuarios y roles</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Reportes y auditoría</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Branding personalizado</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Sistema multiempresa</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-phone me-2"></i>Contacto para Nuevos Clientes
+                        </h6>
+                        <p class="mb-2">Para adquirir este sistema de inventario, contáctanos:</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Email:</strong> ventas@tuempresa.com</p>
+                                <p class="mb-1"><strong>WhatsApp:</strong> +56 9 1234 5678</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Teléfono:</strong> +56 2 1234 5678</p>
+                                <p class="mb-1"><strong>Web:</strong> www.tuempresa.com</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="text-muted mb-0">
+                            <small>© 2024 Sistema de Inventario INTAC - Todos los derechos reservados</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('contactBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    alert('Por favor contáctanos por WhatsApp: +56 9 1234 5678 o email: ventas@tuempresa.com para solicitar una cotización.');
+});
+</script>
+{% endblock %}
