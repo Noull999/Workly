@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de Empresa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-building-user me-2"></i>Configuración de Empresa
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.logo_url.label(class="form-label") }}
+                            {{ form.logo_url(class="form-control", placeholder="https://ejemplo.com/logo.png") }}
+                            {% if form.logo_url.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.logo_url.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">URL del logo que aparecerá en la navegación</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.primary_color.label(class="form-label") }}
+                                    <div class="input-group">
+                                        {{ form.primary_color(class="form-control", type="color") }}
+                                        <span class="input-group-text">{{ company.primary_color }}</span>
+                                    </div>
+                                    {% if form.primary_color.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.primary_color.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="text-muted">Color principal de botones y enlaces</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.secondary_color.label(class="form-label") }}
+                                    <div class="input-group">
+                                        {{ form.secondary_color(class="form-control", type="color") }}
+                                        <span class="input-group-text">{{ company.secondary_color }}</span>
+                                    </div>
+                                    {% if form.secondary_color.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.secondary_color.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="text-muted">Color secundario para efectos hover</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Guardar Configuración
+                            </button>
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Vista Previa del Branding -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-eye me-2"></i>Vista Previa del Branding
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Información Actual:</strong></p>
+                            <ul class="list-unstyled">
+                                <li><strong>Empresa:</strong> {{ company.name }}</li>
+                                <li><strong>Código:</strong> <span class="badge bg-secondary">{{ company.code }}</span></li>
+                                <li><strong>Estado:</strong> 
+                                    {% if company.is_active %}
+                                        <span class="badge bg-success">Activa</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactiva</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Logo Actual:</strong></p>
+                            {% if company.logo_url %}
+                                <img src="{{ company.logo_url }}" alt="{{ company.name }}" class="img-thumbnail" style="max-height: 80px;">
+                            {% else %}
+                                <div class="text-muted">
+                                    <i class="fas fa-image fa-3x"></i>
+                                    <p class="small mt-2">Sin logo configurado</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <p><strong>Colores de Empresa:</strong></p>
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="text-center">
+                            <div style="width: 60px; height: 40px; background-color: {{ company.primary_color }}; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px;"></div>
+                            <small class="text-muted">Primario<br>{{ company.primary_color }}</small>
+                        </div>
+                        <div class="text-center">
+                            <div style="width: 60px; height: 40px; background-color: {{ company.secondary_color }}; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px;"></div>
+                            <small class="text-muted">Secundario<br>{{ company.secondary_color }}</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <p><strong>Ejemplo de Botones:</strong></p>
+                        <button class="btn me-2" style="background-color: {{ company.primary_color }}; border-color: {{ company.primary_color }}; color: white;">
+                            Botón Primario
+                        </button>
+                        <button class="btn" style="background-color: {{ company.secondary_color }}; border-color: {{ company.secondary_color }}; color: white;">
+                            Botón Secundario
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Usuarios -->
+            {% if current_user.is_admin_empresa() or current_user.is_admin_global() %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>Acceso Rápido
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('manage_users') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-users me-1"></i>Gestionar Usuarios
+                            </a>
+                        </div>
+                        {% if current_user.is_admin_global() %}
+                        <div class="col-md-6">
+                            <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-tachometer-alt me-1"></i>Panel Global
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

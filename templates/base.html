@@ -160,6 +160,15 @@
                                 <i class="fas fa-user me-1"></i>{{ current_user.username }}
                             </a>
                             <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('profile') }}">
+                                    <i class="fas fa-user-edit me-1"></i>Mi Perfil
+                                </a></li>
+                                {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
+                                <li><a class="dropdown-item" href="{{ url_for('company_settings') }}">
+                                    <i class="fas fa-building-user me-1"></i>Configuración de Empresa
+                                </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('logout') }}">
                                     <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
                                 </a></li>

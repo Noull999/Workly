@@ -75,3 +75,18 @@ class UserManagementForm(FlaskForm):
         elif current_user.is_authenticated:
             # For company admins, only show their own company
             self.company_id.choices = [(current_user.company_id, current_user.company.name)]
+
+class ProfileForm(FlaskForm):
+    username = StringField('Usuario', validators=[DataRequired(), Length(min=3, max=64)])
+    email = EmailField('Correo Electrónico', validators=[DataRequired(), Email()])
+    current_password = PasswordField('Contraseña Actual', validators=[DataRequired()])
+    new_password = PasswordField('Nueva Contraseña', validators=[Optional(), Length(min=6)])
+    confirm_password = PasswordField('Confirmar Nueva Contraseña', validators=[
+        EqualTo('new_password', message='Las contraseñas deben coincidir')
+    ])
+
+class CompanySettingsForm(FlaskForm):
+    name = StringField('Nombre de la Empresa', validators=[DataRequired(), Length(max=100)])
+    logo_url = StringField('URL del Logo', validators=[Optional(), Length(max=255)])
+    primary_color = StringField('Color Primario', validators=[DataRequired(), Length(min=7, max=7)])
+    secondary_color = StringField('Color Secundario', validators=[DataRequired(), Length(min=7, max=7)])

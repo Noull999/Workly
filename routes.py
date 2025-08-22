@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from app import app, db
 from models import User, InventoryItem, Category, Company, Warehouse, AuditLog
-from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm
+from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm
 from utils import company_query, log_audit, setup_new_company, validate_company_access
 from sqlalchemy import or_, func
 from functools import wraps
@@ -584,3 +584,67 @@ def toggle_company_status(company_id):
     status = 'activada' if company.is_active else 'desactivada'
     flash(f'Empresa "{company.name}" {status} exitosamente.', 'success')
     return redirect(url_for('manage_companies'))
+
+# ===== RUTAS DE PERFIL Y CONFIGURACIÓN =====
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    """Perfil de usuario - cambiar datos personales y contraseña"""
+    form = ProfileForm(obj=current_user)
+    
+    if form.validate_on_submit():
+        # Verificar contraseña actual
+        if not current_user.check_password(form.current_password.data):
+            flash('La contraseña actual es incorrecta.', 'danger')
+            return render_template('profile.html', form=form)
+        
+        # Verificar si el email ya existe (excluyendo el usuario actual)
+        existing_user = User.query.filter(User.email == form.email.data, User.id != current_user.id).first()
+        if existing_user:
+            flash('El correo electrónico ya está registrado por otro usuario.', 'danger')
+            return render_template('profile.html', form=form)
+        
+        # Verificar si el username ya existe (excluyendo el usuario actual)
+        existing_user = User.query.filter(User.username == form.username.data, User.id != current_user.id).first()
+        if existing_user:
+            flash('El nombre de usuario ya está registrado.', 'danger')
+            return render_template('profile.html', form=form)
+        
+        # Actualizar datos
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        
+        # Cambiar contraseña si se proporcionó una nueva
+        if form.new_password.data:
+            current_user.set_password(form.new_password.data)
+        
+        db.session.commit()
+        flash('¡Perfil actualizado exitosamente!', 'success')
+        return redirect(url_for('profile'))
+    
+    return render_template('profile.html', form=form)
+
+@app.route('/company-settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def company_settings():
+    """Configuración de empresa - solo para admins"""
+    company = current_user.company
+    form = CompanySettingsForm(obj=company)
+    
+    if form.validate_on_submit():
+        # Solo admin_global puede cambiar el nombre de empresa
+        if current_user.is_admin_global() or current_user.is_admin_empresa():
+            company.name = form.name.data
+            company.logo_url = form.logo_url.data if form.logo_url.data else None
+            company.primary_color = form.primary_color.data
+            company.secondary_color = form.secondary_color.data
+            
+            db.session.commit()
+            flash('¡Configuración de empresa actualizada exitosamente!', 'success')
+            return redirect(url_for('company_settings'))
+        else:
+            flash('No tienes permisos para modificar la configuración de la empresa.', 'danger')
+    
+    return render_template('company_settings.html', form=form, company=company)

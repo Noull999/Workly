@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.username.label(class="form-label") }}
+                                    {{ form.username(class="form-control") }}
+                                    {% if form.username.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.username.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control") }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.email.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h6><i class="fas fa-key me-2"></i>Cambiar Contraseña</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.current_password.label(class="form-label") }}
+                                    {{ form.current_password(class="form-control") }}
+                                    {% if form.current_password.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.current_password.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.new_password.label(class="form-label") }}
+                                    {{ form.new_password(class="form-control") }}
+                                    {% if form.new_password.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.new_password.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="text-muted">Dejar en blanco para mantener la actual</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.confirm_password.label(class="form-label") }}
+                                    {{ form.confirm_password(class="form-control") }}
+                                    {% if form.confirm_password.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.confirm_password.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Guardar Cambios
+                            </button>
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información de la Cuenta -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información de la Cuenta
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Empresa:</strong> {{ current_user.company.name }}</p>
+                            <p><strong>Código de Empresa:</strong> <span class="badge bg-secondary">{{ current_user.company.code }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Rol:</strong> 
+                                {% if current_user.role == 'admin_global' %}
+                                    <span class="badge bg-danger">Super Administrador</span>
+                                {% elif current_user.role == 'admin_empresa' %}
+                                    <span class="badge bg-warning">Administrador de Empresa</span>
+                                {% else %}
+                                    <span class="badge bg-success">Empleado</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Branding:</strong>
+                                <div class="d-flex gap-1 align-items-center">
+                                    <div style="width: 20px; height: 20px; background-color: {{ current_user.company.primary_color }}; border: 1px solid #ccc; border-radius: 3px;"></div>
+                                    <div style="width: 20px; height: 20px; background-color: {{ current_user.company.secondary_color }}; border: 1px solid #ccc; border-radius: 3px;"></div>
+                                    <small class="text-muted ms-1">{{ current_user.company.primary_color }}</small>
+                                </div>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
