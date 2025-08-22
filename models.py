@@ -86,6 +86,13 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.Boolean, default=True)
     
+    # Preferencias de módulos para super admin (solo aplicable si role es admin_global)
+    admin_pref_inventory = db.Column(db.Boolean, default=True)
+    admin_pref_pos = db.Column(db.Boolean, default=True)
+    admin_pref_appointments = db.Column(db.Boolean, default=True)
+    admin_pref_portfolio = db.Column(db.Boolean, default=True)
+    admin_pref_scrum = db.Column(db.Boolean, default=True)
+    
     # Relationship with inventory items
     inventory_items = db.relationship('InventoryItem', backref='owner', lazy=True, cascade='all, delete-orphan')
     

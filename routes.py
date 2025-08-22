@@ -849,19 +849,33 @@ def manage_modules():
     companies = Company.query.filter_by(is_active=True).all()
     
     if request.method == 'POST':
-        company_id = request.form.get('company_id')
-        company = Company.query.get_or_404(company_id)
-        
-        # Actualizar módulos
-        company.module_inventory = 'module_inventory' in request.form
-        company.module_pos = 'module_pos' in request.form
-        company.module_appointments = 'module_appointments' in request.form
-        company.module_portfolio = 'module_portfolio' in request.form
-        company.module_scrum = 'module_scrum' in request.form
-        
-        db.session.commit()
-        flash(f'Módulos actualizados para {company.name}', 'success')
-        return redirect(url_for('manage_modules'))
+        # Verificar si es actualización de preferencias del super admin
+        if request.form.get('admin_preferences') == '1':
+            # Actualizar preferencias del super admin
+            current_user.admin_pref_inventory = 'admin_pref_inventory' in request.form
+            current_user.admin_pref_pos = 'admin_pref_pos' in request.form
+            current_user.admin_pref_appointments = 'admin_pref_appointments' in request.form
+            current_user.admin_pref_portfolio = 'admin_pref_portfolio' in request.form
+            current_user.admin_pref_scrum = 'admin_pref_scrum' in request.form
+            
+            db.session.commit()
+            flash('Tus preferencias de módulos han sido actualizadas', 'success')
+            return redirect(url_for('manage_modules'))
+        else:
+            # Actualizar módulos de empresa
+            company_id = request.form.get('company_id')
+            company = Company.query.get_or_404(company_id)
+            
+            # Actualizar módulos
+            company.module_inventory = 'module_inventory' in request.form
+            company.module_pos = 'module_pos' in request.form
+            company.module_appointments = 'module_appointments' in request.form
+            company.module_portfolio = 'module_portfolio' in request.form
+            company.module_scrum = 'module_scrum' in request.form
+            
+            db.session.commit()
+            flash(f'Módulos actualizados para {company.name}', 'success')
+            return redirect(url_for('manage_modules'))
     
     return render_template('admin/modules.html', companies=companies)
 

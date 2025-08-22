@@ -23,6 +23,84 @@
                     <h5 class="card-title mb-0">Configuración de Módulos</h5>
                 </div>
                 <div class="card-body">
+                    <!-- Configuración del Super Admin -->
+                    <div class="row mb-4 p-3 border rounded bg-light">
+                        <div class="col-md-3">
+                            <h6 class="text-danger"><i class="fas fa-user-shield me-2"></i>Super Admin</h6>
+                            <small class="text-muted">{{ current_user.username }}</small>
+                            <div class="mt-2">
+                                <span class="badge bg-danger">Personalización</span>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="admin_preferences" value="1">
+                                
+                                <div class="row">
+                                    <div class="col-lg-2 col-md-4 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="admin_pref_inventory" id="admin_inventory" 
+                                                   {% if current_user.admin_pref_inventory %}checked{% endif %}>
+                                            <label class="form-check-label" for="admin_inventory">
+                                                <i class="fas fa-boxes me-1 text-primary"></i>Inventario
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="admin_pref_pos" id="admin_pos" 
+                                                   {% if current_user.admin_pref_pos %}checked{% endif %}>
+                                            <label class="form-check-label" for="admin_pos">
+                                                <i class="fas fa-cash-register me-1 text-success"></i>POS
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-4 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="admin_pref_appointments" id="admin_appointments" 
+                                                   {% if current_user.admin_pref_appointments %}checked{% endif %}>
+                                            <label class="form-check-label" for="admin_appointments">
+                                                <i class="fas fa-calendar-alt me-1 text-info"></i>Citas
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="admin_pref_portfolio" id="admin_portfolio" 
+                                                   {% if current_user.admin_pref_portfolio %}checked{% endif %}>
+                                            <label class="form-check-label" for="admin_portfolio">
+                                                <i class="fas fa-globe me-1 text-warning"></i>Portfolio
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="admin_pref_scrum" id="admin_scrum" 
+                                                   {% if current_user.admin_pref_scrum %}checked{% endif %}>
+                                            <label class="form-check-label" for="admin_scrum">
+                                                <i class="fas fa-tasks me-1 text-purple"></i>Scrum
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-save me-1"></i>Actualizar Mis Preferencias
+                                    </button>
+                                </div>
+                            </form>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Selecciona solo los módulos que utilizas para personalizar tu navegación y dashboard.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="mb-3">Configuración por Empresa</h6>
                     {% for company in companies %}
                     <div class="row mb-4 p-3 border rounded">
                         <div class="col-md-3">
