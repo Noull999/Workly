@@ -104,9 +104,11 @@ class EditAdminCredentialsForm(FlaskForm):
 
 class ModuleSettingsForm(FlaskForm):
     """Formulario para activar/desactivar módulos por empresa"""
+    module_inventory = BooleanField('Módulo de Inventario')
     module_pos = BooleanField('Módulo POS (Punto de Venta)')
     module_appointments = BooleanField('Módulo de Citas y Reservas')
     module_portfolio = BooleanField('Módulo de Página de Presentación')
+    module_scrum = BooleanField('Módulo Scrum Lite')
 
 
 class ServiceForm(FlaskForm):

@@ -812,9 +812,11 @@ def manage_modules():
         company = Company.query.get_or_404(company_id)
         
         # Actualizar módulos
+        company.module_inventory = 'module_inventory' in request.form
         company.module_pos = 'module_pos' in request.form
         company.module_appointments = 'module_appointments' in request.form
         company.module_portfolio = 'module_portfolio' in request.form
+        company.module_scrum = 'module_scrum' in request.form
         
         db.session.commit()
         flash(f'Módulos actualizados para {company.name}', 'success')
