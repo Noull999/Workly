@@ -7,6 +7,8 @@ from flask_login import current_user
 from models import Company, Warehouse, User, AuditLog
 from app import db
 import json
+import time
+from datetime import datetime, timedelta
 
 
 def get_current_company():
@@ -33,22 +35,61 @@ def company_query(model):
     return model.query.filter_by(company_id=current_user.company_id)
 
 
-def log_audit(table_name, record_id, action, old_values=None, new_values=None):
-    """Log all changes for security auditing"""
+def log_audit(table_name, record_id, action, old_values=None, new_values=None, additional_context=None):
+    """Enhanced audit logging with contextual information"""
     if not current_user.is_authenticated:
         return
     
-    audit_log = AuditLog(
-        table_name=table_name,
-        record_id=record_id,
-        action=action,
-        old_values=json.dumps(old_values) if old_values else None,
-        new_values=json.dumps(new_values) if new_values else None,
-        user_id=current_user.id,
-        company_id=current_user.company_id,
-        ip_address=request.remote_addr
-    )
-    db.session.add(audit_log)
+    try:
+        # Enhanced context information
+        user_agent = request.headers.get('User-Agent', 'unknown')[:200] if hasattr(request, 'headers') else 'unknown'
+        
+        context = {
+            'user_agent': user_agent,
+            'username': current_user.username,
+            'company_name': current_user.company.name if current_user.company else 'unknown',
+            'timestamp_utc': datetime.utcnow().isoformat(),
+            'action_summary': _get_action_summary(table_name, action, old_values, new_values)
+        }
+        
+        # Add any additional context provided
+        if additional_context:
+            context.update(additional_context)
+        
+        audit_log = AuditLog(
+            table_name=table_name,
+            record_id=record_id,
+            action=action,
+            old_values=json.dumps(old_values) if old_values else None,
+            new_values=json.dumps(new_values) if new_values else None,
+            user_id=current_user.id,
+            company_id=current_user.company_id,
+            ip_address=request.remote_addr if hasattr(request, 'remote_addr') else 'unknown',
+            additional_info=json.dumps(context)
+        )
+        db.session.add(audit_log)
+    except Exception as e:
+        # Log audit failures gracefully
+        print(f"Audit logging failed: {str(e)}")
+
+def _get_action_summary(table_name, action, old_values=None, new_values=None):
+    """Generate human-readable summary of the action"""
+    if table_name == 'inventory_item':
+        if action == 'CREATE':
+            name = new_values.get('name', 'Unknown') if new_values else 'Unknown'
+            return f"Artículo '{name}' creado"
+        elif action == 'UPDATE':
+            changes = []
+            if old_values and new_values:
+                if old_values.get('quantity') != new_values.get('quantity'):
+                    changes.append(f"cantidad: {old_values.get('quantity')} → {new_values.get('quantity')}")
+                if old_values.get('name') != new_values.get('name'):
+                    changes.append(f"nombre actualizado")
+            return f"Artículo modificado" + (f": {', '.join(changes)}" if changes else "")
+        elif action == 'DELETE':
+            return f"Artículo eliminado"
+    
+    return f"{table_name} {action.lower()}"
 
 
 def create_default_warehouse(company):
@@ -141,3 +182,36 @@ def search_items_by_barcode(barcode, company_id):
         barcode=barcode,
         company_id=company_id
     ).first()
+
+
+# Simple cache implementation for performance optimization
+_stats_cache = {}
+
+def get_cached_dashboard_stats(company_id, user_id, modules_active):
+    """Get cached dashboard stats or compute new ones"""
+    cache_key = f"dashboard_stats_{company_id}_{user_id}_{hash(str(modules_active))}"
+    current_time = time.time()
+    
+    # Check if we have cached data and it's still valid (5 minutes)
+    if cache_key in _stats_cache:
+        cached_data, cache_time = _stats_cache[cache_key]
+        if current_time - cache_time < 300:  # 5 minutes cache
+            return cached_data
+    
+    # Cache miss or expired, return None to indicate need to recompute
+    return None
+
+def set_cached_dashboard_stats(company_id, user_id, modules_active, stats):
+    """Cache dashboard stats"""
+    cache_key = f"dashboard_stats_{company_id}_{user_id}_{hash(str(modules_active))}"
+    _stats_cache[cache_key] = (stats, time.time())
+    
+    # Simple cache cleanup - remove old entries (older than 1 hour)
+    current_time = time.time()
+    keys_to_remove = []
+    for key, (_, cache_time) in _stats_cache.items():
+        if current_time - cache_time > 3600:  # 1 hour
+            keys_to_remove.append(key)
+    
+    for key in keys_to_remove:
+        del _stats_cache[key]

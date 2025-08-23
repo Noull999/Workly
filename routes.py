@@ -5,7 +5,7 @@ from datetime import datetime
 from app import app, db
 from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem, Board, Sprint, Task, Column, TaskComment
 from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm, ModuleSettingsForm, ServiceForm, AppointmentForm, PublicAppointmentForm, PortfolioForm, SaleForm
-from utils import company_query, log_audit, setup_new_company, validate_company_access
+from utils import company_query, log_audit, setup_new_company, validate_company_access, get_cached_dashboard_stats, set_cached_dashboard_stats
 from sqlalchemy import or_, func
 from functools import wraps
 
@@ -100,82 +100,107 @@ def dashboard():
     """Panel principal dinámico según módulos activos de la empresa"""
     company = current_user.company
     
-    # Obtener estadísticas según módulos activos
-    stats = {}
-    
-    # Estadísticas de inventario si está activo
-    if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and company.module_inventory):
-        total_items = company_query(InventoryItem).count()
-        low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= InventoryItem.minimum_stock).count()
-        # Obtener productos con stock bajo (máximo 5)
-        low_stock_products = company_query(InventoryItem).filter(
-            InventoryItem.quantity <= InventoryItem.minimum_stock
-        ).limit(5).all()
-        
-        stats['inventory'] = {
-            'total_items': total_items,
-            'low_stock_items': low_stock_items,
-            'low_stock_products': low_stock_products
+    # Determinar módulos activos para el usuario actual
+    if current_user.is_admin_global():
+        modules_active = {
+            'inventory': current_user.admin_pref_inventory,
+            'pos': current_user.admin_pref_pos,
+            'appointments': current_user.admin_pref_appointments,
+            'portfolio': current_user.admin_pref_portfolio,
+            'scrum': current_user.admin_pref_scrum
+        }
+    else:
+        modules_active = {
+            'inventory': company.module_inventory,
+            'pos': company.module_pos,
+            'appointments': company.module_appointments,
+            'portfolio': company.module_portfolio,
+            'scrum': company.module_scrum
         }
     
-    # Estadísticas de POS si está activo
-    if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos):
-        total_sales = company_query(Sale).count()
-        today_sales = company_query(Sale).filter(func.date(Sale.created_at) == func.current_date()).count()
-        # Calcular total de ventas de hoy
-        from sqlalchemy import func as sql_func
-        today_revenue = db.session.query(sql_func.sum(Sale.total_amount)).filter(
-            Sale.company_id == current_user.company_id,
-            func.date(Sale.created_at) == func.current_date()
-        ).scalar() or 0
-        
-        stats['pos'] = {
-            'total_sales': total_sales,
-            'today_sales': today_sales,
-            'today_revenue': float(today_revenue)
-        }
+    # Intentar obtener estadísticas del caché
+    stats = get_cached_dashboard_stats(current_user.company_id, current_user.id, modules_active)
     
-    # Estadísticas de citas si está activo
-    if (current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments):
-        pending_appointments = company_query(Appointment).filter_by(status='pendiente').count()
-        confirmed_appointments = company_query(Appointment).filter_by(status='confirmada').count()
-        today_appointments = company_query(Appointment).filter(func.date(Appointment.appointment_date) == func.current_date()).count()
-        total_appointments = company_query(Appointment).count()
-        stats['appointments'] = {
-            'pending': pending_appointments,
-            'confirmed': confirmed_appointments,
-            'today': today_appointments,
-            'total': total_appointments
-        }
+    if stats is None:
+        # Cache miss, calcular estadísticas
+        stats = {}
         
-        # Obtener próximas citas (5 más próximas)
-        upcoming_appointments = company_query(Appointment).filter(
-            Appointment.appointment_date >= datetime.now(),
-            Appointment.status.in_(['pendiente', 'confirmada'])
-        ).order_by(Appointment.appointment_date.asc()).limit(5).all()
-        stats['appointments']['upcoming'] = upcoming_appointments
-    
-    # Estadísticas de Scrum Lite si está activo
-    if (current_user.is_admin_global() and current_user.admin_pref_scrum) or (not current_user.is_admin_global() and company.module_scrum):
-        total_boards = company_query(Board).filter_by(is_active=True).count()
-        # Tareas asignadas al usuario actual
-        my_tasks = company_query(Task).filter_by(assignee_id=current_user.id).filter(
-            Task.status != 'done'
-        ).limit(5).all()
-        # Tareas pendientes en general
-        pending_tasks = company_query(Task).filter(Task.status != 'done').count()
+        # Estadísticas de inventario si está activo
+        if modules_active['inventory']:
+            total_items = company_query(InventoryItem).count()
+            low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= InventoryItem.minimum_stock).count()
+            # Obtener productos con stock bajo (máximo 5)
+            low_stock_products = company_query(InventoryItem).filter(
+                InventoryItem.quantity <= InventoryItem.minimum_stock
+            ).limit(5).all()
+            
+            stats['inventory'] = {
+                'total_items': total_items,
+                'low_stock_items': low_stock_items,
+                'low_stock_products': low_stock_products
+            }
         
-        stats['scrum'] = {
-            'total_boards': total_boards,
-            'my_tasks': my_tasks,
-            'pending_tasks': pending_tasks
-        }
+        # Estadísticas de POS si está activo
+        if modules_active['pos']:
+            total_sales = company_query(Sale).count()
+            today_sales = company_query(Sale).filter(func.date(Sale.created_at) == func.current_date()).count()
+            # Calcular total de ventas de hoy
+            from sqlalchemy import func as sql_func
+            today_revenue = db.session.query(sql_func.sum(Sale.total_amount)).filter(
+                Sale.company_id == current_user.company_id,
+                func.date(Sale.created_at) == func.current_date()
+            ).scalar() or 0
+            
+            stats['pos'] = {
+                'total_sales': total_sales,
+                'today_sales': today_sales,
+                'today_revenue': float(today_revenue)
+            }
+        
+        # Estadísticas de citas si está activo
+        if modules_active['appointments']:
+            pending_appointments = company_query(Appointment).filter_by(status='pendiente').count()
+            confirmed_appointments = company_query(Appointment).filter_by(status='confirmada').count()
+            today_appointments = company_query(Appointment).filter(func.date(Appointment.appointment_date) == func.current_date()).count()
+            total_appointments = company_query(Appointment).count()
+            stats['appointments'] = {
+                'pending': pending_appointments,
+                'confirmed': confirmed_appointments,
+                'today': today_appointments,
+                'total': total_appointments
+            }
+            
+            # Obtener próximas citas (5 más próximas)
+            upcoming_appointments = company_query(Appointment).filter(
+                Appointment.appointment_date >= datetime.now(),
+                Appointment.status.in_(['pendiente', 'confirmada'])
+            ).order_by(Appointment.appointment_date.asc()).limit(5).all()
+            stats['appointments']['upcoming'] = upcoming_appointments
+        
+        # Estadísticas de Scrum Lite si está activo
+        if modules_active['scrum']:
+            total_boards = company_query(Board).filter_by(is_active=True).count()
+            # Tareas asignadas al usuario actual
+            my_tasks = company_query(Task).filter_by(assignee_id=current_user.id).filter(
+                Task.status != 'done'
+            ).limit(5).all()
+            # Tareas pendientes en general
+            pending_tasks = company_query(Task).filter(Task.status != 'done').count()
+            
+            stats['scrum'] = {
+                'total_boards': total_boards,
+                'my_tasks': my_tasks,
+                'pending_tasks': pending_tasks
+            }
+        
+        # Cachear las estadísticas calculadas
+        set_cached_dashboard_stats(current_user.company_id, current_user.id, modules_active, stats)
     
     # URLs de páginas públicas si están activas
     public_urls = {}
-    if (current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio):
+    if modules_active['portfolio']:
         public_urls['portfolio'] = url_for('public_portfolio', company_code=company.code, _external=True)
-    if (current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments):
+    if modules_active['appointments']:
         public_urls['booking'] = url_for('public_booking', company_code=company.code, _external=True)
     
     return render_template('dashboard.html', stats=stats, company=company, public_urls=public_urls)
@@ -188,6 +213,8 @@ def inventory():
     category_filter = request.args.get('category', '')
     warehouse_filter = request.args.get('warehouse', '')
     sort_by = request.args.get('sort', 'name')
+    page = request.args.get('page', 1, type=int)
+    per_page = 20  # Items por página
     
     # Use company-scoped query
     query = company_query(InventoryItem)
@@ -222,7 +249,13 @@ def inventory():
     elif sort_by == 'warehouse':
         query = query.join(Warehouse).order_by(Warehouse.name)
     
-    items = query.all()
+    # Paginación para mejorar performance
+    pagination = query.paginate(
+        page=page, 
+        per_page=per_page,
+        error_out=False
+    )
+    items = pagination.items
     categories = company_query(Category).all()
     warehouses = company_query(Warehouse).filter_by(is_active=True).all()
     
@@ -238,7 +271,8 @@ def inventory():
                          category_filter=category_filter,
                          warehouse_filter=warehouse_filter,
                          sort_by=sort_by,
-                         total_items=total_items,
+                         pagination=pagination,
+                         total_items=pagination.total,
                          low_stock_count=len(low_stock_items))
 
 @app.route('/add_item', methods=['GET', 'POST'])
@@ -678,14 +712,22 @@ def edit_admin_credentials(company_id):
         form.email.data = admin_user.email
     
     if form.validate_on_submit():
-        # Verificar si el username ya existe (excluyendo el usuario actual)
-        existing_user = User.query.filter(User.username == form.username.data, User.id != admin_user.id).first()
+        # Verificar si el username ya existe dentro de la misma empresa (excluyendo el usuario actual)
+        existing_user = User.query.filter(
+            User.username == form.username.data,
+            User.company_id == admin_user.company_id,
+            User.id != admin_user.id
+        ).first()
         if existing_user:
             flash('El nombre de usuario ya está registrado.', 'danger')
             return render_template('admin/edit_admin_credentials.html', form=form, company=company, admin_user=admin_user)
         
-        # Verificar si el email ya existe (excluyendo el usuario actual)
-        existing_user = User.query.filter(User.email == form.email.data, User.id != admin_user.id).first()
+        # Verificar si el email ya existe dentro de la misma empresa (excluyendo el usuario actual)
+        existing_user = User.query.filter(
+            User.email == form.email.data,
+            User.company_id == admin_user.company_id,
+            User.id != admin_user.id
+        ).first()
         if existing_user:
             flash('El correo electrónico ya está registrado.', 'danger')
             return render_template('admin/edit_admin_credentials.html', form=form, company=company, admin_user=admin_user)
@@ -697,7 +739,7 @@ def edit_admin_credentials(company_id):
         
         db.session.commit()
         
-        flash(f'¡Credenciales del administrador de "{company.name}" actualizadas exitosamente! Nuevas credenciales: {admin_user.username} / {form.password.data}', 'success')
+        flash(f'¡Credenciales del administrador de "{company.name}" actualizadas exitosamente! Usuario: {admin_user.username}', 'success')
         return redirect(url_for('manage_companies'))
     
     return render_template('admin/edit_admin_credentials.html', form=form, company=company, admin_user=admin_user)
@@ -715,10 +757,22 @@ def manage_users():
             flash('No tienes permisos para crear usuarios en esa empresa.', 'danger')
             return render_template('admin/users.html', form=form, users=[])
         
-        # Verificar email único
-        existing_user = User.query.filter_by(email=form.email.data).first()
+        # Verificar email único dentro de la empresa objetivo
+        target_company_id = form.company_id.data
+        existing_user = User.query.filter_by(
+            email=form.email.data,
+            company_id=target_company_id
+        ).first()
+        
+        # También verificar username único dentro de la empresa
+        existing_username = User.query.filter_by(
+            username=form.username.data,
+            company_id=target_company_id
+        ).first()
         if existing_user:
-            flash('El correo electrónico ya está registrado.', 'danger')
+            flash('El correo electrónico ya está registrado en esta empresa.', 'danger')
+        elif existing_username:
+            flash('El nombre de usuario ya existe en esta empresa.', 'danger')
         else:
             user = User(
                 username=form.username.data,

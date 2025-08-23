@@ -33,7 +33,7 @@ class InventoryItemForm(FlaskForm):
         # Load categories and warehouses scoped to current user's company
         if current_user.is_authenticated:
             self.category_id.choices = [(0, 'Sin Categoría')] + [(c.id, c.name) 
-                for c in Category.query.filter_by(company_id=current_user.company_id).all()]
+                for c in Category.query.filter_by(company_id=current_user.company_id).all()]  # type: ignore
             self.warehouse_id.choices = [(w.id, w.name) 
                 for w in Warehouse.query.filter_by(company_id=current_user.company_id, is_active=True).all()]
         else:
