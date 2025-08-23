@@ -1087,7 +1087,7 @@ def scrum_dashboard():
         Task.status != 'done'
     ).all()
     
-    return render_template('modules/scrum/dashboard.html', boards=boards, my_tasks=my_tasks)
+    return render_template('modules/scrum/dashboard.html', boards=boards, my_tasks=my_tasks, company=company)
 
 
 @app.route('/scrum/board/<int:board_id>')
@@ -1107,7 +1107,7 @@ def scrum_board(board_id):
             'tasks': tasks
         })
     
-    return render_template('modules/scrum/board.html', board=board, board_data=board_data)
+    return render_template('modules/scrum/board.html', board=board, board_data=board_data, company=current_user.company)
 
 
 @app.route('/scrum/create-board', methods=['GET', 'POST'])
@@ -1154,7 +1154,7 @@ def create_scrum_board():
         flash(f'Tablero "{name}" creado exitosamente', 'success')
         return redirect(url_for('scrum_board', board_id=board.id))
     
-    return render_template('modules/scrum/create_board.html')
+    return render_template('modules/scrum/create_board.html', company=current_user.company)
 
 
 @app.route('/scrum/task/create/<int:board_id>/<int:column_id>', methods=['POST'])
