@@ -942,7 +942,7 @@ def manage_modules():
 @admin_required
 def portfolio_config():
     """Configurar página de presentación de la empresa"""
-    if not current_user.company.module_portfolio:
+    if not current_user.is_admin_global() and not current_user.company.module_portfolio:
         flash('El módulo de página de presentación no está activo para tu empresa.', 'warning')
         return redirect(url_for('inventory'))
     
@@ -974,7 +974,7 @@ def portfolio_config():
 @login_required
 def manage_services():
     """Gestionar servicios para citas"""
-    if not current_user.company.module_appointments:
+    if not current_user.is_admin_global() and not current_user.company.module_appointments:
         flash('El módulo de citas no está activo para tu empresa.', 'warning')
         return redirect(url_for('inventory'))
     
@@ -1019,7 +1019,7 @@ def edit_service(service_id):
 @login_required
 def manage_appointments():
     """Gestionar citas"""
-    if not current_user.company.module_appointments:
+    if not current_user.is_admin_global() and not current_user.company.module_appointments:
         flash('El módulo de citas no está activo para tu empresa.', 'warning')
         return redirect(url_for('inventory'))
     
@@ -1072,7 +1072,7 @@ def update_appointment_status(appointment_id):
 @login_required
 def pos_sales():
     """Punto de venta"""
-    if not current_user.company.module_pos:
+    if not current_user.is_admin_global() and not current_user.company.module_pos:
         flash('El módulo POS no está activo para tu empresa.', 'warning')
         return redirect(url_for('inventory'))
     
