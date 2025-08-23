@@ -112,30 +112,29 @@
                         
                         <!-- Inventario (si está activo o es super admin con preferencias) -->
                         {% if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and current_user.company.module_inventory) %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('inventory') }}">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="inventoryDropdown" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-boxes me-1"></i>Inventario
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('add_item') }}">
-                                <i class="fas fa-plus me-1"></i>Agregar Artículo
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('categories') }}">
-                                <i class="fas fa-tags me-1"></i>Categorías
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('warehouses') }}">
-                                <i class="fas fa-warehouse me-1"></i>Almacenes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('reports') }}">
-                                <i class="fas fa-chart-bar me-1"></i>Reportes
-                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('inventory') }}">
+                                    <i class="fas fa-list me-1"></i>Ver Inventario
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('add_item') }}">
+                                    <i class="fas fa-plus me-1"></i>Agregar Artículo
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('categories') }}">
+                                    <i class="fas fa-tags me-1"></i>Categorías
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('warehouses') }}">
+                                    <i class="fas fa-warehouse me-1"></i>Almacenes
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('reports') }}">
+                                    <i class="fas fa-chart-bar me-1"></i>Reportes
+                                </a></li>
+                            </ul>
                         </li>
                         {% endif %}
                         
