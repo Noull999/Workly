@@ -1050,6 +1050,24 @@ def manage_appointments():
     return render_template('modules/appointments.html', 
                          form=form, appointments=appointments, booking_url=booking_url)
 
+@app.route('/appointments/<int:appointment_id>/status', methods=['POST'])
+@login_required
+@module_required('appointments')
+def update_appointment_status(appointment_id):
+    """Actualizar estado de cita via AJAX"""
+    appointment = company_query(Appointment).filter_by(id=appointment_id).first_or_404()
+    
+    data = request.get_json()
+    new_status = data.get('status')
+    
+    if new_status not in ['pendiente', 'confirmada', 'cancelada', 'completada']:
+        return jsonify({'error': 'Estado inválido'}), 400
+    
+    appointment.status = new_status
+    db.session.commit()
+    
+    return jsonify({'message': 'Estado actualizado correctamente'})
+
 @app.route('/pos', methods=['GET', 'POST'])
 @login_required
 def pos_sales():

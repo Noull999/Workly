@@ -187,7 +187,7 @@
                 <p><strong>Tablero:</strong> {{ board.name }}</p>
                 <p><strong>Creado:</strong> {{ board.created_at.strftime('%d/%m/%Y') }}</p>
                 <p><strong>Columnas:</strong> {{ board_data|length }}</p>
-                <p><strong>Total tareas:</strong> {{ board_data|sum(attribute='tasks')|length }}</p>
+                <p><strong>Total tareas:</strong> {% set total_tasks = 0 %}{% for item in board_data %}{% set total_tasks = total_tasks + item.tasks|length %}{% endfor %}{{ total_tasks }}</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>

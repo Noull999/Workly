@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Servicio - {{ current_user.company.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>Editar Servicio: {{ service.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="4") }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.duration_minutes.label(class="form-label") }}
+                                    {{ form.duration_minutes(class="form-control") }}
+                                    {% if form.duration_minutes.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.duration_minutes.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.price.label(class="form-label") }}
+                                    {{ form.price(class="form-control", placeholder="0.00") }}
+                                    <small class="text-muted">Opcional - puedes dejarlo en blanco</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                            <small class="text-muted">Solo los servicios activos aparecen en la página pública</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('manage_services') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver
+                            </a>
+                            <div>
+                                <button type="submit" name="action" value="save" class="btn btn-success me-2">
+                                    <i class="fas fa-save me-1"></i>Guardar Cambios
+                                </button>
+                                <button type="submit" name="action" value="delete" class="btn btn-danger" onclick="return confirm('¿Estás seguro de eliminar este servicio? Esta acción no se puede deshacer.')">
+                                    <i class="fas fa-trash me-1"></i>Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Información del servicio -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Servicio</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Creado:</strong> {{ service.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                            <p><strong>Estado actual:</strong> 
+                                {% if service.is_active %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Duración:</strong> {{ service.duration_minutes }} minutos</p>
+                            <p><strong>Precio:</strong> 
+                                {% if service.price %}
+                                    ${{ service.price }}
+                                {% else %}
+                                    <span class="text-muted">No definido</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {% if service.description %}
+                    <div class="mt-3">
+                        <strong>Descripción:</strong>
+                        <p class="text-muted">{{ service.description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
