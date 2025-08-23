@@ -50,8 +50,13 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Ventas</div>
+                            {% if stats.pos %}
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pos.total_sales }} total</div>
                             <small class="text-success">{{ stats.pos.today_sales }} hoy</small>
+                            {% else %}
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">0 total</div>
+                            <small class="text-success">0 hoy</small>
+                            {% endif %}
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-cash-register fa-2x text-gray-300"></i>
@@ -70,8 +75,13 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Citas</div>
+                            {% if stats.appointments %}
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.appointments.total }} total</div>
                             <small class="text-info">{{ stats.appointments.pending }} pendientes • {{ stats.appointments.confirmed }} confirmadas</small>
+                            {% else %}
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">0 total</div>
+                            <small class="text-info">0 pendientes • 0 confirmadas</small>
+                            {% endif %}
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
@@ -90,8 +100,13 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-purple text-uppercase mb-1">Scrum Lite</div>
+                            {% if stats.scrum %}
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.scrum.total_boards }} tableros</div>
                             <small class="text-info">{{ stats.scrum.pending_tasks }} tareas pendientes</small>
+                            {% else %}
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">0 tableros</div>
+                            <small class="text-info">0 tareas pendientes</small>
+                            {% endif %}
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-tasks fa-2x text-gray-300"></i>
@@ -339,7 +354,7 @@
                     </div>
 
                     <!-- Próximas citas -->
-                    {% if stats.appointments.upcoming %}
+                    {% if stats.appointments and stats.appointments.upcoming %}
                         <h6 class="text-muted">Próximas Citas:</h6>
                         <div class="table-responsive">
                             <table class="table table-sm">
