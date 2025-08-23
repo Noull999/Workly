@@ -138,10 +138,14 @@ def dashboard():
     # Estadísticas de citas si está activo
     if company.module_appointments:
         pending_appointments = company_query(Appointment).filter_by(status='pendiente').count()
+        confirmed_appointments = company_query(Appointment).filter_by(status='confirmada').count()
         today_appointments = company_query(Appointment).filter(func.date(Appointment.appointment_date) == func.current_date()).count()
+        total_appointments = company_query(Appointment).count()
         stats['appointments'] = {
             'pending': pending_appointments,
-            'today': today_appointments
+            'confirmed': confirmed_appointments,
+            'today': today_appointments,
+            'total': total_appointments
         }
         
         # Obtener próximas citas (5 más próximas)
