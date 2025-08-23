@@ -1022,7 +1022,7 @@ def public_portfolio(company_code):
     if company.module_appointments:
         booking_url = url_for('public_booking', company_code=company.code)
     
-    return render_template('public/portfolio.html', company=company, booking_url=booking_url)
+    return render_template('public/portfolio.html', company=company, booking_url=booking_url, current_year=datetime.now().year)
 
 @app.route('/empresa/<company_code>/reservar', methods=['GET', 'POST'])
 def public_booking(company_code):
