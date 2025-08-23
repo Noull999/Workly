@@ -17,7 +17,7 @@
     <!-- Tarjetas de estadísticas principales -->
     <div class="row mb-4">
         <!-- Inventario (si está activo) -->
-        {% if company.module_inventory or (current_user.is_admin_global() and current_user.admin_pref_inventory) %}
+        {% if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and company.module_inventory) %}
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
@@ -43,7 +43,7 @@
         {% endif %}
 
         <!-- POS (si está activo) -->
-        {% if company.module_pos or (current_user.is_admin_global() and current_user.admin_pref_pos) %}
+        {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos) %}
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
@@ -63,7 +63,7 @@
         {% endif %}
 
         <!-- Citas (si está activo) -->
-        {% if company.module_appointments or (current_user.is_admin_global() and current_user.admin_pref_appointments) %}
+        {% if (current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments) %}
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
@@ -83,7 +83,7 @@
         {% endif %}
 
         <!-- Scrum Lite (si está activo) -->
-        {% if company.module_scrum or (current_user.is_admin_global() and current_user.admin_pref_scrum) %}
+        {% if (current_user.is_admin_global() and current_user.admin_pref_scrum) or (not current_user.is_admin_global() and company.module_scrum) %}
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-purple shadow h-100 py-2">
                 <div class="card-body">
@@ -103,7 +103,7 @@
         {% endif %}
 
         <!-- Páginas Públicas (si están activas) -->
-        {% if (company.module_portfolio or (current_user.is_admin_global() and current_user.admin_pref_portfolio)) or (company.module_appointments or (current_user.is_admin_global() and current_user.admin_pref_appointments)) %}
+        {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio)) or ((current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments)) %}
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
@@ -129,7 +129,7 @@
     <!-- Contenido específico por módulos -->
     <div class="row">
         <!-- Panel de inventario -->
-        {% if company.module_inventory or (current_user.is_admin_global() and current_user.admin_pref_inventory) %}
+        {% if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and company.module_inventory) %}
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
@@ -201,7 +201,7 @@
         {% endif %}
 
         <!-- Panel POS -->
-        {% if company.module_pos or (current_user.is_admin_global() and current_user.admin_pref_pos) %}
+        {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos) %}
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">

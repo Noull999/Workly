@@ -104,7 +104,7 @@ def dashboard():
     stats = {}
     
     # Estadísticas de inventario si está activo
-    if company.module_inventory:
+    if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and company.module_inventory):
         total_items = company_query(InventoryItem).count()
         low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= InventoryItem.minimum_stock).count()
         # Obtener productos con stock bajo (máximo 5)
@@ -119,7 +119,7 @@ def dashboard():
         }
     
     # Estadísticas de POS si está activo
-    if company.module_pos:
+    if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos):
         total_sales = company_query(Sale).count()
         today_sales = company_query(Sale).filter(func.date(Sale.created_at) == func.current_date()).count()
         # Calcular total de ventas de hoy
@@ -136,7 +136,7 @@ def dashboard():
         }
     
     # Estadísticas de citas si está activo
-    if company.module_appointments:
+    if (current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments):
         pending_appointments = company_query(Appointment).filter_by(status='pendiente').count()
         confirmed_appointments = company_query(Appointment).filter_by(status='confirmada').count()
         today_appointments = company_query(Appointment).filter(func.date(Appointment.appointment_date) == func.current_date()).count()
@@ -156,7 +156,7 @@ def dashboard():
         stats['appointments']['upcoming'] = upcoming_appointments
     
     # Estadísticas de Scrum Lite si está activo
-    if company.module_scrum:
+    if (current_user.is_admin_global() and current_user.admin_pref_scrum) or (not current_user.is_admin_global() and company.module_scrum):
         total_boards = company_query(Board).filter_by(is_active=True).count()
         # Tareas asignadas al usuario actual
         my_tasks = company_query(Task).filter_by(assignee_id=current_user.id).filter(
@@ -173,9 +173,9 @@ def dashboard():
     
     # URLs de páginas públicas si están activas
     public_urls = {}
-    if company.module_portfolio:
+    if (current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio):
         public_urls['portfolio'] = url_for('public_portfolio', company_code=company.code, _external=True)
-    if company.module_appointments:
+    if (current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments):
         public_urls['booking'] = url_for('public_booking', company_code=company.code, _external=True)
     
     return render_template('dashboard.html', stats=stats, company=company, public_urls=public_urls)

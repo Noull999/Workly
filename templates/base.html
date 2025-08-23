@@ -111,7 +111,7 @@
                         </li>
                         
                         <!-- Inventario (si está activo o es super admin con preferencias) -->
-                        {% if current_user.company.module_inventory or (current_user.is_admin_global() and current_user.admin_pref_inventory) %}
+                        {% if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and current_user.company.module_inventory) %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('inventory') }}">
                                 <i class="fas fa-boxes me-1"></i>Inventario
@@ -140,7 +140,7 @@
                         {% endif %}
                         
                         <!-- POS (si está activo o es super admin con preferencias) -->
-                        {% if current_user.company.module_pos or (current_user.is_admin_global() and current_user.admin_pref_pos) %}
+                        {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and current_user.company.module_pos) %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('pos_sales') }}">
                                 <i class="fas fa-cash-register me-1"></i>POS
@@ -149,7 +149,7 @@
                         {% endif %}
                         
                         <!-- Scrum Lite (si está activo o es super admin con preferencias) -->
-                        {% if current_user.company.module_scrum or (current_user.is_admin_global() and current_user.admin_pref_scrum) %}
+                        {% if (current_user.is_admin_global() and current_user.admin_pref_scrum) or (not current_user.is_admin_global() and current_user.company.module_scrum) %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="scrumDropdown" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-tasks me-1"></i>Scrum
@@ -168,7 +168,7 @@
                         {% endif %}
                         
                         <!-- Citas (si está activo o es super admin con preferencias) -->
-                        {% if current_user.company.module_appointments or (current_user.is_admin_global() and current_user.admin_pref_appointments) %}
+                        {% if (current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and current_user.company.module_appointments) %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="appointmentsDropdown" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-calendar-alt me-1"></i>Citas
@@ -184,7 +184,7 @@
                         </li>
                         {% endif %}
                         
-                        {% if (current_user.company.module_portfolio or (current_user.is_admin_global() and current_user.admin_pref_portfolio)) and (current_user.is_admin_global() or current_user.is_admin_empresa()) %}
+                        {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and current_user.company.module_portfolio)) and (current_user.is_admin_global() or current_user.is_admin_empresa()) %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('portfolio_config') }}">
                                 <i class="fas fa-globe me-1"></i>Mi Página
