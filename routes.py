@@ -1,6 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify, g
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
+from datetime import datetime
 from app import app, db
 from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem, Board, Sprint, Task, Column, TaskComment
 from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm, ModuleSettingsForm, ServiceForm, AppointmentForm, PublicAppointmentForm, PortfolioForm, SaleForm
@@ -144,7 +145,6 @@ def dashboard():
         }
         
         # Obtener próximas citas (5 más próximas)
-        from datetime import datetime
         upcoming_appointments = company_query(Appointment).filter(
             Appointment.appointment_date >= datetime.now(),
             Appointment.status.in_(['pendiente', 'confirmada'])
