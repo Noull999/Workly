@@ -308,6 +308,7 @@ def add_item():
             minimum_stock=form.minimum_stock.data,
             sku=form.sku.data if form.sku.data else None,
             barcode=form.barcode.data if form.barcode.data else None,
+            price=form.price.data if form.price.data else None,
             category_id=form.category_id.data if form.category_id.data != 0 else None,
             warehouse_id=form.warehouse_id.data,
             user_id=current_user.id,
@@ -338,7 +339,8 @@ def edit_item(item_id):
         'quantity': item.quantity,
         'warehouse_id': item.warehouse_id,
         'barcode': item.barcode,
-        'sku': item.sku
+        'sku': item.sku,
+        'price': item.price
     }
     
     form = InventoryItemForm(obj=item)
@@ -371,6 +373,7 @@ def edit_item(item_id):
         item.minimum_stock = form.minimum_stock.data
         item.sku = form.sku.data if form.sku.data else None
         item.barcode = form.barcode.data if form.barcode.data else None
+        item.price = form.price.data if form.price.data else None
         item.category_id = form.category_id.data if form.category_id.data != 0 else None
         item.warehouse_id = form.warehouse_id.data
         
@@ -382,7 +385,8 @@ def edit_item(item_id):
             'quantity': item.quantity,
             'warehouse_id': item.warehouse_id,
             'barcode': item.barcode,
-            'sku': item.sku
+            'sku': item.sku,
+            'price': item.price
         }
         log_audit('inventory_item', item.id, 'UPDATE', original_values, new_values)
         
