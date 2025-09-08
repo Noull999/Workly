@@ -6,7 +6,55 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h2 class="mb-4"><i class="fas fa-cash-register me-2"></i>Punto de Venta</h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-cash-register me-2"></i>Punto de Venta</h2>
+                <div class="btn-group">
+                    <button class="btn btn-info" onclick="toggleBarcodeScanner()">
+                        <i class="fas fa-barcode"></i> Scanner
+                    </button>
+                    <a href="{{ url_for('cash_session_management') }}" class="btn btn-primary">
+                        <i class="fas fa-coins"></i> Gestión de Caja
+                    </a>
+                    <a href="{{ url_for('inventory') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Inventario
+                    </a>
+                </div>
+            </div>
+
+            <!-- Estado de Caja -->
+            {% if not current_session %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> 
+                <strong>Sin caja abierta:</strong> No hay una sesión de caja abierta para hoy. 
+                <a href="{{ url_for('cash_session_management') }}" class="alert-link">Abrir caja</a>
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> 
+                <strong>Caja abierta:</strong> Sesión del {{ current_session.session_date.strftime('%d/%m/%Y') }} - 
+                Ventas: ${{ "%.2f"|format(current_session.total_sales) }}
+            </div>
+            {% endif %}
+
+            <!-- Scanner de Códigos de Barras -->
+            <div class="card mb-3" id="barcodeScanner" style="display: none;">
+                <div class="card-header">
+                    <h5><i class="fas fa-barcode"></i> Scanner de Códigos de Barras</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="barcodeInput" placeholder="Escanee o escriba el código de barras..." autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-primary w-100" onclick="searchByBarcode()">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted">Presione Enter después de escanear o escribir el código</small>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -87,13 +135,25 @@
 
                         <input type="hidden" id="cartData" name="cart_data">
                         
-                        <button type="button" class="btn btn-success w-100" onclick="processSale()" id="saleButton" disabled>
-                            <i class="fas fa-credit-card me-1"></i>Procesar Venta
-                        </button>
+                        <div class="btn-group w-100 mb-2">
+                            <button type="button" class="btn btn-success" onclick="processSale()" id="saleButton" disabled>
+                                <i class="fas fa-credit-card me-1"></i>Pago Simple
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="openMultiPaymentModal()" id="multiPayButton" disabled>
+                                <i class="fas fa-coins me-1"></i>Múltiples Pagos
+                            </button>
+                        </div>
                         
-                        <button type="button" class="btn btn-outline-secondary w-100 mt-2" onclick="clearCart()">
+                        <button type="button" class="btn btn-outline-secondary w-100" onclick="clearCart()">
                             <i class="fas fa-trash me-1"></i>Limpiar Carrito
                         </button>
+
+                        <!-- Estado de conexión -->
+                        <div class="mt-2">
+                            <small id="connectionStatus" class="text-success">
+                                <i class="fas fa-wifi"></i> En línea
+                            </small>
+                        </div>
                     </form>
                 </div>
             </div>
