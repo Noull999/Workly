@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Caja - Inventario INTAC{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-file-alt"></i> Reporte de Caja - {{ session.session_date.strftime('%d/%m/%Y') }}</h2>
+                <div class="btn-group">
+                    <a href="{{ url_for('cash_session_management') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                    <a href="{{ url_for('cash_session_report', session_id=session.id, format='pdf') }}" class="btn btn-danger">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                    <a href="{{ url_for('cash_session_report', session_id=session.id, format='csv') }}" class="btn btn-success">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </a>
+                </div>
+            </div>
+
+            <!-- Información de la Sesión -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Información General</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <strong>Fecha:</strong><br>
+                                    {{ session.session_date.strftime('%d/%m/%Y') }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Estado:</strong><br>
+                                    <span class="badge {% if session.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ 'Abierta' if session.status == 'open' else 'Cerrada' }}
+                                    </span>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Abierta por:</strong><br>
+                                    {{ session.opened_by.username }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Hora de apertura:</strong><br>
+                                    {{ session.opened_at.strftime('%H:%M:%S') }}
+                                </div>
+                            </div>
+                            {% if session.status == 'closed' %}
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <strong>Cerrada por:</strong><br>
+                                    {{ session.closed_by.username if session.closed_by else '-' }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Hora de cierre:</strong><br>
+                                    {{ session.closed_at.strftime('%H:%M:%S') if session.closed_at else '-' }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Notas:</strong><br>
+                                    {{ session.notes or 'Sin notas' }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen Financiero -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Apertura</h5>
+                            <h3 class="text-primary">${{ "%.2f"|format(session.opening_amount) }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">Ventas</h5>
+                            <h3 class="text-success">${{ "%.2f"|format(session.total_sales) }}</h3>
+                            <small class="text-muted">{{ session.sales|length }} transacciones</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger">Egresos</h5>
+                            <h3 class="text-danger">${{ "%.2f"|format(session.total_expenses) }}</h3>
+                            <small class="text-muted">{{ session.expenses|length }} movimientos</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            {% if session.status == 'closed' %}
+                            <h5 class="card-title">Diferencia</h5>
+                            <h3 class="{% if session.difference_amount >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                ${{ "%.2f"|format(session.difference_amount) }}
+                            </h3>
+                            <small class="text-muted">
+                                Esperado: ${{ "%.2f"|format(session.expected_amount) }}<br>
+                                Real: ${{ "%.2f"|format(session.closing_amount) }}
+                            </small>
+                            {% else %}
+                            <h5 class="card-title">Esperado</h5>
+                            <h3 class="text-info">${{ "%.2f"|format(session.calculate_expected_amount()) }}</h3>
+                            <small class="text-muted">Caja aún abierta</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalle de Ventas -->
+            {% if session.sales %}
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shopping-cart"></i> Detalle de Ventas</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Hora</th>
+                                            <th>N° Venta</th>
+                                            <th>Total</th>
+                                            <th>Método de Pago</th>
+                                            <th>Vendedor</th>
+                                            <th>Items</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for sale in session.sales %}
+                                        <tr>
+                                            <td>{{ sale.created_at.strftime('%H:%M') }}</td>
+                                            <td>{{ sale.sale_number }}</td>
+                                            <td class="text-success">${{ "%.2f"|format(sale.total_amount) }}</td>
+                                            <td>
+                                                {% for payment in sale.payment_details %}
+                                                <span class="badge bg-info me-1">{{ payment.payment_method }}</span>
+                                                {% endfor %}
+                                            </td>
+                                            <td>{{ sale.user.username }}</td>
+                                            <td>{{ sale.items|length }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-success">
+                                            <th colspan="2">TOTAL VENTAS</th>
+                                            <th>${{ "%.2f"|format(session.total_sales) }}</th>
+                                            <th colspan="3">{{ session.sales|length }} transacciones</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Detalle de Egresos -->
+            {% if session.expenses %}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-minus-circle"></i> Detalle de Egresos</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Hora</th>
+                                            <th>Descripción</th>
+                                            <th>Categoría</th>
+                                            <th>Monto</th>
+                                            <th>Recibo</th>
+                                            <th>Usuario</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for expense in session.expenses %}
+                                        <tr>
+                                            <td>{{ expense.created_at.strftime('%H:%M') }}</td>
+                                            <td>{{ expense.description }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ expense.category }}</span>
+                                            </td>
+                                            <td class="text-danger">${{ "%.2f"|format(expense.amount) }}</td>
+                                            <td>{{ expense.receipt_number or '-' }}</td>
+                                            <td>{{ expense.user.username }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-danger">
+                                            <th colspan="3">TOTAL EGRESOS</th>
+                                            <th>${{ "%.2f"|format(session.total_expenses) }}</th>
+                                            <th colspan="2">{{ session.expenses|length }} movimientos</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

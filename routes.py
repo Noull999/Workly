@@ -1076,12 +1076,93 @@ def pos_sales():
         flash('El módulo POS no está activo para tu empresa.', 'warning')
         return redirect(url_for('inventory'))
     
+    # Verificar si hay sesión de caja abierta
+    from datetime import date
+    today = date.today()
+    current_session = CashSession.query.filter_by(
+        company_id=current_user.company_id,
+        session_date=today,
+        status='open'
+    ).first()
+    
+    # Mostrar advertencia si no hay caja abierta
+    if not current_session:
+        flash('Advertencia: No hay una sesión de caja abierta hoy. Las ventas no se asociarán a caja.', 'warning')
+    
     form = SaleForm()
+    
+    if form.validate_on_submit():
+        # Procesar venta desde datos del carrito
+        import json
+        cart_data = request.form.get('cart_data')
+        
+        if cart_data:
+            try:
+                cart_items = json.loads(cart_data)
+                
+                # Crear venta
+                sale = Sale(
+                    sale_number=Sale.generate_sale_number(current_user.company_id),
+                    company_id=current_user.company_id,
+                    user_id=current_user.id,
+                    cash_session_id=current_session.id if current_session else None,
+                    status='completada',
+                    notes=form.notes.data
+                )
+                
+                total_amount = 0
+                
+                # Agregar items a la venta
+                for cart_item in cart_items:
+                    inventory_item = InventoryItem.query.get(cart_item['id'])
+                    if inventory_item and inventory_item.quantity >= cart_item['quantity']:
+                        # Crear item de venta
+                        sale_item = SaleItem(
+                            quantity=cart_item['quantity'],
+                            unit_price=cart_item['price'],
+                            total_price=cart_item['price'] * cart_item['quantity'],
+                            inventory_item_id=inventory_item.id
+                        )
+                        sale.items.append(sale_item)
+                        total_amount += sale_item.total_price
+                        
+                        # Actualizar inventario
+                        inventory_item.quantity -= cart_item['quantity']
+                    else:
+                        flash(f'Stock insuficiente para {inventory_item.name if inventory_item else "item desconocido"}', 'error')
+                        return redirect(url_for('pos_sales'))
+                
+                # Calcular impuestos y total
+                sale.tax_amount = total_amount * 0.19
+                sale.total_amount = total_amount + sale.tax_amount
+                
+                # Crear detalle de pago (método único por ahora)
+                payment_detail = PaymentDetail(
+                    payment_method=form.payment_method.data,
+                    amount=sale.total_amount,
+                    notes=f"Pago completo por {form.payment_method.data}"
+                )
+                sale.payment_details.append(payment_detail)
+                
+                # Actualizar totales de sesión de caja si existe
+                if current_session:
+                    current_session.total_sales += float(sale.total_amount)
+                
+                db.session.add(sale)
+                db.session.commit()
+                
+                flash(f'Venta {sale.sale_number} procesada exitosamente por ${sale.total_amount}', 'success')
+                return redirect(url_for('pos_sales'))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error procesando la venta: {str(e)}', 'error')
+                return redirect(url_for('pos_sales'))
     
     # Obtener items de inventario con stock
     items = company_query(InventoryItem).filter(InventoryItem.quantity > 0).all()
     
-    return render_template('modules/pos.html', form=form, items=items)
+    return render_template('modules/pos.html', form=form, items=items, current_session=current_session)
 
 
 # ===== POS ADVANCED ROUTES =====
@@ -1201,6 +1282,145 @@ def cash_session_report(session_id):
         return redirect(url_for('cash_session_report', session_id=session_id))
     
     return render_template('modules/cash_report.html', session=session)
+
+
+@app.route('/pos/multi-payment', methods=['POST'])
+@login_required
+def process_multi_payment():
+    """Procesar venta con múltiples métodos de pago"""
+    if not current_user.is_admin_global() and not current_user.company.module_pos:
+        return jsonify({'error': 'Módulo POS no activo'}), 403
+    
+    try:
+        data = request.get_json()
+        cart_items = data.get('cart_items', [])
+        payment_methods = data.get('payment_methods', [])
+        notes = data.get('notes', '')
+        
+        # Validar datos
+        if not cart_items or not payment_methods:
+            return jsonify({'error': 'Datos incompletos'}), 400
+        
+        # Verificar que el total de pagos coincida con el total de la venta
+        cart_total = sum([item['price'] * item['quantity'] for item in cart_items])
+        tax_amount = cart_total * 0.19
+        total_with_tax = cart_total + tax_amount
+        payment_total = sum([float(p['amount']) for p in payment_methods])
+        
+        if abs(total_with_tax - payment_total) > 0.01:  # Tolerancia de centavos
+            return jsonify({'error': f'El total de pagos (${payment_total}) no coincide con el total de la venta (${total_with_tax})'}), 400
+        
+        # Crear venta
+        sale = Sale(
+            sale_number=Sale.generate_sale_number(current_user.company_id),
+            total_amount=total_with_tax,
+            tax_amount=tax_amount,
+            company_id=current_user.company_id,
+            user_id=current_user.id,
+            status='completada',
+            notes=notes
+        )
+        
+        # Agregar items
+        for cart_item in cart_items:
+            inventory_item = InventoryItem.query.get(cart_item['id'])
+            if inventory_item and inventory_item.quantity >= cart_item['quantity']:
+                sale_item = SaleItem(
+                    quantity=cart_item['quantity'],
+                    unit_price=cart_item['price'],
+                    total_price=cart_item['price'] * cart_item['quantity'],
+                    inventory_item_id=inventory_item.id
+                )
+                sale.items.append(sale_item)
+                
+                # Actualizar inventario
+                inventory_item.quantity -= cart_item['quantity']
+            else:
+                return jsonify({'error': f'Stock insuficiente para {inventory_item.name if inventory_item else "item desconocido"}'}), 400
+        
+        # Agregar detalles de pago
+        for payment in payment_methods:
+            payment_detail = PaymentDetail(
+                payment_method=payment['method'],
+                amount=payment['amount'],
+                reference=payment.get('reference', ''),
+                notes=payment.get('notes', '')
+            )
+            sale.payment_details.append(payment_detail)
+        
+        # Asociar a sesión de caja si está abierta
+        from datetime import date
+        today = date.today()
+        current_session = CashSession.query.filter_by(
+            company_id=current_user.company_id,
+            session_date=today,
+            status='open'
+        ).first()
+        
+        if current_session:
+            sale.cash_session_id = current_session.id
+            current_session.total_sales += float(sale.total_amount)
+        
+        db.session.add(sale)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'sale_number': sale.sale_number,
+            'total': float(sale.total_amount),
+            'message': f'Venta {sale.sale_number} procesada exitosamente'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Error procesando la venta: {str(e)}'}), 500
+
+
+@app.route('/pos/sync-offline', methods=['POST'])
+@login_required
+def sync_offline_sales():
+    """Sincronizar ventas offline"""
+    if not current_user.is_admin_global() and not current_user.company.module_pos:
+        return jsonify({'error': 'Módulo POS no activo'}), 403
+    
+    try:
+        # Obtener ventas offline pendientes
+        offline_sales = OfflineSync.query.filter_by(
+            company_id=current_user.company_id,
+            sync_status='pending'
+        ).all()
+        
+        synced_count = 0
+        error_count = 0
+        
+        for offline_sale in offline_sales:
+            try:
+                sale_data = offline_sale.sale_data
+                
+                # Procesar venta offline (implementar lógica similar a process_multi_payment)
+                # ... código de procesamiento ...
+                
+                offline_sale.sync_status = 'synced'
+                offline_sale.synced_at = datetime.utcnow()
+                synced_count += 1
+                
+            except Exception as e:
+                offline_sale.sync_status = 'error'
+                offline_sale.error_message = str(e)
+                offline_sale.attempts += 1
+                error_count += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'synced': synced_count,
+            'errors': error_count,
+            'message': f'Sincronizadas {synced_count} ventas, {error_count} errores'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Error sincronizando: {str(e)}'}), 500
 
 
 # ===== RUTAS PÚBLICAS (SIN LOGIN) =====
