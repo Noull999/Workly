@@ -24,6 +24,7 @@ class InventoryItemForm(FlaskForm):
     minimum_stock = IntegerField('Stock Mínimo', validators=[DataRequired(), NumberRange(min=0)])
     sku = StringField('SKU', validators=[Optional(), Length(max=50)])
     barcode = StringField('Código de Barras', validators=[Optional(), Length(max=100)])
+    price = DecimalField('Precio (Opcional)', validators=[Optional(), NumberRange(min=0)], places=2)
     category_id = SelectField('Categoría', coerce=int, validators=[Optional()])
     warehouse_id = SelectField('Almacén', coerce=int, validators=[DataRequired()])
     

@@ -162,6 +162,7 @@ class InventoryItem(db.Model):
     minimum_stock = db.Column(db.Integer, default=5)
     sku = db.Column(db.String(50))
     barcode = db.Column(db.String(100))  # Support for barcodes/QR codes
+    price = db.Column(db.Numeric(10, 2), nullable=True)  # Optional price field
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
