@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify, g
+from flask import render_template, redirect, url_for, flash, request, jsonify, g, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from datetime import datetime

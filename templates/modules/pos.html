@@ -70,12 +70,13 @@
                     <div class="row" id="productList">
                         {% for item in items %}
                         <div class="col-md-6 col-lg-4 mb-3 product-item" data-name="{{ item.name.lower() }}" data-sku="{{ item.sku.lower() if item.sku }}">
-                            <div class="card h-100 product-card" onclick="addToCart({{ item.id }}, '{{ item.name }}', 0, {{ item.quantity }})">
+                            <div class="card h-100 product-card" onclick="addToCart({{ item.id }}, '{{ item.name }}', {{ item.price or 0 }}, {{ item.quantity }})">
                                 <div class="card-body">
                                     <h6 class="card-title">{{ item.name }}</h6>
                                     <p class="card-text small text-muted">
                                         {% if item.sku %}SKU: {{ item.sku }}<br>{% endif %}
-                                        Stock: {{ item.quantity }} unidades
+                                        Stock: {{ item.quantity }} unidades<br>
+                                        {% if item.price %}Precio: ${{ "%.2f"|format(item.price) }}{% else %}Precio: No definido{% endif %}
                                     </p>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-muted">{{ item.category_ref.name if item.category_ref else 'Sin categoría' }}</small>
