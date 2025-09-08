@@ -266,6 +266,8 @@ class Sale(db.Model):
     
     # Relationships
     items = db.relationship('SaleItem', backref='sale', lazy=True, cascade='all, delete-orphan')
+    payment_details = db.relationship('PaymentDetail', backref='sale', lazy=True, cascade='all, delete-orphan')
+    cash_session_id = db.Column(db.Integer, db.ForeignKey('cash_session.id'), nullable=True)
     
     @classmethod
     def generate_sale_number(cls, company_id):
@@ -274,6 +276,15 @@ class Sale(db.Model):
         timestamp = int(time.time())
         count = cls.query.filter_by(company_id=company_id).count() + 1
         return f"V{timestamp}-{count:04d}"
+    
+    def get_cash_amount(self):
+        """Obtiene el monto pagado en efectivo"""
+        cash_payments = [p for p in self.payment_details if p.payment_method == 'efectivo']
+        return sum([float(p.amount) for p in cash_payments])
+    
+    def get_total_paid(self):
+        """Obtiene el total pagado (suma de todos los métodos)"""
+        return sum([float(p.amount) for p in self.payment_details])
     
     def __repr__(self):
         return f'<Sale {self.sale_number}>'
@@ -293,6 +304,91 @@ class SaleItem(db.Model):
     
     def __repr__(self):
         return f'<SaleItem {self.quantity}x {self.inventory_item.name if self.inventory_item else "Unknown"}>'
+
+
+# ===== POS ADVANCED MODELS =====
+
+class CashSession(db.Model):
+    """Sesiones de caja diaria - Apertura y cierre de caja"""
+    id = db.Column(db.Integer, primary_key=True)
+    session_date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date)
+    opening_amount = db.Column(db.Numeric(10, 2), nullable=False, default=0)  # Monto inicial
+    closing_amount = db.Column(db.Numeric(10, 2), nullable=True)  # Monto final
+    expected_amount = db.Column(db.Numeric(10, 2), nullable=True)  # Monto esperado
+    difference_amount = db.Column(db.Numeric(10, 2), nullable=True)  # Diferencia
+    total_sales = db.Column(db.Numeric(10, 2), default=0)  # Total ventas
+    total_expenses = db.Column(db.Numeric(10, 2), default=0)  # Total egresos
+    status = db.Column(db.String(20), default='open')  # open, closed
+    notes = db.Column(db.Text)
+    opened_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    closed_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    opened_at = db.Column(db.DateTime, default=datetime.utcnow)
+    closed_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    sales = db.relationship('Sale', backref='cash_session', lazy=True)
+    expenses = db.relationship('CashExpense', backref='cash_session', lazy=True)
+    opened_by = db.relationship('User', foreign_keys=[opened_by_id], backref='opened_sessions')
+    closed_by = db.relationship('User', foreign_keys=[closed_by_id], backref='closed_sessions')
+    
+    __table_args__ = (
+        db.UniqueConstraint('session_date', 'company_id', name='unique_session_per_date_per_company'),
+    )
+    
+    def calculate_expected_amount(self):
+        """Calcula el monto esperado en caja"""
+        cash_sales = sum([s.get_cash_amount() for s in self.sales])
+        cash_expenses = sum([e.amount for e in self.expenses])
+        return float(self.opening_amount) + cash_sales - cash_expenses
+    
+    def __repr__(self):
+        return f'<CashSession {self.session_date} - {self.status}>'
+
+
+class PaymentDetail(db.Model):
+    """Detalles de pago - Soporte para múltiples métodos de pago por venta"""
+    id = db.Column(db.Integer, primary_key=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sale.id'), nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)  # efectivo, tarjeta, transferencia, vale
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    reference = db.Column(db.String(100), nullable=True)  # Número de voucher, referencia, etc.
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<PaymentDetail {self.payment_method}: ${self.amount}>'
+
+
+class CashExpense(db.Model):
+    """Egresos de caja diarios"""
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(200), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    category = db.Column(db.String(50), default='general')  # suministros, servicios, general, etc.
+    receipt_number = db.Column(db.String(50), nullable=True)
+    cash_session_id = db.Column(db.Integer, db.ForeignKey('cash_session.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<CashExpense {self.description}: ${self.amount}>'
+
+
+class OfflineSync(db.Model):
+    """Registro de ventas offline pendientes de sincronización"""
+    id = db.Column(db.Integer, primary_key=True)
+    sale_data = db.Column(db.JSON, nullable=False)  # Datos de la venta en JSON
+    sync_status = db.Column(db.String(20), default='pending')  # pending, synced, error
+    error_message = db.Column(db.Text, nullable=True)
+    attempts = db.Column(db.Integer, default=0)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    synced_at = db.Column(db.DateTime, nullable=True)
+    
+    def __repr__(self):
+        return f'<OfflineSync {self.sync_status} - {self.created_at}>'
 
 
 # ===== SCRUM LITE MODULE =====
