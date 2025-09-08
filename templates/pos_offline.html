@@ -1,0 +1,213 @@
+{% extends "modules/pos.html" %}
+
+{# Plantilla extendida del POS con modo offline mejorado #}
+
+{% block title %}POS Offline - {{ current_user.company.name }}{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+.connection-status {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.connection-status.online {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.connection-status.offline {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+#pendingSalesBanner {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.offline-indicator {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    z-index: 9999;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Banner de ventas pendientes -->
+    <div id="pendingSalesBanner" style="display: none;"></div>
+    
+    <!-- Indicador offline fijo -->
+    <div id="offlineIndicator" class="offline-indicator" style="display: none;">
+        <i class="fas fa-wifi-slash"></i> Modo Offline Activo
+    </div>
+    
+    <!-- Datos del usuario actual para JavaScript -->
+    <script id="currentUserData" type="application/json">
+    {
+        "user_id": {{ current_user.id }},
+        "company_id": {{ current_user.company_id }},
+        "username": "{{ current_user.username }}",
+        "company_name": "{{ current_user.company.name }}"
+    }
+    </script>
+    
+    {{ super() }}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/pos_offline.js') }}"></script>
+
+<script>
+// Integración específica para el POS offline
+document.addEventListener('DOMContentLoaded', function() {
+    // Sobrescribir función de procesamiento de venta para usar modo offline
+    const originalProcessSale = window.processSale;
+    const originalProcessMultiPayment = window.processMultiPayment;
+    
+    window.processSale = function() {
+        if (!posOfflineManager.isConnectionOnline()) {
+            // Procesar venta offline
+            if (cart.length === 0) {
+                posOfflineManager.showNotification('El carrito está vacío', 'warning');
+                return;
+            }
+            
+            const saleData = {
+                cart_items: cart,
+                payment_methods: [{
+                    method: document.querySelector('[name="payment_method"]').value,
+                    amount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.19,
+                    reference: '',
+                    notes: document.querySelector('[name="notes"]').value
+                }],
+                notes: document.querySelector('[name="notes"]').value
+            };
+            
+            posOfflineManager.processSaleOffline(saleData)
+                .then(() => {
+                    clearCart();
+                })
+                .catch(error => {
+                    console.error('Error procesando venta offline:', error);
+                });
+        } else {
+            // Procesar venta online normalmente
+            originalProcessSale();
+        }
+    };
+    
+    window.processMultiPayment = function() {
+        if (!posOfflineManager.isConnectionOnline()) {
+            // Recopilar datos de pago múltiple
+            const paymentMethods = [];
+            const paymentElements = document.querySelectorAll('.payment-method');
+            
+            paymentElements.forEach(element => {
+                const method = element.querySelector('.payment-method-select').value;
+                const amount = parseFloat(element.querySelector('.payment-amount').value) || 0;
+                const reference = element.querySelector('.payment-reference').value;
+                
+                if (amount > 0) {
+                    paymentMethods.push({
+                        method: method,
+                        amount: amount,
+                        reference: reference,
+                        notes: ''
+                    });
+                }
+            });
+            
+            if (paymentMethods.length === 0) {
+                posOfflineManager.showNotification('Debe agregar al menos un método de pago', 'warning');
+                return;
+            }
+            
+            const saleData = {
+                cart_items: cart,
+                payment_methods: paymentMethods,
+                notes: document.querySelector('[name="notes"]').value
+            };
+            
+            posOfflineManager.processSaleOffline(saleData)
+                .then(() => {
+                    clearCart();
+                    bootstrap.Modal.getInstance(document.getElementById('multiPaymentModal')).hide();
+                })
+                .catch(error => {
+                    console.error('Error procesando venta offline:', error);
+                });
+        } else {
+            // Procesar venta online normalmente
+            originalProcessMultiPayment();
+        }
+    };
+    
+    // Actualizar indicadores visuales según estado de conexión
+    function updateOfflineIndicators() {
+        const offlineIndicator = document.getElementById('offlineIndicator');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        if (!posOfflineManager.isConnectionOnline()) {
+            if (offlineIndicator) offlineIndicator.style.display = 'block';
+        } else {
+            if (offlineIndicator) offlineIndicator.style.display = 'none';
+        }
+    }
+    
+    // Actualizar indicadores cada 5 segundos
+    setInterval(updateOfflineIndicators, 5000);
+    updateOfflineIndicators();
+    
+    // Mostrar contador de ventas pendientes en el título
+    function updatePageTitle() {
+        const pendingCount = posOfflineManager.getPendingSalesCount();
+        const baseTitle = 'POS - {{ current_user.company.name }}';
+        
+        if (pendingCount > 0) {
+            document.title = `(${pendingCount}) ${baseTitle}`;
+        } else {
+            document.title = baseTitle;
+        }
+    }
+    
+    setInterval(updatePageTitle, 10000);
+});
+
+// Función para forzar sincronización manual
+window.forceSyncOfflineSales = function() {
+    if (posOfflineManager.isConnectionOnline()) {
+        posOfflineManager.syncPendingSales();
+    } else {
+        posOfflineManager.showNotification('No hay conexión disponible', 'error');
+    }
+};
+
+// Función para mostrar estadísticas offline
+window.showOfflineStats = function() {
+    const pendingCount = posOfflineManager.getPendingSalesCount();
+    const isOnline = posOfflineManager.isConnectionOnline();
+    
+    posOfflineManager.showNotification(
+        `Estado: ${isOnline ? 'En línea' : 'Sin conexión'}\nVentas pendientes: ${pendingCount}`,
+        'info'
+    );
+};
+</script>
+{% endblock %}

@@ -262,6 +262,8 @@ class Sale(db.Model):
     notes = db.Column(db.Text)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Vendedor
+    offline_uuid = db.Column(db.String(36), nullable=True, unique=True)  # UUID para ventas offline
+    offline_timestamp = db.Column(db.DateTime, nullable=True)  # Timestamp original offline
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships

@@ -1428,33 +1428,86 @@ def process_multi_payment():
         return jsonify({'error': f'Error procesando la venta: {str(e)}'}), 500
 
 
-@app.route('/pos/sync-offline', methods=['POST'])
+@app.route('/pos/sync', methods=['POST'])
 @login_required
-def sync_offline_sales():
-    """Sincronizar ventas offline"""
+def sync_offline_sale():
+    """Sincronizar una venta offline individual"""
     if not current_user.is_admin_global() and not current_user.company.module_pos:
         return jsonify({'error': 'Módulo POS no activo'}), 403
     
     try:
+        from services.pos_sync import POSSyncService
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No se recibieron datos'}), 400
+        
+        # Validar campos requeridos
+        required_fields = ['uuid', 'sale_data', 'company_id', 'user_id', 'timestamp']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Campo requerido faltante: {field}'}), 400
+        
+        # Validar que el usuario pertenezca a la empresa
+        if data['company_id'] != current_user.company_id:
+            return jsonify({'error': 'No tiene permisos para esta empresa'}), 403
+        
+        if data['user_id'] != current_user.id:
+            return jsonify({'error': 'No tiene permisos para sincronizar ventas de otro usuario'}), 403
+        
+        # Procesar la venta offline
+        result = POSSyncService.process_offline_sale(
+            sale_uuid=data['uuid'],
+            sale_data=data['sale_data'],
+            company_id=data['company_id'],
+            user_id=data['user_id'],
+            timestamp=data['timestamp']
+        )
+        
+        if result['success']:
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+            
+    except Exception as e:
+        current_app.logger.error(f"Error en endpoint de sincronización: {str(e)}")
+        return jsonify({'error': f'Error interno del servidor: {str(e)}'}), 500
+
+
+@app.route('/pos/sync-offline', methods=['POST'])
+@login_required
+def sync_offline_sales_legacy():
+    """Sincronizar ventas offline (endpoint legacy para compatibilidad)"""
+    if not current_user.is_admin_global() and not current_user.company.module_pos:
+        return jsonify({'error': 'Módulo POS no activo'}), 403
+    
+    try:
+        from services.pos_sync import POSSyncService
+        
         # Obtener ventas offline pendientes
-        offline_sales = OfflineSync.query.filter_by(
-            company_id=current_user.company_id,
-            sync_status='pending'
-        ).all()
+        offline_sales = POSSyncService.get_pending_offline_syncs(current_user.company_id)
         
         synced_count = 0
         error_count = 0
         
         for offline_sale in offline_sales:
             try:
-                sale_data = offline_sale.sale_data
+                result = POSSyncService.process_offline_sale(
+                    sale_uuid=f"legacy-{offline_sale.id}",
+                    sale_data=offline_sale.sale_data,
+                    company_id=offline_sale.company_id,
+                    user_id=offline_sale.user_id,
+                    timestamp=offline_sale.created_at.isoformat()
+                )
                 
-                # Procesar venta offline (implementar lógica similar a process_multi_payment)
-                # ... código de procesamiento ...
-                
-                offline_sale.sync_status = 'synced'
-                offline_sale.synced_at = datetime.utcnow()
-                synced_count += 1
+                if result['success']:
+                    POSSyncService.mark_offline_sync_completed(offline_sale.id, result['sale_number'])
+                    synced_count += 1
+                else:
+                    offline_sale.sync_status = 'error'
+                    offline_sale.error_message = result['error']
+                    offline_sale.attempts += 1
+                    error_count += 1
                 
             except Exception as e:
                 offline_sale.sync_status = 'error'

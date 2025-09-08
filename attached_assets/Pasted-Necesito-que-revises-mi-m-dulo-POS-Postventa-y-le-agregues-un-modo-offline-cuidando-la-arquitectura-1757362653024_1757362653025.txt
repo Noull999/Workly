@@ -1,0 +1,44 @@
+Necesito que revises mi módulo POS/Postventa y le agregues un modo offline, cuidando la arquitectura multiempresa.
+
+⸻
+
+🔑 Requerimientos del modo offline
+	1.	Registro de ventas offline
+	•	Si el cliente pierde conexión con el servidor, el POS debe permitir seguir registrando ventas.
+	•	Guardar las ventas temporalmente en IndexedDB o localStorage en el navegador.
+	2.	Sincronización automática
+	•	Al recuperar conexión, sincronizar las ventas pendientes con el backend Flask.
+	•	Validar stock y actualizar inventario en el servidor.
+	•	Marcar como sincronizadas las ventas ya enviadas.
+	3.	Seguridad y consistencia
+	•	Cada venta guardada debe incluir empresa_id, usuario_id, timestamp y métodos de pago.
+	•	Evitar duplicados: usar un uuid local por venta que se reconcilia en el servidor.
+	4.	UI/UX
+	•	Mostrar un indicador de estado:
+	•	Verde → online.
+	•	Rojo → offline (ventas se guardan localmente).
+	•	Banner o notificación cuando haya ventas pendientes de sincronizar.
+	5.	Backend Flask
+	•	Crear endpoint /pos/sync (POST) que reciba una lista de ventas pendientes en JSON.
+	•	Validaciones: stock, integridad de datos, permisos multiempresa.
+	•	Procesar ventas en lote y devolver confirmación de sincronización.
+
+⸻
+
+📂 Output esperado
+	1.	Frontend mínimo (JS)
+	•	Código que detecte si hay conexión o no.
+	•	Guarde ventas offline en IndexedDB/localStorage.
+	•	Al recuperar conexión → enviar en lote al endpoint /pos/sync.
+	2.	Backend Flask
+	•	Ejemplo de ruta @app.route("/pos/sync", methods=["POST"]).
+	•	Procesamiento de ventas pendientes con SQLAlchemy.
+	•	Actualización de inventario y validación por empresa_id.
+	3.	Integración en proyecto
+	•	Frontend JS en static/js/pos_offline.js.
+	•	Plantilla Jinja extendida (templates/pos_offline.html) con el indicador online/offline.
+	•	Ruta Flask en routes/pos.py y servicio en services/pos_sync.py.
+	4.	Explicación breve
+	•	Cómo se detecta el modo offline.
+	•	Cómo se sincronizan las ventas al recuperar conexión.
+	•	Qué validaciones se hacen en el backend.
