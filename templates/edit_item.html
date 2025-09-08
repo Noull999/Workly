@@ -61,10 +61,10 @@
                                 {% endif %}
                             </div>
                             <div class="col-md-4">
-                                <strong>Price:</strong> ${{ "%.2f"|format(item.price) }}
+                                <strong>Price:</strong> {% if item.price %}${{ "%.2f"|format(item.price) }}{% else %}No definido{% endif %}
                             </div>
                             <div class="col-md-4">
-                                <strong>Total Value:</strong> ${{ "%.2f"|format(item.total_value) }}
+                                <strong>Total Value:</strong> {% if item.price %}${{ "%.2f"|format(item.quantity * item.price) }}{% else %}No calculado{% endif %}
                             </div>
                         </div>
                     </div>
