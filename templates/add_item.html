@@ -40,7 +40,7 @@
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             {{ form.sku.label(class="form-label") }}
                             {{ form.sku(class="form-control" + (" is-invalid" if form.sku.errors else ""), placeholder="Opcional") }}
                             {% for error in form.sku.errors %}
@@ -49,13 +49,25 @@
                             <div class="form-text">Código interno del producto (opcional)</div>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             {{ form.barcode.label(class="form-label") }}
                             {{ form.barcode(class="form-control" + (" is-invalid" if form.barcode.errors else ""), placeholder="Opcional") }}
                             {% for error in form.barcode.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                             <div class="form-text">Código de barras del producto (opcional)</div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.price.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), step="0.01", placeholder="0.00") }}
+                                {% for error in form.price.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="form-text">Precio del producto (opcional)</div>
                         </div>
                     </div>
                     

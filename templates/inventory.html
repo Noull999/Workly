@@ -115,6 +115,7 @@
                         <th>Almacén</th>
                         <th>Categoría</th>
                         <th>Cantidad</th>
+                        <th>Precio</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -167,6 +168,13 @@
                             </span>
                             {% if item.is_low_stock %}
                                 <br><small class="text-warning">Mín: {{ item.minimum_stock }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.price %}
+                                <strong>${{ "%.2f"|format(item.price) }}</strong>
+                            {% else %}
+                                <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td>
