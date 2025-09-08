@@ -232,6 +232,7 @@ function updateCartDisplay() {
     if (cart.length === 0) {
         cartItems.innerHTML = '<div class="text-center text-muted py-4" id="emptyCart"><i class="fas fa-shopping-cart fa-2x mb-2"></i><p>Carrito vacío</p><small>Haz clic en los productos para agregarlos</small></div>';
         saleButton.disabled = true;
+        document.getElementById('multiPayButton').disabled = true;
     } else {
         let html = '';
         cart.forEach(item => {
@@ -256,6 +257,7 @@ function updateCartDisplay() {
         });
         cartItems.innerHTML = html;
         saleButton.disabled = false;
+        document.getElementById('multiPayButton').disabled = false;
     }
     
     updateTotals();
@@ -290,6 +292,286 @@ function processSale() {
     }
 }
 
+// Función para manejar el escáner de código de barras
+function toggleBarcodeScanner() {
+    const scanner = document.getElementById('barcodeScanner');
+    const barcodeInput = document.getElementById('barcodeInput');
+    
+    if (scanner.style.display === 'none') {
+        scanner.style.display = 'block';
+        barcodeInput.focus();
+    } else {
+        scanner.style.display = 'none';
+    }
+}
+
+// Función para buscar por código de barras
+function searchByBarcode() {
+    const barcodeInput = document.getElementById('barcodeInput');
+    const barcode = barcodeInput.value.trim();
+    
+    if (!barcode) {
+        alert('Ingrese un código de barras');
+        return;
+    }
+    
+    // Buscar en la lista de productos por SKU o código
+    const products = document.querySelectorAll('.product-item');
+    let found = false;
+    
+    products.forEach(product => {
+        const sku = product.dataset.sku || '';
+        if (sku.toLowerCase() === barcode.toLowerCase()) {
+            // Hacer clic automático en el producto encontrado
+            const card = product.querySelector('.product-card');
+            if (card) {
+                card.click();
+                found = true;
+                barcodeInput.value = ''; // Limpiar campo
+                
+                // Mostrar notificación de éxito
+                showBarcodeNotification(`Producto agregado: ${product.querySelector('.card-title').textContent}`, 'success');
+            }
+        }
+    });
+    
+    if (!found) {
+        showBarcodeNotification('Producto no encontrado con ese código de barras', 'error');
+        barcodeInput.select(); // Seleccionar texto para facilitar nuevo escaneo
+    }
+}
+
+// Función para mostrar notificaciones del escáner
+function showBarcodeNotification(message, type) {
+    // Crear notificación temporal
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible`;
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i> ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remover después de 3 segundos
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
+}
+
+// Función para abrir modal de múltiples pagos
+function openMultiPaymentModal() {
+    if (cart.length === 0) {
+        alert('El carrito está vacío');
+        return;
+    }
+    
+    // Verificar que el modal existe, si no, crearlo dinámicamente
+    let modal = document.getElementById('multiPaymentModal');
+    if (!modal) {
+        createMultiPaymentModal();
+        modal = document.getElementById('multiPaymentModal');
+    }
+    
+    // Mostrar el total en el modal
+    updateMultiPaymentTotal();
+    
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+// Función para crear el modal de múltiples pagos dinámicamente
+function createMultiPaymentModal() {
+    const modalHtml = `
+        <div class="modal fade" id="multiPaymentModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-coins me-2"></i>Múltiples Métodos de Pago</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-sm-6"><strong>Total a pagar:</strong></div>
+                            <div class="col-sm-6 text-end"><h5 id="multiPaymentTotal">$0</h5></div>
+                        </div>
+                        
+                        <div id="paymentMethods">
+                            <div class="payment-method mb-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <select class="form-control payment-method-select">
+                                            <option value="efectivo">Efectivo</option>
+                                            <option value="tarjeta">Tarjeta</option>
+                                            <option value="transferencia">Transferencia</option>
+                                            <option value="vale">Vale</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control payment-amount" placeholder="Monto" step="0.01" min="0">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control payment-reference" placeholder="Referencia (opcional)">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removePaymentMethod(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPaymentMethod()">
+                            <i class="fas fa-plus"></i> Agregar Método de Pago
+                        </button>
+                        
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="col-sm-6"><strong>Total pagos:</strong></div>
+                                <div class="col-sm-6 text-end"><span id="totalPayments">$0</span></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6"><strong>Diferencia:</strong></div>
+                                <div class="col-sm-6 text-end"><span id="paymentDifference">$0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-success" onclick="processMultiPayment()">Procesar Pago Múltiple</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Agregar event listeners para recalcular totales
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('payment-amount')) {
+            calculatePaymentTotals();
+        }
+    });
+}
+
+// Funciones adicionales para el modal de múltiples pagos
+function addPaymentMethod() {
+    const container = document.getElementById('paymentMethods');
+    const newMethod = container.querySelector('.payment-method').cloneNode(true);
+    
+    // Limpiar valores
+    newMethod.querySelector('.payment-amount').value = '';
+    newMethod.querySelector('.payment-reference').value = '';
+    
+    container.appendChild(newMethod);
+}
+
+function removePaymentMethod(button) {
+    const methods = document.querySelectorAll('.payment-method');
+    if (methods.length > 1) {
+        button.closest('.payment-method').remove();
+        calculatePaymentTotals();
+    }
+}
+
+function updateMultiPaymentTotal() {
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.19;
+    document.getElementById('multiPaymentTotal').textContent = `$${total.toFixed(2)}`;
+    calculatePaymentTotals();
+}
+
+function calculatePaymentTotals() {
+    const amounts = document.querySelectorAll('.payment-amount');
+    let totalPayments = 0;
+    
+    amounts.forEach(input => {
+        totalPayments += parseFloat(input.value) || 0;
+    });
+    
+    const saleTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.19;
+    const difference = saleTotal - totalPayments;
+    
+    document.getElementById('totalPayments').textContent = `$${totalPayments.toFixed(2)}`;
+    document.getElementById('paymentDifference').textContent = `$${difference.toFixed(2)}`;
+    document.getElementById('paymentDifference').className = difference < 0 ? 'text-danger' : difference > 0 ? 'text-warning' : 'text-success';
+}
+
+function processMultiPayment() {
+    if (cart.length === 0) {
+        alert('El carrito está vacío');
+        return;
+    }
+    
+    // Recopilar métodos de pago
+    const paymentMethods = [];
+    const paymentElements = document.querySelectorAll('.payment-method');
+    
+    paymentElements.forEach(element => {
+        const method = element.querySelector('.payment-method-select').value;
+        const amount = parseFloat(element.querySelector('.payment-amount').value) || 0;
+        const reference = element.querySelector('.payment-reference').value;
+        
+        if (amount > 0) {
+            paymentMethods.push({
+                method: method,
+                amount: amount,
+                reference: reference
+            });
+        }
+    });
+    
+    if (paymentMethods.length === 0) {
+        alert('Debe agregar al menos un método de pago con monto mayor a 0');
+        return;
+    }
+    
+    // Verificar que los totales coincidan
+    const saleTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.19;
+    const paymentTotal = paymentMethods.reduce((sum, p) => sum + p.amount, 0);
+    
+    if (Math.abs(saleTotal - paymentTotal) > 0.01) {
+        if (!confirm(`Total de venta: $${saleTotal.toFixed(2)}\nTotal de pagos: $${paymentTotal.toFixed(2)}\nDiferencia: $${(saleTotal - paymentTotal).toFixed(2)}\n\n¿Proceder con esta diferencia?`)) {
+            return;
+        }
+    }
+    
+    // Enviar datos al servidor
+    fetch('/pos/multi-payment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name="csrf_token"]').value
+        },
+        body: JSON.stringify({
+            cart_items: cart,
+            payment_methods: paymentMethods,
+            notes: document.querySelector('[name="notes"]').value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`¡Venta procesada exitosamente!\nNúmero: ${data.sale_number}\nTotal: $${data.total}`);
+            clearCart();
+            bootstrap.Modal.getInstance(document.getElementById('multiPaymentModal')).hide();
+        } else {
+            alert('Error procesando la venta: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión al procesar la venta');
+    });
+}
+
 // Búsqueda de productos
 document.getElementById('searchProducts').addEventListener('input', function(e) {
     const searchTerm = e.target.value.toLowerCase();
@@ -305,6 +587,24 @@ document.getElementById('searchProducts').addEventListener('input', function(e) 
             product.style.display = 'none';
         }
     });
+});
+
+// Event listener para el input de código de barras
+document.addEventListener('DOMContentLoaded', function() {
+    const barcodeInput = document.getElementById('barcodeInput');
+    if (barcodeInput) {
+        barcodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchByBarcode();
+            }
+        });
+        
+        // Permitir solo caracteres alfanuméricos y guiones
+        barcodeInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^A-Z0-9-]/gi, '');
+        });
+    }
 });
 </script>
 {% endblock %}
