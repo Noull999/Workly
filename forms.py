@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, SelectField, PasswordField, EmailField, DateTimeLocalField, DecimalField, BooleanField
+from wtforms import StringField, TextAreaField, IntegerField, SelectField, PasswordField, EmailField, DateTimeLocalField, DecimalField, BooleanField, HiddenField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange, Optional
 from models import Category, Warehouse, Service
 from flask_login import current_user
@@ -174,4 +174,38 @@ class SaleForm(FlaskForm):
         ('tarjeta', 'Tarjeta'),
         ('transferencia', 'Transferencia')
     ], default='efectivo')
+    notes = TextAreaField('Notas de la Venta', validators=[Optional(), Length(max=300)])
+
+
+# ===== POS ADVANCED FORMS =====
+
+class CashSessionForm(FlaskForm):
+    """Formulario para apertura de caja"""
+    opening_amount = DecimalField('Monto de Apertura ($)', validators=[DataRequired(), NumberRange(min=0)], default=0)
+    notes = TextAreaField('Notas de Apertura', validators=[Optional(), Length(max=500)])
+
+
+class CashSessionCloseForm(FlaskForm):
+    """Formulario para cierre de caja"""
+    closing_amount = DecimalField('Monto de Cierre ($)', validators=[DataRequired(), NumberRange(min=0)])
+    notes = TextAreaField('Notas de Cierre', validators=[Optional(), Length(max=500)])
+
+
+class CashExpenseForm(FlaskForm):
+    """Formulario para egresos de caja"""
+    description = StringField('Descripción del Egreso', validators=[DataRequired(), Length(max=200)])
+    amount = DecimalField('Monto ($)', validators=[DataRequired(), NumberRange(min=0.01)])
+    category = SelectField('Categoría', choices=[
+        ('suministros', 'Suministros'),
+        ('servicios', 'Servicios'),
+        ('mantenimiento', 'Mantenimiento'),
+        ('general', 'General')
+    ], default='general')
+    receipt_number = StringField('Número de Recibo', validators=[Optional(), Length(max=50)])
+
+
+class MultiPaymentForm(FlaskForm):
+    """Formulario para pagos múltiples"""
+    # Campos dinámicos que se llenan en JavaScript
+    payment_data = HiddenField('Datos de Pago', validators=[DataRequired()])
     notes = TextAreaField('Notas de la Venta', validators=[Optional(), Length(max=300)])

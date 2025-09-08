@@ -3,8 +3,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from datetime import datetime
 from app import app, db
-from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem, Board, Sprint, Task, Column, TaskComment
-from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm, ModuleSettingsForm, ServiceForm, AppointmentForm, PublicAppointmentForm, PortfolioForm, SaleForm
+from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem, Board, Sprint, Task, Column, TaskComment, CashSession, PaymentDetail, CashExpense, OfflineSync
+from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm, ModuleSettingsForm, ServiceForm, AppointmentForm, PublicAppointmentForm, PortfolioForm, SaleForm, CashSessionForm, CashSessionCloseForm, CashExpenseForm, MultiPaymentForm
 from utils import company_query, log_audit, setup_new_company, validate_company_access, get_cached_dashboard_stats, set_cached_dashboard_stats
 from sqlalchemy import or_, func
 from functools import wraps
@@ -1082,6 +1082,126 @@ def pos_sales():
     items = company_query(InventoryItem).filter(InventoryItem.quantity > 0).all()
     
     return render_template('modules/pos.html', form=form, items=items)
+
+
+# ===== POS ADVANCED ROUTES =====
+
+@app.route('/pos/cash-session', methods=['GET', 'POST'])
+@login_required
+def cash_session_management():
+    """Gestión de sesiones de caja diaria"""
+    if not current_user.is_admin_global() and not current_user.company.module_pos:
+        flash('El módulo POS no está activo para tu empresa.', 'warning')
+        return redirect(url_for('inventory'))
+    
+    # Verificar si ya hay una sesión abierta hoy
+    from datetime import date
+    today = date.today()
+    current_session = CashSession.query.filter_by(
+        company_id=current_user.company_id,
+        session_date=today,
+        status='open'
+    ).first()
+    
+    open_form = CashSessionForm()
+    close_form = CashSessionCloseForm()
+    expense_form = CashExpenseForm()
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'open' and open_form.validate_on_submit():
+            if current_session:
+                flash('Ya hay una sesión de caja abierta para hoy.', 'warning')
+            else:
+                # Crear nueva sesión de caja
+                session = CashSession(
+                    session_date=today,
+                    opening_amount=open_form.opening_amount.data,
+                    notes=open_form.notes.data,
+                    opened_by_id=current_user.id,
+                    company_id=current_user.company_id
+                )
+                db.session.add(session)
+                db.session.commit()
+                flash(f'Caja abierta con ${session.opening_amount}', 'success')
+                return redirect(url_for('cash_session_management'))
+        
+        elif action == 'close' and close_form.validate_on_submit():
+            if not current_session:
+                flash('No hay una sesión de caja abierta para cerrar.', 'error')
+            else:
+                # Cerrar sesión actual
+                current_session.closing_amount = close_form.closing_amount.data
+                current_session.expected_amount = current_session.calculate_expected_amount()
+                current_session.difference_amount = float(close_form.closing_amount.data) - current_session.expected_amount
+                current_session.status = 'closed'
+                current_session.closed_by_id = current_user.id
+                current_session.closed_at = datetime.utcnow()
+                current_session.notes += f"\n--- CIERRE ---\n{close_form.notes.data}" if close_form.notes.data else ""
+                
+                db.session.commit()
+                flash(f'Caja cerrada. Diferencia: ${current_session.difference_amount}', 'success')
+                return redirect(url_for('cash_session_management'))
+        
+        elif action == 'expense' and expense_form.validate_on_submit():
+            if not current_session:
+                flash('Debe abrir la caja antes de registrar egresos.', 'error')
+            else:
+                # Registrar egreso
+                expense = CashExpense(
+                    description=expense_form.description.data,
+                    amount=expense_form.amount.data,
+                    category=expense_form.category.data,
+                    receipt_number=expense_form.receipt_number.data,
+                    cash_session_id=current_session.id,
+                    user_id=current_user.id
+                )
+                db.session.add(expense)
+                current_session.total_expenses = sum([e.amount for e in current_session.expenses]) + float(expense_form.amount.data)
+                db.session.commit()
+                flash(f'Egreso registrado: ${expense.amount}', 'success')
+                return redirect(url_for('cash_session_management'))
+    
+    # Obtener estadísticas del día
+    today_sales = Sale.query.filter_by(
+        company_id=current_user.company_id
+    ).filter(
+        db.func.date(Sale.created_at) == today
+    ).all() if current_session else []
+    
+    return render_template('modules/cash_session.html', 
+                         current_session=current_session,
+                         open_form=open_form,
+                         close_form=close_form, 
+                         expense_form=expense_form,
+                         today_sales=today_sales)
+
+
+@app.route('/pos/cash-report/<int:session_id>')
+@login_required
+def cash_session_report(session_id):
+    """Reporte detallado de sesión de caja"""
+    if not current_user.is_admin_global() and not current_user.company.module_pos:
+        flash('El módulo POS no está activo para tu empresa.', 'warning')
+        return redirect(url_for('inventory'))
+    
+    session = company_query(CashSession).filter_by(id=session_id).first_or_404()
+    
+    # Generar reporte PDF o CSV según parámetro
+    format_type = request.args.get('format', 'html')
+    
+    if format_type == 'pdf':
+        # Aquí implementarías la generación de PDF
+        flash('Funcionalidad de PDF en desarrollo', 'info')
+        return redirect(url_for('cash_session_report', session_id=session_id))
+    elif format_type == 'csv':
+        # Aquí implementarías la exportación CSV
+        flash('Funcionalidad de CSV en desarrollo', 'info')
+        return redirect(url_for('cash_session_report', session_id=session_id))
+    
+    return render_template('modules/cash_report.html', session=session)
+
 
 # ===== RUTAS PÚBLICAS (SIN LOGIN) =====
 
