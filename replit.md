@@ -91,6 +91,15 @@ Sistema de gestión empresarial modular "Inventario INTAC" basado en web constru
 - **Multi-tenant isolation**: Company-based data segregation across all modules
 - **Extended models**: Service, Sale, Appointment, SaleItem tables for module functionality
 
+### Advanced POS System (Recently Completed)
+- **Cash Management**: Daily cash session control with opening/closing procedures
+- **Multiple Payment Methods**: Support for mixed payments (cash, card, transfer, vouchers)
+- **Barcode Scanning**: Frontend barcode reader integration for quick product lookup
+- **Offline Mode**: Local storage with automatic synchronization when connection restored
+- **Advanced Models**: CashSession, PaymentDetail, CashExpense, OfflineSync for comprehensive POS operations
+- **Daily Reporting**: Automated daily reports with performance metrics and recommendations
+- **Real-time Updates**: Live connection status and offline queue management
+
 ### Deployment Infrastructure
 - **ProxyFix**: WSGI middleware for handling proxy headers
 - **Environment variables**: Configuration management for secrets and database URLs

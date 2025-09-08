@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte Diario - Inventario INTAC{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chart-bar"></i> Reporte Diario - {{ today.strftime('%d/%m/%Y') }}</h2>
+                <div class="btn-group">
+                    <a href="{{ url_for('pos_sales') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al POS
+                    </a>
+                    <button class="btn btn-success" onclick="sendDailyReport()">
+                        <i class="fas fa-envelope"></i> Enviar por Email
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resumen Ejecutivo -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Ventas del Día</h5>
+                            <h3>${{ "%.2f"|format(stats.today.total_sales) }}</h3>
+                            <small>{{ stats.today.sales_count }} transacciones</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Venta Promedio</h5>
+                            <h3>${{ "%.2f"|format(stats.today.avg_sale) }}</h3>
+                            <small>por transacción</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">vs Ayer</h5>
+                            <h3>{{ stats.yesterday.comparison }}</h3>
+                            <small>variación</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center {% if stats.today.cash_session %}bg-success{% else %}bg-warning{% endif %} text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Estado Caja</h5>
+                            <h3>
+                                {% if stats.today.cash_session %}
+                                    {% if stats.today.cash_session.status == 'open' %}Abierta{% else %}Cerrada{% endif %}
+                                {% else %}
+                                    Sin Abrir
+                                {% endif %}
+                            </h3>
+                            <small>
+                                {% if stats.today.cash_session %}
+                                    {% if stats.today.cash_session.status == 'closed' %}
+                                        Dif: ${{ "%.2f"|format(stats.today.cash_session.difference_amount) }}
+                                    {% else %}
+                                        En operación
+                                    {% endif %}
+                                {% else %}
+                                    Requiere apertura
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalle de Caja -->
+            {% if stats.today.cash_session %}
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-cash-register"></i> Detalle de Caja</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <strong>Apertura:</strong><br>
+                                    ${{ "%.2f"|format(stats.today.cash_session.opening_amount) }}
+                                </div>
+                                <div class="col-md-2">
+                                    <strong>Ventas:</strong><br>
+                                    ${{ "%.2f"|format(stats.today.cash_session.total_sales) }}
+                                </div>
+                                <div class="col-md-2">
+                                    <strong>Egresos:</strong><br>
+                                    ${{ "%.2f"|format(stats.today.cash_session.total_expenses) }}
+                                </div>
+                                <div class="col-md-2">
+                                    <strong>Esperado:</strong><br>
+                                    ${{ "%.2f"|format(stats.today.cash_session.calculate_expected_amount()) }}
+                                </div>
+                                {% if stats.today.cash_session.status == 'closed' %}
+                                <div class="col-md-2">
+                                    <strong>Real:</strong><br>
+                                    ${{ "%.2f"|format(stats.today.cash_session.closing_amount) }}
+                                </div>
+                                <div class="col-md-2">
+                                    <strong>Diferencia:</strong><br>
+                                    <span class="{% if stats.today.cash_session.difference_amount >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        ${{ "%.2f"|format(stats.today.cash_session.difference_amount) }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Métricas de Rendimiento -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-line"></i> Métricas de Ventas</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <h6>Transacciones Totales</h6>
+                                    <h4 class="text-primary">{{ stats.today.sales_count }}</h4>
+                                </div>
+                                <div class="col-6">
+                                    <h6>Promedio por Venta</h6>
+                                    <h4 class="text-success">${{ "%.2f"|format(stats.today.avg_sale) }}</h4>
+                                </div>
+                            </div>
+                            {% if stats.today.cash_session and stats.today.cash_session.expenses %}
+                            <hr>
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6>Egresos Registrados</h6>
+                                    <h4 class="text-danger">{{ stats.today.cash_session.expenses|length }}</h4>
+                                    <small class="text-muted">
+                                        Total: ${{ "%.2f"|format(stats.today.cash_session.total_expenses) }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Información del Sistema</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="small">
+                                <strong>Empresa:</strong> {{ current_user.company.name }}<br>
+                                <strong>Usuario:</strong> {{ current_user.username }}<br>
+                                <strong>Fecha del Reporte:</strong> {{ today.strftime('%d/%m/%Y') }}<br>
+                                <strong>Hora de Generación:</strong> {{ moment().format('HH:mm:ss') }}<br>
+                                <strong>Módulos Activos:</strong>
+                                <span class="badge bg-success">POS</span>
+                                {% if current_user.company.module_inventory %}<span class="badge bg-info">Inventario</span>{% endif %}
+                                {% if current_user.company.module_appointments %}<span class="badge bg-warning">Citas</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recomendaciones -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-lightbulb"></i> Recomendaciones del Sistema</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                {% if not stats.today.cash_session %}
+                                <li class="text-warning"><i class="fas fa-exclamation-triangle"></i> Se recomienda abrir la caja diaria para un mejor control de ingresos.</li>
+                                {% elif stats.today.cash_session.status == 'open' %}
+                                <li class="text-info"><i class="fas fa-info-circle"></i> La caja está abierta. Recuerde cerrarla al final del día.</li>
+                                {% endif %}
+                                
+                                {% if stats.today.sales_count == 0 %}
+                                <li class="text-warning"><i class="fas fa-exclamation-triangle"></i> No se han registrado ventas hoy. Verificar funcionamiento del sistema.</li>
+                                {% elif stats.today.sales_count < 5 %}
+                                <li class="text-info"><i class="fas fa-info-circle"></i> Pocas ventas registradas. Considerar estrategias de promoción.</li>
+                                {% endif %}
+                                
+                                {% if stats.today.cash_session and stats.today.cash_session.status == 'closed' and stats.today.cash_session.difference_amount != 0 %}
+                                <li class="{% if stats.today.cash_session.difference_amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    <i class="fas fa-{% if stats.today.cash_session.difference_amount > 0 %}plus{% else %}minus{% endif %}-circle"></i> 
+                                    {% if stats.today.cash_session.difference_amount > 0 %}Sobrante{% else %}Faltante{% endif %} 
+                                    en caja: ${{ "%.2f"|format(stats.today.cash_session.difference_amount|abs) }}. 
+                                    Revisar transacciones.
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function sendDailyReport() {
+    // Función para envío por email (implementar según necesidades)
+    alert('Funcionalidad de envío por email en desarrollo.\n\nEl reporte se puede imprimir usando Ctrl+P o desde el menú del navegador.');
+    window.print();
+}
+
+// Auto-actualizar métricas cada 5 minutos
+setInterval(function() {
+    location.reload();
+}, 300000); // 5 minutos
+</script>
+{% endblock %}

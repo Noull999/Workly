@@ -1284,6 +1284,58 @@ def cash_session_report(session_id):
     return render_template('modules/cash_report.html', session=session)
 
 
+@app.route('/pos/daily-report')
+@login_required
+def daily_report():
+    """Reporte diario automatizado"""
+    if not current_user.is_admin_global() and not current_user.company.module_pos:
+        flash('El módulo POS no está activo para tu empresa.', 'warning')
+        return redirect(url_for('inventory'))
+    
+    from datetime import date, timedelta
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    
+    # Obtener estadísticas del día
+    today_session = CashSession.query.filter_by(
+        company_id=current_user.company_id,
+        session_date=today
+    ).first()
+    
+    yesterday_session = CashSession.query.filter_by(
+        company_id=current_user.company_id,
+        session_date=yesterday
+    ).first()
+    
+    # Ventas de hoy
+    today_sales = Sale.query.filter_by(
+        company_id=current_user.company_id
+    ).filter(
+        db.func.date(Sale.created_at) == today
+    ).all()
+    
+    # Estadísticas
+    stats = {
+        'today': {
+            'total_sales': sum([s.total_amount for s in today_sales]),
+            'sales_count': len(today_sales),
+            'cash_session': today_session,
+            'avg_sale': sum([s.total_amount for s in today_sales]) / len(today_sales) if today_sales else 0
+        },
+        'yesterday': {
+            'cash_session': yesterday_session,
+            'comparison': 'N/A'
+        }
+    }
+    
+    if yesterday_session and today_session:
+        if yesterday_session.total_sales > 0:
+            percentage_change = ((today_session.total_sales - yesterday_session.total_sales) / yesterday_session.total_sales) * 100
+            stats['yesterday']['comparison'] = f"{percentage_change:.1f}%"
+    
+    return render_template('modules/daily_report.html', stats=stats, today=today)
+
+
 @app.route('/pos/multi-payment', methods=['POST'])
 @login_required
 def process_multi_payment():
