@@ -66,6 +66,7 @@ Sistema de gestión empresarial modular "Inventario INTAC" basado en web constru
 - **Flask-SQLAlchemy**: Database ORM integration
 - **Flask-Login**: User authentication and session management
 - **Flask-WTF**: Form handling and CSRF protection
+- **Flask-Migrate**: Database migration management for PostgreSQL
 - **WTForms**: Form field validation and rendering
 - **Werkzeug**: WSGI utilities and security helpers
 
@@ -86,10 +87,12 @@ Sistema de gestión empresarial modular "Inventario INTAC" basado en web constru
 - **Portfolio Module**: Public-facing company presentation pages with contact forms
 
 ### Database Support
-- **SQLite**: Default embedded database (configurable)
+- **PostgreSQL**: Primary database system with Flask-Migrate for schema management
+- **Database migrations**: Automatic schema updates using Flask-Migrate and Alembic
 - **Database URL**: Environment variable configuration for production databases
 - **Multi-tenant isolation**: Company-based data segregation across all modules
 - **Extended models**: Service, Sale, Appointment, SaleItem tables for module functionality
+- **Migration commands**: `flask db migrate` and `flask db upgrade` for schema changes
 
 ### Advanced POS System (Recently Completed)
 - **Cash Management**: Daily cash session control with opening/closing procedures
