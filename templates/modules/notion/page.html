@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ page.icon }} {{ page.title }}</h1>
+                <div>
+                    {% if can_edit %}
+                    <a href="{{ url_for('notion_edit_page', slug=page.slug) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('notion_dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9">
+            <!-- Contenido de la página -->
+            <div class="card">
+                <div class="card-body">
+                    {% if blocks %}
+                        {% for block in blocks %}
+                        <div class="notion-block mb-3" data-block-type="{{ block.block_type }}">
+                            {% if block.block_type == 'heading1' %}
+                                <h1>{{ block.content }}</h1>
+                            {% elif block.block_type == 'heading2' %}
+                                <h2>{{ block.content }}</h2>
+                            {% elif block.block_type == 'heading3' %}
+                                <h3>{{ block.content }}</h3>
+                            {% elif block.block_type == 'list' %}
+                                <ul>
+                                    {% for item in block.content.split('\n') %}
+                                        {% if item.strip() %}
+                                        <li>{{ item.strip() }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            {% elif block.block_type == 'checklist' %}
+                                <div class="checklist">
+                                    {% for item in block.content.split('\n') %}
+                                        {% if item.strip() %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" disabled>
+                                            <label class="form-check-label">{{ item.strip() }}</label>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>{{ block.content|nl2br }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Esta página está vacía. {% if can_edit %}<a href="{{ url_for('notion_edit_page', slug=page.slug) }}">Agrega contenido</a>{% endif %}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Páginas hijas -->
+            {% if child_pages %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-sitemap"></i> Subpáginas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for child in child_pages %}
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('notion_page', slug=child.slug) }}" class="text-decoration-none">
+                                <div class="card">
+                                    <div class="card-body py-2">
+                                        <h6 class="mb-0">{{ child.icon }} {{ child.title }}</h6>
+                                        <small class="text-muted">Actualizada {{ child.updated_at.strftime('%d/%m/%Y') }}</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle"></i> Información</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Creado por:</strong> {{ page.creator.username }}</p>
+                    <p><strong>Fecha:</strong> {{ page.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p><strong>Actualizado:</strong> {{ page.updated_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p><strong>Tipo:</strong> 
+                        {% if page.is_template %}
+                        <span class="badge badge-info">Plantilla</span>
+                        {% endif %}
+                        {% if page.is_public %}
+                        <span class="badge badge-success">Pública</span>
+                        {% else %}
+                        <span class="badge badge-secondary">Privada</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Enlaces a otros módulos -->
+            {% if module_links %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-link"></i> Enlaces</h6>
+                </div>
+                <div class="card-body">
+                    {% for link in module_links %}
+                    <div class="mb-2">
+                        <span class="badge badge-primary">{{ link.target_module.title() }}</span>
+                        <small class="d-block text-muted">{{ link.description or link.link_type.title() }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.notion-block {
+    border-left: 3px solid transparent;
+    padding-left: 10px;
+    transition: all 0.2s;
+}
+
+.notion-block:hover {
+    border-left-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.checklist .form-check {
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}
