@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Comprobante de Venta - {{ sale.sale_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        .receipt-container { 
+            max-width: none !important; 
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+        body { font-size: 12px; }
+    }
+    
+    .receipt-container {
+        max-width: 400px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        background: white;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .receipt-header {
+        text-align: center;
+        border-bottom: 2px dashed #333;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .company-name {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .receipt-info {
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+    
+    .receipt-items {
+        border-bottom: 1px dashed #333;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .item-name {
+        font-weight: bold;
+        width: 100%;
+    }
+    
+    .item-details {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        color: #666;
+    }
+    
+    .receipt-totals {
+        border-bottom: 2px dashed #333;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    
+    .total-final {
+        font-weight: bold;
+        font-size: 16px;
+        border-top: 1px solid #333;
+        padding-top: 5px;
+    }
+    
+    .payment-methods {
+        margin-bottom: 15px;
+    }
+    
+    .payment-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    
+    .receipt-footer {
+        text-align: center;
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .action-buttons {
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .btn-print {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 0 10px;
+    }
+    
+    .btn-back {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 0 10px;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-print:hover, .btn-back:hover {
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="action-buttons no-print">
+        <a href="{{ url_for('pos_sales') }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Volver al POS
+        </a>
+        <button onclick="window.print()" class="btn-print">
+            <i class="fas fa-print"></i> Imprimir
+        </button>
+    </div>
+
+    <div class="receipt-container">
+        <!-- Header -->
+        <div class="receipt-header">
+            <div class="company-name">{{ current_user.company.name or 'INVENTARIO INTAC' }}</div>
+            {% if current_user.company.address %}
+            <div>{{ current_user.company.address }}</div>
+            {% endif %}
+            {% if current_user.company.phone %}
+            <div>Tel: {{ current_user.company.phone }}</div>
+            {% endif %}
+            {% if current_user.company.email %}
+            <div>Email: {{ current_user.company.email }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Sale Info -->
+        <div class="receipt-info">
+            <div style="display: flex; justify-content: space-between;">
+                <span><strong>Venta #:</strong></span>
+                <span>{{ sale.sale_number }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span><strong>Fecha:</strong></span>
+                <span>{{ sale.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span><strong>Vendedor:</strong></span>
+                <span>{{ sale.user.username }}</span>
+            </div>
+            {% if sale.cash_session_id %}
+            <div style="display: flex; justify-content: space-between;">
+                <span><strong>Caja:</strong></span>
+                <span>{{ sale.cash_session.session_date.strftime('%d/%m/%Y') }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Items -->
+        <div class="receipt-items">
+            <div style="text-align: center; margin-bottom: 10px; font-weight: bold;">
+                DETALLE DE LA VENTA
+            </div>
+            {% for item in sale.items %}
+            <div class="item-row">
+                <div class="item-name">{{ item.inventory_item.name }}</div>
+                <div class="item-details">
+                    <span>{{ item.quantity }} x ${{ "%.0f"|format(item.unit_price) }}</span>
+                    <span>${{ "%.0f"|format(item.total_price) }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Totals -->
+        <div class="receipt-totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ "%.0f"|format(sale.total_amount - sale.tax_amount) }}</span>
+            </div>
+            <div class="total-row">
+                <span>IVA (19%):</span>
+                <span>${{ "%.0f"|format(sale.tax_amount) }}</span>
+            </div>
+            <div class="total-row total-final">
+                <span>TOTAL:</span>
+                <span>${{ "%.0f"|format(sale.total_amount) }}</span>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="payment-methods">
+            <div style="text-align: center; margin-bottom: 10px; font-weight: bold;">
+                FORMA DE PAGO
+            </div>
+            {% for payment in sale.payment_details %}
+            <div class="payment-row">
+                <span>{{ payment.payment_method|title }}:</span>
+                <span>${{ "%.0f"|format(payment.amount) }}</span>
+            </div>
+            {% if payment.reference %}
+            <div style="font-size: 12px; color: #666; margin-left: 10px;">
+                Ref: {{ payment.reference }}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Footer -->
+        <div class="receipt-footer">
+            <div style="margin-bottom: 10px;">
+                ¡Gracias por su compra!
+            </div>
+            {% if sale.notes %}
+            <div style="margin-bottom: 10px; font-style: italic;">
+                Nota: {{ sale.notes }}
+            </div>
+            {% endif %}
+            <div style="font-size: 10px;">
+                Sistema: Inventario INTAC<br>
+                Comprobante válido como boleta de venta
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons no-print" style="margin-top: 30px;">
+        <a href="{{ url_for('pos_sales') }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Nueva Venta
+        </a>
+        <button onclick="window.print()" class="btn-print">
+            <i class="fas fa-print"></i> Imprimir Comprobante
+        </button>
+    </div>
+</div>
+
+<script>
+// Auto-focus para imprimir al cargar la página (opcional)
+document.addEventListener('DOMContentLoaded', function() {
+    // Opcional: auto-print al cargar
+    // window.print();
+});
+
+// Función para volver atrás después de imprimir
+window.addEventListener('afterprint', function() {
+    // Opcional: redirigir automáticamente después de imprimir
+    // window.location.href = "{{ url_for('pos_sales') }}";
+});
+</script>
+{% endblock %}
