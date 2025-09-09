@@ -208,6 +208,7 @@ class AuditLog(db.Model):
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     ip_address = db.Column(db.String(45))  # IPv6 compatible
+    additional_info = db.Column(db.Text)  # JSON string for additional context
     
     def __repr__(self):
         return f'<AuditLog {self.action} on {self.table_name}>'
