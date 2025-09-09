@@ -560,9 +560,11 @@ function processMultiPayment() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`¡Venta procesada exitosamente!\nNúmero: ${data.sale_number}\nTotal: $${data.total}`);
+            alert(`¡Venta procesada exitosamente!\nNúmero: ${data.sale_number}\nTotal: $${data.total}\n\nRedirigiendo al comprobante...`);
             clearCart();
             bootstrap.Modal.getInstance(document.getElementById('multiPaymentModal')).hide();
+            // Redirigir al comprobante
+            window.location.href = data.receipt_url;
         } else {
             alert('Error procesando la venta: ' + data.error);
         }
