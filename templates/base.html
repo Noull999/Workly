@@ -166,6 +166,26 @@
                         </li>
                         {% endif %}
                         
+                        <!-- Notion (si está activo o es super admin con preferencias) -->
+                        {% if (current_user.is_admin_global() and current_user.admin_pref_notion) or (not current_user.is_admin_global() and current_user.company.module_notion) %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="notionDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-book me-1"></i>Notion
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('notion_dashboard') }}">
+                                    <i class="fas fa-home me-1"></i>Dashboard
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('notion_new_page') }}">
+                                    <i class="fas fa-plus me-1"></i>Nueva Página
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('notion_checklists') }}">
+                                    <i class="fas fa-check-square me-1"></i>Checklists
+                                </a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                        
                         <!-- Citas (si está activo o es super admin con preferencias) -->
                         {% if (current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and current_user.company.module_appointments) %}
                         <li class="nav-item dropdown">
