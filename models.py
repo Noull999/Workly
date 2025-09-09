@@ -527,7 +527,10 @@ class NotionPage(db.Model):
     permissions = db.relationship('NotionPermission', backref='page', lazy=True, cascade='all, delete-orphan')
     child_pages = db.relationship('NotionPage', backref=db.backref('parent', remote_side=[id]), lazy=True)
     creator = db.relationship('User', backref='created_pages')
-    module_links = db.relationship('ModuleLink', backref='notion_page', lazy=True, cascade='all, delete-orphan')
+    module_links = db.relationship('ModuleLink', 
+                                   primaryjoin="and_(NotionPage.id==ModuleLink.source_id, ModuleLink.source_module=='notion')",
+                                   foreign_keys='ModuleLink.source_id',
+                                   lazy=True, cascade='all, delete-orphan')
     
     # Unique constraints
     __table_args__ = (
