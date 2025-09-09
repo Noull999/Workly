@@ -22,6 +22,7 @@ class Company(db.Model):
     module_appointments = db.Column(db.Boolean, default=False)
     module_portfolio = db.Column(db.Boolean, default=False)
     module_scrum = db.Column(db.Boolean, default=False)
+    module_notion = db.Column(db.Boolean, default=False)
     
     # Configuración para página de presentación
     portfolio_description = db.Column(db.Text, nullable=True)
@@ -92,6 +93,7 @@ class User(UserMixin, db.Model):
     admin_pref_appointments = db.Column(db.Boolean, default=True)
     admin_pref_portfolio = db.Column(db.Boolean, default=True)
     admin_pref_scrum = db.Column(db.Boolean, default=True)
+    admin_pref_notion = db.Column(db.Boolean, default=True)
     
     # Relationship with inventory items
     inventory_items = db.relationship('InventoryItem', backref='owner', lazy=True, cascade='all, delete-orphan')
@@ -498,3 +500,199 @@ class TaskComment(db.Model):
     
     def __repr__(self):
         return f'<TaskComment by {self.author.username if self.author else "Unknown"}>'
+
+
+# ===== MÓDULO NOTION =====
+
+class NotionPage(db.Model):
+    """Páginas del wiki/colaborativo tipo Notion"""
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    slug = db.Column(db.String(250), nullable=False)  # URL-friendly title
+    icon = db.Column(db.String(10), default='📄')  # Emoji icon
+    is_public = db.Column(db.Boolean, default=False)  # Visible to all in company
+    is_template = db.Column(db.Boolean, default=False)  # Es una plantilla
+    parent_id = db.Column(db.Integer, db.ForeignKey('notion_page.id'), nullable=True)  # Jerarquía
+    position = db.Column(db.Integer, default=0)  # Orden en sidebar
+    
+    # Access control
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    blocks = db.relationship('NotionBlock', backref='page', lazy=True, cascade='all, delete-orphan', order_by='NotionBlock.position')
+    permissions = db.relationship('NotionPermission', backref='page', lazy=True, cascade='all, delete-orphan')
+    child_pages = db.relationship('NotionPage', backref=db.backref('parent', remote_side=[id]), lazy=True)
+    creator = db.relationship('User', backref='created_pages')
+    module_links = db.relationship('ModuleLink', backref='notion_page', lazy=True, cascade='all, delete-orphan')
+    
+    # Unique constraints
+    __table_args__ = (
+        db.UniqueConstraint('slug', 'company_id', name='unique_page_slug_per_company'),
+    )
+    
+    def __repr__(self):
+        return f'<NotionPage {self.title}>'
+
+
+class NotionBlock(db.Model):
+    """Bloques de contenido en las páginas"""
+    id = db.Column(db.Integer, primary_key=True)
+    block_type = db.Column(db.String(20), nullable=False)  # text, heading1, heading2, heading3, list, checklist, file
+    content = db.Column(db.Text)  # Contenido del bloque
+    properties = db.Column(db.Text)  # JSON con propiedades adicionales (formato, color, etc.)
+    position = db.Column(db.Integer, default=0)
+    
+    page_id = db.Column(db.Integer, db.ForeignKey('notion_page.id'), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<NotionBlock {self.block_type}>'
+
+
+class NotionPermission(db.Model):
+    """Permisos de acceso a páginas"""
+    id = db.Column(db.Integer, primary_key=True)
+    permission_type = db.Column(db.String(20), nullable=False)  # read, edit, admin
+    
+    page_id = db.Column(db.Integer, db.ForeignKey('notion_page.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    
+    granted_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='notion_permissions')
+    granted_by = db.relationship('User', foreign_keys=[granted_by_id])
+    
+    # Unique constraints
+    __table_args__ = (
+        db.UniqueConstraint('page_id', 'user_id', name='unique_permission_per_user_page'),
+    )
+    
+    def __repr__(self):
+        return f'<NotionPermission {self.permission_type} for {self.user.username}>'
+
+
+class NotionChecklist(db.Model):
+    """Listas de tareas colaborativas"""
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    checklist_type = db.Column(db.String(30), default='general')  # general, inventory_restock, daily_cash, etc.
+    
+    page_id = db.Column(db.Integer, db.ForeignKey('notion_page.id'), nullable=True)  # Opcional, puede estar en una página
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    items = db.relationship('NotionChecklistItem', backref='checklist', lazy=True, cascade='all, delete-orphan', order_by='NotionChecklistItem.position')
+    creator = db.relationship('User', backref='created_checklists')
+    
+    def __repr__(self):
+        return f'<NotionChecklist {self.title}>'
+
+
+class NotionChecklistItem(db.Model):
+    """Items de las listas de tareas"""
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(500), nullable=False)
+    is_completed = db.Column(db.Boolean, default=False)
+    position = db.Column(db.Integer, default=0)
+    due_date = db.Column(db.DateTime, nullable=True)
+    
+    checklist_id = db.Column(db.Integer, db.ForeignKey('notion_checklist.id'), nullable=False)
+    assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    completed_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    assignee = db.relationship('User', foreign_keys=[assignee_id], backref='assigned_checklist_items')
+    completed_by = db.relationship('User', foreign_keys=[completed_by_id])
+    
+    def __repr__(self):
+        return f'<NotionChecklistItem {self.content[:50]}>'
+
+
+# ===== INTEGRACIONES ENTRE MÓDULOS =====
+
+class ModuleLink(db.Model):
+    """Enlaces/conexiones entre diferentes módulos"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Módulo origen
+    source_module = db.Column(db.String(20), nullable=False)  # notion, scrum, pos, appointments, inventory
+    source_id = db.Column(db.Integer, nullable=False)  # ID del objeto en el módulo origen
+    
+    # Módulo destino
+    target_module = db.Column(db.String(20), nullable=False)
+    target_id = db.Column(db.Integer, nullable=False)
+    
+    # Información adicional del enlace
+    link_type = db.Column(db.String(30), default='reference')  # reference, dependency, related
+    description = db.Column(db.String(200))  # Descripción del enlace
+    
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    created_by = db.relationship('User', backref='created_module_links')
+    
+    def __repr__(self):
+        return f'<ModuleLink {self.source_module}:{self.source_id} -> {self.target_module}:{self.target_id}>'
+
+
+# ===== MEJORAS SCRUM LITE =====
+
+class CompletedTask(db.Model):
+    """Historial de tareas completadas con trazabilidad"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Datos de la tarea original
+    original_task_id = db.Column(db.Integer, nullable=False)  # ID de la tarea original
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    story_points = db.Column(db.Integer, default=1)
+    priority = db.Column(db.String(20), default='medium')
+    
+    # Información del board/sprint
+    board_id = db.Column(db.Integer, db.ForeignKey('board.id'), nullable=False)
+    sprint_id = db.Column(db.Integer, db.ForeignKey('sprint.id'), nullable=True)
+    column_name = db.Column(db.String(100), nullable=False)  # Nombre de la columna donde estaba
+    
+    # Usuarios involucrados
+    assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    completed_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, nullable=False)  # Cuando se creó la tarea original
+    completed_at = db.Column(db.DateTime, default=datetime.utcnow)  # Cuando se completó
+    
+    # Comentarios finales
+    completion_notes = db.Column(db.Text)  # Comentarios al completar
+    
+    # Relationships
+    board = db.relationship('Board', backref='completed_tasks')
+    sprint = db.relationship('Sprint', backref='completed_tasks')
+    assignee = db.relationship('User', foreign_keys=[assignee_id], backref='completed_assigned_tasks')
+    creator = db.relationship('User', foreign_keys=[creator_id], backref='completed_created_tasks')
+    completed_by = db.relationship('User', foreign_keys=[completed_by_id], backref='completed_tasks_done')
+    
+    def __repr__(self):
+        return f'<CompletedTask {self.title[:30]}>'
