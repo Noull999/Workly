@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash
 from datetime import datetime
 from decimal import Decimal
 from app import app, db
-from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem, Board, Sprint, Task, Column, TaskComment, CashSession, PaymentDetail, CashExpense, OfflineSync
+from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem, Board, Sprint, Task, Column, TaskComment, CashSession, PaymentDetail, CashExpense, OfflineSync, NotionPage, NotionBlock, NotionPermission, NotionChecklist, NotionChecklistItem, ModuleLink, CompletedTask
 from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm, ModuleSettingsForm, ServiceForm, AppointmentForm, PublicAppointmentForm, PortfolioForm, SaleForm, CashSessionForm, CashSessionCloseForm, CashExpenseForm, MultiPaymentForm
 from utils import company_query, log_audit, setup_new_company, validate_company_access, get_cached_dashboard_stats, set_cached_dashboard_stats
 from sqlalchemy import or_, func
