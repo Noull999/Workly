@@ -292,7 +292,7 @@ class NotionPermissionForm(FlaskForm):
         if company_id:
             from models import User
             users = User.query.filter_by(company_id=company_id, active=True).all()
-            self.user_id.choices = [(u.id, u.username) for u in users]
+            self.user_id.choices = [(str(u.id), u.username) for u in users]
 
 
 class ModuleLinkForm(FlaskForm):

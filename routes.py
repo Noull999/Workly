@@ -108,7 +108,8 @@ def dashboard():
             'pos': current_user.admin_pref_pos,
             'appointments': current_user.admin_pref_appointments,
             'portfolio': current_user.admin_pref_portfolio,
-            'scrum': current_user.admin_pref_scrum
+            'scrum': current_user.admin_pref_scrum,
+            'notion': current_user.admin_pref_notion
         }
     else:
         modules_active = {
@@ -116,7 +117,8 @@ def dashboard():
             'pos': company.module_pos,
             'appointments': company.module_appointments,
             'portfolio': company.module_portfolio,
-            'scrum': company.module_scrum
+            'scrum': company.module_scrum,
+            'notion': company.module_notion
         }
     
     # Intentar obtener estadísticas del caché

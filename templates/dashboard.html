@@ -117,6 +117,31 @@
         </div>
         {% endif %}
 
+        <!-- Notion (si está activo) -->
+        {% if (current_user.is_admin_global() and current_user.admin_pref_notion) or (not current_user.is_admin_global() and company.module_notion) %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-dark shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">Notion</div>
+                            {% if stats.notion %}
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.notion.total_pages }} páginas</div>
+                            <small class="text-dark">{{ stats.notion.active_checklists }} checklists activos</small>
+                            {% else %}
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">0 páginas</div>
+                            <small class="text-dark">0 checklists activos</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Páginas Públicas (si están activas) -->
         {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio)) or ((current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments)) %}
         <div class="col-xl-3 col-md-6 mb-4">
@@ -312,6 +337,45 @@
                             <p>No tienes tableros Scrum configurados</p>
                             <a href="{{ url_for('create_scrum_board') }}" class="btn btn-purple">
                                 <i class="fas fa-plus me-1"></i>Crear tu primer tablero
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Panel Notion -->
+        {% if (current_user.is_admin_global() and current_user.admin_pref_notion) or (not current_user.is_admin_global() and company.module_notion) %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-dark">
+                        <i class="fas fa-book me-2"></i>Notion - Wiki Colaborativo
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if stats.notion and stats.notion.total_pages > 0 %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <p class="mb-1">{{ stats.notion.total_pages }} páginas creadas</p>
+                                <small class="text-info">{{ stats.notion.active_checklists }} checklists activos</small>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('notion_dashboard') }}" class="btn btn-dark me-2">
+                                    <i class="fas fa-book me-1"></i>Ver Wiki
+                                </a>
+                                <a href="{{ url_for('notion_new_page') }}" class="btn btn-outline-dark">
+                                    <i class="fas fa-plus me-1"></i>Nueva Página
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-book fa-3x mb-3"></i>
+                            <p>Crea páginas colaborativas para tu equipo</p>
+                            <a href="{{ url_for('notion_new_page') }}" class="btn btn-dark">
+                                <i class="fas fa-plus me-1"></i>Crear Primera Página
                             </a>
                         </div>
                     {% endif %}
@@ -533,6 +597,9 @@
 }
 .border-left-purple {
     border-left: .25rem solid #6f42c1 !important;
+}
+.border-left-dark {
+    border-left: .25rem solid #343a40 !important;
 }
 .text-purple {
     color: #6f42c1 !important;
