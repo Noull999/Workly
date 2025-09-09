@@ -2,6 +2,7 @@ from flask import render_template, redirect, url_for, flash, request, jsonify, g
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from datetime import datetime
+from decimal import Decimal
 from app import app, db
 from models import User, InventoryItem, Category, Company, Warehouse, AuditLog, Service, Appointment, Sale, SaleItem, Board, Sprint, Task, Column, TaskComment, CashSession, PaymentDetail, CashExpense, OfflineSync
 from forms import LoginForm, RegisterForm, InventoryItemForm, CategoryForm, WarehouseForm, CompanyForm, UserManagementForm, ProfileForm, CompanySettingsForm, EditAdminCredentialsForm, ModuleSettingsForm, ServiceForm, AppointmentForm, PublicAppointmentForm, PortfolioForm, SaleForm, CashSessionForm, CashSessionCloseForm, CashExpenseForm, MultiPaymentForm
@@ -1137,7 +1138,7 @@ def pos_sales():
                         return redirect(url_for('pos_sales'))
                 
                 # Calcular impuestos y total
-                sale.tax_amount = total_amount * 0.19
+                sale.tax_amount = total_amount * Decimal('0.19')
                 sale.total_amount = total_amount + sale.tax_amount
                 
                 # Crear detalle de pago (método único por ahora)
@@ -1150,7 +1151,7 @@ def pos_sales():
                 
                 # Actualizar totales de sesión de caja si existe
                 if current_session:
-                    current_session.total_sales += float(sale.total_amount)
+                    current_session.total_sales += sale.total_amount
                 
                 db.session.add(sale)
                 db.session.commit()
