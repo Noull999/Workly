@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, SelectField, PasswordField, EmailField, DateTimeLocalField, DecimalField, BooleanField, HiddenField
+from wtforms import StringField, TextAreaField, IntegerField, SelectField, PasswordField, EmailField, DateTimeLocalField, DecimalField, BooleanField, HiddenField, SubmitField, FieldList, FormField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange, Optional
 from models import Category, Warehouse, Service
 from flask_login import current_user
@@ -210,3 +210,104 @@ class MultiPaymentForm(FlaskForm):
     # Campos dinámicos que se llenan en JavaScript
     payment_data = HiddenField('Datos de Pago', validators=[DataRequired()])
     notes = TextAreaField('Notas de la Venta', validators=[Optional(), Length(max=300)])
+
+
+# ===== FORMULARIOS MÓDULO NOTION =====
+
+class NotionPageForm(FlaskForm):
+    title = StringField('Título', validators=[DataRequired(), Length(min=1, max=200)])
+    icon = StringField('Icono', validators=[Length(max=10)], default='📄')
+    is_public = BooleanField('Visible para toda la empresa')
+    is_template = BooleanField('Es plantilla')
+    parent_id = SelectField('Página padre', coerce=int, validators=[Optional()])
+    submit = SubmitField('Crear Página')
+    
+    def __init__(self, company_id=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if company_id:
+            from models import NotionPage
+            pages = NotionPage.query.filter_by(company_id=company_id).all()
+            self.parent_id.choices = [(0, 'Sin página padre')] + [(p.id, p.title) for p in pages]
+
+
+class NotionBlockForm(FlaskForm):
+    block_type = SelectField('Tipo de bloque', choices=[
+        ('text', 'Texto'),
+        ('heading1', 'Título 1'),
+        ('heading2', 'Título 2'),
+        ('heading3', 'Título 3'),
+        ('list', 'Lista'),
+        ('checklist', 'Lista de verificación')
+    ], validators=[DataRequired()])
+    content = TextAreaField('Contenido', validators=[DataRequired()])
+    submit = SubmitField('Agregar Bloque')
+
+
+class NotionChecklistForm(FlaskForm):
+    title = StringField('Título', validators=[DataRequired(), Length(min=1, max=200)])
+    description = TextAreaField('Descripción')
+    checklist_type = SelectField('Tipo', choices=[
+        ('general', 'General'),
+        ('inventory_restock', 'Reposición de inventario'),
+        ('daily_cash', 'Tareas diarias de caja'),
+        ('maintenance', 'Mantenimiento'),
+        ('cleaning', 'Limpieza')
+    ], validators=[DataRequired()])
+    page_id = SelectField('Página asociada', coerce=int, validators=[Optional()])
+    submit = SubmitField('Crear Lista')
+    
+    def __init__(self, company_id=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if company_id:
+            from models import NotionPage
+            pages = NotionPage.query.filter_by(company_id=company_id).all()
+            self.page_id.choices = [(0, 'Sin página asociada')] + [(p.id, p.title) for p in pages]
+
+
+class NotionChecklistItemForm(FlaskForm):
+    content = StringField('Tarea', validators=[DataRequired(), Length(min=1, max=500)])
+    assignee_id = SelectField('Asignado a', coerce=int, validators=[Optional()])
+    due_date = DateTimeLocalField('Fecha límite', validators=[Optional()])
+    submit = SubmitField('Agregar Tarea')
+    
+    def __init__(self, company_id=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if company_id:
+            from models import User
+            users = User.query.filter_by(company_id=company_id, active=True).all()
+            self.assignee_id.choices = [(0, 'Sin asignar')] + [(u.id, u.username) for u in users]
+
+
+class NotionPermissionForm(FlaskForm):
+    user_id = SelectField('Usuario', coerce=int, validators=[DataRequired()])
+    permission_type = SelectField('Tipo de permiso', choices=[
+        ('read', 'Solo lectura'),
+        ('edit', 'Editar'),
+        ('admin', 'Administrador')
+    ], validators=[DataRequired()])
+    submit = SubmitField('Otorgar Permiso')
+    
+    def __init__(self, company_id=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if company_id:
+            from models import User
+            users = User.query.filter_by(company_id=company_id, active=True).all()
+            self.user_id.choices = [(u.id, u.username) for u in users]
+
+
+class ModuleLinkForm(FlaskForm):
+    target_module = SelectField('Módulo destino', choices=[
+        ('inventory', 'Inventario'),
+        ('pos', 'POS'),
+        ('appointments', 'Citas'),
+        ('scrum', 'Scrum Lite'),
+        ('notion', 'Notion')
+    ], validators=[DataRequired()])
+    target_id = IntegerField('ID del elemento', validators=[DataRequired()])
+    link_type = SelectField('Tipo de enlace', choices=[
+        ('reference', 'Referencia'),
+        ('dependency', 'Dependencia'),
+        ('related', 'Relacionado')
+    ], validators=[DataRequired()])
+    description = StringField('Descripción', validators=[Length(max=200)])
+    submit = SubmitField('Crear Enlace')
