@@ -1157,7 +1157,7 @@ def pos_sales():
                 db.session.commit()
                 
                 flash(f'Venta {sale.sale_number} procesada exitosamente por ${sale.total_amount}', 'success')
-                return redirect(url_for('pos_sales'))
+                return redirect(url_for('sale_receipt', sale_id=sale.id))
                 
             except Exception as e:
                 db.session.rollback()
@@ -1424,13 +1424,36 @@ def process_multi_payment():
         return jsonify({
             'success': True,
             'sale_number': sale.sale_number,
+            'sale_id': sale.id,
             'total': sale.total_amount,
-            'message': f'Venta {sale.sale_number} procesada exitosamente'
+            'message': f'Venta {sale.sale_number} procesada exitosamente',
+            'receipt_url': url_for('sale_receipt', sale_id=sale.id)
         })
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Error procesando la venta: {str(e)}'}), 500
+
+
+@app.route('/pos/receipt/<int:sale_id>')
+@login_required
+def sale_receipt(sale_id):
+    """Mostrar comprobante de venta"""
+    if not current_user.is_admin_global() and not current_user.company.module_pos:
+        flash('El módulo POS no está activo para tu empresa.', 'warning')
+        return redirect(url_for('inventory'))
+    
+    # Buscar la venta
+    sale = Sale.query.filter_by(
+        id=sale_id,
+        company_id=current_user.company_id
+    ).first()
+    
+    if not sale:
+        flash('Venta no encontrada.', 'error')
+        return redirect(url_for('pos_sales'))
+    
+    return render_template('modules/receipt.html', sale=sale)
 
 
 @app.route('/pos/sync', methods=['POST'])
