@@ -1,0 +1,44 @@
+1. Nuevo módulo tipo Notion (multiempresa)
+
+Implementa un módulo colaborativo estilo Notion para cada empresa, con las siguientes funciones:
+	•	Editor de bloques: soportar texto, listas, checklist y archivos simples (texto enriquecido WYSIWYG básico).
+	•	Wiki interna: páginas compartidas entre los usuarios de una empresa.
+	•	Checklists colaborativos: listas de reposición de stock, tareas diarias de caja, etc.
+	•	Relación con otros módulos: poder vincular notas/tareas con citas, ventas o inventario.
+	•	Acceso según rol:
+	•	admin_empresa: crea y organiza páginas.
+	•	empleado: consulta y edita páginas asignadas.
+
+⸻
+
+2. Mejorar Scrum Lite
+	•	Arreglar el bug actual: cuando se marcan tareas como realizadas, no se actualizan en la lista.
+	•	Bitácora de tareas completadas:
+	•	Crear un espacio exclusivo para almacenar tareas finalizadas.
+	•	Que se puedan consultar por sprint, responsable y fecha de finalización.
+	•	Mantener la vista Kanban pero agregar pestaña “Completadas”.
+	•	Precisión y trazabilidad:
+	•	Guardar fecha/hora de cierre de tarea.
+	•	Usuario que la marcó como completada.
+	•	Posibilidad de comentarios finales o checklist de cierre.
+
+⸻
+
+3. Conexión entre módulos (multiespacio integrado)
+
+Todos los módulos deben poder conectarse entre sí para formar un espacio de trabajo unificado:
+	•	Inventario ↔ POS: las ventas descuentan stock automáticamente.
+	•	POS ↔ Citas: una cita confirmada puede generar un cobro en POS.
+	•	Scrum Lite ↔ Notion: tareas pueden vincularse a páginas de wiki/notas.
+	•	Citas ↔ Notion: cada cita puede tener una nota asociada (ej: historial cliente).
+	•	Presentación ↔ Citas: la página pública puede incluir botón “Reservar ahora” y guardar notas internas en Notion.
+	•	Dashboard principal: mostrar widgets que reflejen estas conexiones (ej: “Citas confirmadas hoy → ventas registradas en POS”).
+
+⸻
+
+4. Condiciones de implementación
+	•	Mantener aislamiento multiempresa (empresa_id).
+	•	Modelos con SQLAlchemy actualizados (ej: notion_page_links para relaciones cruzadas entre módulos).
+	•	Vistas en Jinja/HTMX con sidebar y navegación consistente.
+	•	Endpoints Flask claros y documentados (routes/notion.py, routes/scrum.py, etc.).
+	•	Código modular con servicios separados (services/notion.py, services/scrum.py, services/integration.py).
