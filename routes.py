@@ -1771,3 +1771,132 @@ def move_task():
     db.session.commit()
     
     return jsonify({'success': True})
+
+
+# ===== MÓDULO NOTION =====
+
+@app.route('/notion')
+@login_required
+@module_required('notion')
+def notion_dashboard():
+    """Dashboard principal del módulo Notion"""
+    company = current_user.company
+    
+    # Páginas principales (sin padre)
+    main_pages = company_query(NotionPage).filter_by(parent_id=None).order_by(NotionPage.position).all()
+    
+    # Páginas recientes
+    recent_pages = company_query(NotionPage).order_by(NotionPage.updated_at.desc()).limit(5).all()
+    
+    # Checklists activos
+    active_checklists = company_query(NotionChecklist).join(NotionChecklistItem).filter(
+        NotionChecklistItem.is_completed == False
+    ).distinct().limit(3).all()
+    
+    return render_template('modules/notion/dashboard.html', 
+                         main_pages=main_pages, 
+                         recent_pages=recent_pages,
+                         active_checklists=active_checklists,
+                         company=company)
+
+
+@app.route('/notion/page/new', methods=['GET', 'POST'])
+@login_required
+@module_required('notion')
+def notion_new_page():
+    """Crear nueva página"""
+    form = NotionPageForm(company_id=current_user.company_id)
+    
+    if form.validate_on_submit():
+        # Generar slug único
+        base_slug = form.title.data.lower().replace(' ', '-').replace('_', '-')
+        slug = base_slug
+        counter = 1
+        while company_query(NotionPage).filter_by(slug=slug).first():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        page = NotionPage(
+            title=form.title.data,
+            slug=slug,
+            icon=form.icon.data or '📄',
+            is_public=form.is_public.data,
+            is_template=form.is_template.data,
+            parent_id=form.parent_id.data if form.parent_id.data != 0 else None,
+            company_id=current_user.company_id,
+            creator_id=current_user.id
+        )
+        
+        db.session.add(page)
+        db.session.commit()
+        
+        # Crear bloque inicial de texto
+        initial_block = NotionBlock(
+            block_type='text',
+            content='Comienza a escribir aquí...',
+            position=0,
+            page_id=page.id,
+            company_id=current_user.company_id
+        )
+        db.session.add(initial_block)
+        db.session.commit()
+        
+        log_audit('notion', f'Página creada: {page.title}', current_user.id, current_user.company_id)
+        flash('Página creada exitosamente', 'success')
+        return redirect(url_for('notion_page', slug=page.slug))
+    
+    return render_template('modules/notion/new_page.html', form=form, company=current_user.company)
+
+
+@app.route('/notion/page/<slug>')
+@login_required
+@module_required('notion')
+def notion_page(slug):
+    """Ver página específica"""
+    page = company_query(NotionPage).filter_by(slug=slug).first_or_404()
+    
+    # Verificar permisos
+    can_edit = (page.creator_id == current_user.id or 
+               current_user.is_admin_empresa() or 
+               current_user.is_admin_global() or
+               page.is_public)
+    
+    # Si no es pública, verificar permisos específicos
+    if not page.is_public and page.creator_id != current_user.id and not (current_user.is_admin_empresa() or current_user.is_admin_global()):
+        permission = company_query(NotionPermission).filter_by(
+            page_id=page.id, 
+            user_id=current_user.id
+        ).first()
+        if not permission:
+            flash('No tienes permisos para ver esta página', 'danger')
+            return redirect(url_for('notion_dashboard'))
+        can_edit = permission.permission_type in ['edit', 'admin']
+    
+    # Obtener bloques ordenados
+    blocks = company_query(NotionBlock).filter_by(page_id=page.id).order_by(NotionBlock.position).all()
+    
+    # Páginas hijas
+    child_pages = company_query(NotionPage).filter_by(parent_id=page.id).order_by(NotionPage.position).all()
+    
+    # Enlaces a otros módulos
+    module_links = company_query(ModuleLink).filter_by(
+        source_module='notion',
+        source_id=page.id
+    ).all()
+    
+    return render_template('modules/notion/page.html', 
+                         page=page, 
+                         blocks=blocks,
+                         child_pages=child_pages,
+                         module_links=module_links,
+                         can_edit=can_edit,
+                         company=current_user.company)
+
+
+@app.route('/notion/checklists')
+@login_required
+@module_required('notion')
+def notion_checklists():
+    """Lista de checklists"""
+    checklists = company_query(NotionChecklist).order_by(NotionChecklist.created_at.desc()).all()
+    return render_template('modules/notion/checklists.html', checklists=checklists, company=current_user.company)
