@@ -4,6 +4,7 @@ Inventario INTAC - Sistema multiempresa
 """
 
 from datetime import datetime
+from decimal import Decimal
 from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 from app import db
@@ -66,12 +67,12 @@ class POSSyncService:
     def validate_payment_totals(cart_items, payment_methods):
         """Validar que los totales de pago coincidan"""
         # Calcular total del carrito
-        cart_total = sum([item['price'] * item['quantity'] for item in cart_items])
-        tax_amount = cart_total * 0.19
+        cart_total = sum([Decimal(str(item['price'])) * Decimal(str(item['quantity'])) for item in cart_items])
+        tax_amount = cart_total * Decimal('0.19')
         total_with_tax = cart_total + tax_amount
         
         # Calcular total de pagos
-        payment_total = sum([float(p['amount']) for p in payment_methods])
+        payment_total = sum([Decimal(str(p['amount'])) for p in payment_methods])
         
         # Tolerancia de centavos
         if abs(total_with_tax - payment_total) > 0.01:
@@ -181,7 +182,7 @@ class POSSyncService:
             current_session = POSSyncService.get_current_cash_session(company_id)
             if current_session:
                 sale.cash_session_id = current_session.id
-                current_session.total_sales += float(sale.total_amount)
+                current_session.total_sales += sale.total_amount
             
             # 9. Guardar en base de datos
             db.session.add(sale)
@@ -192,7 +193,7 @@ class POSSyncService:
             return {
                 'success': True,
                 'sale_number': sale.sale_number,
-                'total': float(sale.total_amount),
+                'total': sale.total_amount,
                 'message': f'Venta {sale.sale_number} sincronizada exitosamente',
                 'duplicate': False
             }
