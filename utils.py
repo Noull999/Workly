@@ -9,6 +9,7 @@ from app import db
 import json
 import time
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 
 def get_current_company():
@@ -33,6 +34,24 @@ def company_query(model):
     if not current_user.is_authenticated:
         return model.query.filter_by(id=-1)  # Return empty result
     return model.query.filter_by(company_id=current_user.company_id)
+
+
+def serialize_json(obj):
+    """Custom JSON serializer that handles Decimal objects"""
+    def convert_decimal(o):
+        if isinstance(o, Decimal):
+            return float(o)
+        elif isinstance(o, datetime):
+            return o.isoformat()
+        elif isinstance(o, dict):
+            return {k: convert_decimal(v) for k, v in o.items()}
+        elif isinstance(o, list):
+            return [convert_decimal(item) for item in o]
+        return o
+    
+    if obj is None:
+        return None
+    return json.dumps(convert_decimal(obj))
 
 
 def log_audit(table_name, record_id, action, old_values=None, new_values=None, additional_context=None):
@@ -60,12 +79,12 @@ def log_audit(table_name, record_id, action, old_values=None, new_values=None, a
             table_name=table_name,
             record_id=record_id,
             action=action,
-            old_values=json.dumps(old_values) if old_values else None,
-            new_values=json.dumps(new_values) if new_values else None,
+            old_values=serialize_json(old_values) if old_values else None,
+            new_values=serialize_json(new_values) if new_values else None,
             user_id=current_user.id,
             company_id=current_user.company_id,
             ip_address=request.remote_addr if hasattr(request, 'remote_addr') else 'unknown',
-            additional_info=json.dumps(context)
+            additional_info=serialize_json(context)
         )
         db.session.add(audit_log)
     except Exception as e:
