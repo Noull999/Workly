@@ -110,6 +110,7 @@ class ModuleSettingsForm(FlaskForm):
     module_appointments = BooleanField('Módulo de Citas y Reservas')
     module_portfolio = BooleanField('Módulo de Página de Presentación')
     module_scrum = BooleanField('Módulo Scrum Lite')
+    module_notion = BooleanField('Módulo Notion (Wiki Colaborativo)')
 
 
 class ServiceForm(FlaskForm):

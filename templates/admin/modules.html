@@ -82,6 +82,15 @@
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="col-lg-2 col-md-4 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="admin_pref_notion" id="admin_notion" 
+                                                   {% if current_user.admin_pref_notion %}checked{% endif %}>
+                                            <label class="form-check-label" for="admin_notion">
+                                                <i class="fas fa-book me-1 text-dark"></i>Notion
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div class="text-end mt-3">
@@ -164,6 +173,15 @@
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="col-lg-2 col-md-4 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="module_notion" id="notion_{{ company.id }}" 
+                                                   {% if company.module_notion %}checked{% endif %}>
+                                            <label class="form-check-label" for="notion_{{ company.id }}">
+                                                <i class="fas fa-book me-1 text-dark"></i>Notion
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div class="text-end mt-3">
@@ -227,6 +245,15 @@
                                 <li>Gestión de tareas</li>
                                 <li>Colaboración equipos</li>
                                 <li>Seguimiento progreso</li>
+                            </ul>
+                        </div>
+                        <div class="col-lg-2 col-md-6 mb-3">
+                            <h6><i class="fas fa-book text-dark me-2"></i>Notion Wiki</h6>
+                            <ul class="small">
+                                <li>Wiki colaborativo</li>
+                                <li>Páginas anidadas</li>
+                                <li>Checklists compartidos</li>
+                                <li>Integración módulos</li>
                             </ul>
                         </div>
                     </div>

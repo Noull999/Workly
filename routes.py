@@ -922,6 +922,7 @@ def manage_modules():
             current_user.admin_pref_appointments = 'admin_pref_appointments' in request.form
             current_user.admin_pref_portfolio = 'admin_pref_portfolio' in request.form
             current_user.admin_pref_scrum = 'admin_pref_scrum' in request.form
+            current_user.admin_pref_notion = 'admin_pref_notion' in request.form
             
             db.session.commit()
             flash('Tus preferencias de módulos han sido actualizadas', 'success')
@@ -937,6 +938,7 @@ def manage_modules():
             company.module_appointments = 'module_appointments' in request.form
             company.module_portfolio = 'module_portfolio' in request.form
             company.module_scrum = 'module_scrum' in request.form
+            company.module_notion = 'module_notion' in request.form
             
             db.session.commit()
             flash(f'Módulos actualizados para {company.name}', 'success')
