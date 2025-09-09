@@ -155,7 +155,7 @@ def dashboard():
             stats['pos'] = {
                 'total_sales': total_sales,
                 'today_sales': today_sales,
-                'today_revenue': float(today_revenue)
+                'today_revenue': today_revenue
             }
         
         # Estadísticas de citas si está activo
@@ -1220,7 +1220,7 @@ def cash_session_management():
                 # Cerrar sesión actual
                 current_session.closing_amount = close_form.closing_amount.data
                 current_session.expected_amount = current_session.calculate_expected_amount()
-                current_session.difference_amount = float(close_form.closing_amount.data) - current_session.expected_amount
+                current_session.difference_amount = close_form.closing_amount.data - current_session.expected_amount
                 current_session.status = 'closed'
                 current_session.closed_by_id = current_user.id
                 current_session.closed_at = datetime.utcnow()
@@ -1244,7 +1244,7 @@ def cash_session_management():
                     user_id=current_user.id
                 )
                 db.session.add(expense)
-                current_session.total_expenses = sum([e.amount for e in current_session.expenses]) + float(expense_form.amount.data)
+                current_session.total_expenses = sum([e.amount for e in current_session.expenses]) + expense_form.amount.data
                 db.session.commit()
                 flash(f'Egreso registrado: ${expense.amount}', 'success')
                 return redirect(url_for('cash_session_management'))
@@ -1359,10 +1359,10 @@ def process_multi_payment():
             return jsonify({'error': 'Datos incompletos'}), 400
         
         # Verificar que el total de pagos coincida con el total de la venta
-        cart_total = sum([item['price'] * item['quantity'] for item in cart_items])
-        tax_amount = cart_total * 0.19
+        cart_total = sum([Decimal(str(item['price'])) * Decimal(str(item['quantity'])) for item in cart_items])
+        tax_amount = cart_total * Decimal('0.19')
         total_with_tax = cart_total + tax_amount
-        payment_total = sum([float(p['amount']) for p in payment_methods])
+        payment_total = sum([Decimal(str(p['amount'])) for p in payment_methods])
         
         if abs(total_with_tax - payment_total) > 0.01:  # Tolerancia de centavos
             return jsonify({'error': f'El total de pagos (${payment_total}) no coincide con el total de la venta (${total_with_tax})'}), 400
@@ -1416,7 +1416,7 @@ def process_multi_payment():
         
         if current_session:
             sale.cash_session_id = current_session.id
-            current_session.total_sales += float(sale.total_amount)
+            current_session.total_sales += sale.total_amount
         
         db.session.add(sale)
         db.session.commit()
@@ -1424,7 +1424,7 @@ def process_multi_payment():
         return jsonify({
             'success': True,
             'sale_number': sale.sale_number,
-            'total': float(sale.total_amount),
+            'total': sale.total_amount,
             'message': f'Venta {sale.sale_number} procesada exitosamente'
         })
         
