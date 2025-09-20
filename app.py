@@ -45,6 +45,15 @@ def load_user(user_id):
     from models import User
     return User.query.get(int(user_id))
 
+# Custom Jinja2 filters
+def nl2br(value):
+    """Convert newlines to HTML line breaks."""
+    from markupsafe import Markup
+    import re
+    return Markup(re.sub(r'\n', '<br>', str(value)))
+
+app.jinja_env.filters['nl2br'] = nl2br
+
 with app.app_context():
     # Import models to ensure tables are created
     import models

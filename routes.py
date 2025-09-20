@@ -2211,3 +2211,42 @@ def notion_checklists():
     """Lista de checklists"""
     checklists = company_query(NotionChecklist).order_by(NotionChecklist.created_at.desc()).all()
     return render_template('modules/notion/checklists.html', checklists=checklists, company=current_user.company)
+
+
+@app.route('/notion/checklist/new', methods=['GET', 'POST'])
+@login_required
+@module_required('notion')
+def notion_new_checklist():
+    """Crear nuevo checklist"""
+    from forms import NotionChecklistForm
+    form = NotionChecklistForm()
+    
+    # Poblar las opciones de páginas
+    pages = company_query(NotionPage).all()
+    form.page_id.choices = [(0, 'Sin página asociada')] + [(p.id, p.title) for p in pages]
+    
+    if form.validate_on_submit():
+        checklist = NotionChecklist(
+            title=form.title.data,
+            description=form.description.data,
+            checklist_type=form.checklist_type.data,
+            page_id=form.page_id.data if form.page_id.data != 0 else None,
+            company_id=current_user.company_id,
+            creator_id=current_user.id
+        )
+        db.session.add(checklist)
+        db.session.commit()
+        
+        flash('Checklist creado exitosamente', 'success')
+        return redirect(url_for('notion_checklist', checklist_id=checklist.id))
+    
+    return render_template('modules/notion/new_checklist.html', form=form, company=current_user.company)
+
+
+@app.route('/notion/checklist/<int:checklist_id>')
+@login_required
+@module_required('notion')
+def notion_checklist(checklist_id):
+    """Ver checklist específico"""
+    checklist = company_query(NotionChecklist).filter_by(id=checklist_id).first_or_404()
+    return render_template('modules/notion/checklist.html', checklist=checklist, company=current_user.company)
