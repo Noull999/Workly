@@ -27,18 +27,19 @@
                     {% endif %}
 
                     {% if items %}
-                        <div class="checklist-items">
-                            {% for item in items %}
-                            <div class="form-check mb-3 p-3 border rounded {% if item.is_completed %}bg-light{% endif %}">
-                                <input class="form-check-input" type="checkbox" 
-                                       {% if item.is_completed %}checked{% endif %}
+                        <!-- Tareas Pendientes -->
+                        {% set pending_items = items|rejectattr('is_completed')|list %}
+                        {% if pending_items %}
+                        <div class="pending-tasks">
+                            <h6 class="text-primary"><i class="fas fa-list-ul me-2"></i>Tareas Pendientes</h6>
+                            {% for item in pending_items %}
+                            <div class="form-check mb-3 p-3 border rounded" data-item-id="{{ item.id }}">
+                                <input class="form-check-input task-checkbox" type="checkbox" 
                                        data-item-id="{{ item.id }}">
-                                <label class="form-check-label w-100 {% if item.is_completed %}text-muted{% endif %}">
+                                <label class="form-check-label w-100">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
-                                            <span {% if item.is_completed %}style="text-decoration: line-through;"{% endif %}>
-                                                {{ item.content }}
-                                            </span>
+                                            <span class="task-content">{{ item.content }}</span>
                                             {% if item.assignee %}
                                             <br><small class="text-info">Asignado a: {{ item.assignee.username }}</small>
                                             {% endif %}
@@ -46,22 +47,50 @@
                                             <br><small class="text-warning">Fecha límite: {{ item.due_date.strftime('%d/%m/%Y %H:%M') }}</small>
                                             {% endif %}
                                         </div>
-                                        <div class="text-right">
-                                            {% if item.is_completed %}
-                                            <small class="text-success">
-                                                <i class="fas fa-check"></i> 
-                                                {{ item.completed_at.strftime('%d/%m/%Y') if item.completed_at }}
-                                                {% if item.completed_by %}
-                                                por {{ item.completed_by.username }}
-                                                {% endif %}
-                                            </small>
-                                            {% endif %}
-                                        </div>
                                     </div>
                                 </label>
                             </div>
                             {% endfor %}
                         </div>
+                        {% endif %}
+
+                        <!-- Tareas Completadas -->
+                        {% set completed_items = items|selectattr('is_completed')|list %}
+                        {% if completed_items %}
+                        <div class="completed-tasks mt-4">
+                            <h6 class="text-success">
+                                <i class="fas fa-check-circle me-2"></i>Tareas Completadas
+                                <span class="badge bg-success ms-2">{{ completed_items|length }}</span>
+                            </h6>
+                            <div class="border-top pt-3">
+                                {% for item in completed_items %}
+                                <div class="form-check mb-2 p-2 border rounded bg-light" data-item-id="{{ item.id }}">
+                                    <input class="form-check-input task-checkbox" type="checkbox" checked
+                                           data-item-id="{{ item.id }}">
+                                    <label class="form-check-label w-100 text-muted">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <span class="task-content" style="text-decoration: line-through;">{{ item.content }}</span>
+                                                {% if item.assignee %}
+                                                <br><small class="text-info">Asignado a: {{ item.assignee.username }}</small>
+                                                {% endif %}
+                                            </div>
+                                            <div class="text-right">
+                                                <small class="text-success completion-info">
+                                                    <i class="fas fa-check"></i> 
+                                                    {{ item.completed_at.strftime('%d/%m/%Y') if item.completed_at }}
+                                                    {% if item.completed_by %}
+                                                    por {{ item.completed_by.username }}
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                     {% else %}
                         <p class="text-muted text-center">No hay tareas en este checklist.</p>
                     {% endif %}
@@ -162,47 +191,262 @@
     </div>
 </div>
 
-<script>
-// Manejar cambios en checkboxes (para futuras implementaciones AJAX)
-document.addEventListener('DOMContentLoaded', function() {
-    const checkboxes = document.querySelectorAll('.checklist-items input[type="checkbox"]');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const itemId = this.getAttribute('data-item-id');
-            const isCompleted = this.checked;
-            
-            // Aquí puedes agregar llamada AJAX para actualizar el estado
-            console.log(`Item ${itemId} marcado como: ${isCompleted ? 'completado' : 'pendiente'}`);
-            
-            // Efectos visuales inmediatos
-            const label = this.nextElementSibling;
-            if (isCompleted) {
-                label.classList.add('text-muted');
-                label.querySelector('span').style.textDecoration = 'line-through';
-                this.closest('.form-check').classList.add('bg-light');
-            } else {
-                label.classList.remove('text-muted');
-                label.querySelector('span').style.textDecoration = 'none';
-                this.closest('.form-check').classList.remove('bg-light');
-            }
-        });
-    });
-});
-</script>
-
 <style>
-.checklist-items .form-check {
+.task-checkbox {
+    cursor: pointer;
+}
+
+.form-check {
     transition: all 0.3s ease;
 }
 
-.checklist-items .form-check:hover {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.form-check:hover {
+    background-color: rgba(111, 66, 193, 0.1) !important;
 }
 
-.form-check-input:checked {
-    background-color: #28a745;
-    border-color: #28a745;
+.completed-tasks {
+    border-top: 2px solid #28a745;
+}
+
+.pending-tasks {
+    border-left: 3px solid #6f42c1;
+    padding-left: 15px;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar clicks en los checkboxes
+    const checkboxes = document.querySelectorAll('.task-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function(e) {
+            const itemId = this.getAttribute('data-item-id');
+            const isChecked = this.checked;
+            
+            // Deshabilitar checkbox mientras se procesa
+            this.disabled = true;
+            
+            // Enviar petición AJAX
+            fetch(`/notion/checklist-item/${itemId}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mover el elemento entre secciones
+                    moveTaskToSection(itemId, data.is_completed, data);
+                    
+                    // Actualizar barra de progreso
+                    updateProgressBar(data.progress);
+                    
+                    showNotification('Tarea actualizada correctamente', 'success');
+                } else {
+                    // Revertir el checkbox si hubo error
+                    this.checked = !isChecked;
+                    showNotification('Error al actualizar la tarea', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Revertir el checkbox si hubo error
+                this.checked = !isChecked;
+                showNotification('Error al actualizar la tarea', 'danger');
+            })
+            .finally(() => {
+                // Habilitar checkbox
+                this.disabled = false;
+            });
+        });
+    });
+});
+
+function moveTaskToSection(itemId, isCompleted, data) {
+    const taskElement = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (!taskElement) return;
+    
+    // Crear nuevo elemento en la sección correcta
+    const newElement = taskElement.cloneNode(true);
+    const checkbox = newElement.querySelector('.task-checkbox');
+    const label = newElement.querySelector('label');
+    const taskContent = newElement.querySelector('.task-content');
+    
+    if (isCompleted) {
+        // Mover a sección completada
+        checkbox.checked = true;
+        newElement.className = 'form-check mb-2 p-2 border rounded bg-light';
+        label.className = 'form-check-label w-100 text-muted';
+        taskContent.style.textDecoration = 'line-through';
+        
+        // Agregar información de completado
+        const completionInfo = document.createElement('div');
+        completionInfo.className = 'text-right';
+        completionInfo.innerHTML = `
+            <small class="text-success completion-info">
+                <i class="fas fa-check"></i> 
+                ${data.completed_at}
+                ${data.completed_by ? 'por ' + data.completed_by : ''}
+            </small>
+        `;
+        
+        const contentDiv = newElement.querySelector('.d-flex');
+        contentDiv.appendChild(completionInfo);
+        
+        // Agregar a sección completada
+        let completedSection = document.querySelector('.completed-tasks');
+        if (!completedSection) {
+            // Crear sección completada si no existe
+            completedSection = document.createElement('div');
+            completedSection.className = 'completed-tasks mt-4';
+            completedSection.innerHTML = `
+                <h6 class="text-success">
+                    <i class="fas fa-check-circle me-2"></i>Tareas Completadas
+                    <span class="badge bg-success ms-2">1</span>
+                </h6>
+                <div class="border-top pt-3"></div>
+            `;
+            
+            const pendingSection = document.querySelector('.pending-tasks');
+            if (pendingSection) {
+                pendingSection.parentNode.insertBefore(completedSection, pendingSection.nextSibling);
+            } else {
+                document.querySelector('.checklist-items').appendChild(completedSection);
+            }
+        }
+        
+        completedSection.querySelector('.border-top').appendChild(newElement);
+        
+        // Actualizar contador de completadas
+        const completedBadge = completedSection.querySelector('.badge');
+        if (completedBadge) {
+            completedBadge.textContent = parseInt(completedBadge.textContent) + 1;
+        }
+        
+    } else {
+        // Mover a sección pendiente
+        checkbox.checked = false;
+        newElement.className = 'form-check mb-3 p-3 border rounded';
+        label.className = 'form-check-label w-100';
+        taskContent.style.textDecoration = 'none';
+        
+        // Quitar información de completado
+        const completionInfo = newElement.querySelector('.completion-info');
+        if (completionInfo) {
+            completionInfo.parentElement.remove();
+        }
+        
+        // Agregar a sección pendiente
+        let pendingSection = document.querySelector('.pending-tasks');
+        if (!pendingSection) {
+            // Crear sección pendiente si no existe
+            pendingSection = document.createElement('div');
+            pendingSection.className = 'pending-tasks';
+            pendingSection.innerHTML = `
+                <h6 class="text-primary"><i class="fas fa-list-ul me-2"></i>Tareas Pendientes</h6>
+            `;
+            
+            const firstChild = document.querySelector('.checklist-items').firstChild;
+            document.querySelector('.checklist-items').insertBefore(pendingSection, firstChild);
+        }
+        
+        pendingSection.appendChild(newElement);
+        
+        // Actualizar contador de completadas
+        const completedSection = document.querySelector('.completed-tasks');
+        if (completedSection) {
+            const completedBadge = completedSection.querySelector('.badge');
+            if (completedBadge) {
+                const newCount = parseInt(completedBadge.textContent) - 1;
+                if (newCount > 0) {
+                    completedBadge.textContent = newCount;
+                } else {
+                    completedSection.remove();
+                }
+            }
+        }
+    }
+    
+    // Remover elemento original
+    taskElement.remove();
+    
+    // Reactivar event listener en el nuevo checkbox
+    const newCheckbox = newElement.querySelector('.task-checkbox');
+    newCheckbox.addEventListener('change', function(e) {
+        const itemId = this.getAttribute('data-item-id');
+        const isChecked = this.checked;
+        
+        this.disabled = true;
+        
+        fetch(`/notion/checklist-item/${itemId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                moveTaskToSection(itemId, data.is_completed, data);
+                updateProgressBar(data.progress);
+                showNotification('Tarea actualizada correctamente', 'success');
+            } else {
+                this.checked = !isChecked;
+                showNotification('Error al actualizar la tarea', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            this.checked = !isChecked;
+            showNotification('Error al actualizar la tarea', 'danger');
+        })
+        .finally(() => {
+            this.disabled = false;
+        });
+    });
+}
+
+function updateProgressBar(progress) {
+    const progressBar = document.querySelector('.progress-bar');
+    const progressText = document.querySelector('.progress').nextElementSibling.querySelector('strong');
+    
+    if (progressBar) {
+        progressBar.style.width = progress.percent + '%';
+        progressBar.textContent = progress.percent + '%';
+        progressBar.setAttribute('aria-valuenow', progress.percent);
+    }
+    
+    if (progressText) {
+        progressText.innerHTML = `<strong>${progress.completed}</strong> de <strong>${progress.total}</strong> completadas`;
+    }
+}
+
+function getCsrfToken() {
+    const token = document.querySelector('meta[name=csrf-token]');
+    if (token) {
+        return token.getAttribute('content');
+    }
+    const csrfInput = document.querySelector('input[name="csrf_token"]');
+    return csrfInput ? csrfInput.value : '';
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    notification.innerHTML = `${message} <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 3000);
+}
+</script>
+
 {% endblock %}

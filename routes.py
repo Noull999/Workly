@@ -2291,3 +2291,46 @@ def notion_checklist(checklist_id):
                          items=items,
                          form=form,
                          company=current_user.company)
+
+
+@app.route('/notion/checklist-item/<int:item_id>/toggle', methods=['POST'])
+@login_required
+@module_required('notion')
+def toggle_checklist_item(item_id):
+    """Marcar/desmarcar item del checklist como completado (AJAX)"""
+    item = company_query(NotionChecklistItem).filter_by(id=item_id).first()
+    if not item:
+        return jsonify({'error': 'Item no encontrado'}), 404
+    
+    # Toggle del estado
+    item.is_completed = not item.is_completed
+    
+    if item.is_completed:
+        item.completed_at = datetime.utcnow()
+        item.completed_by_id = current_user.id
+    else:
+        item.completed_at = None
+        item.completed_by_id = None
+    
+    # Actualizar timestamp del checklist
+    item.checklist.updated_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    # Calcular estadísticas actualizadas
+    checklist = item.checklist
+    total_items = len(checklist.items)
+    completed_items = len([i for i in checklist.items if i.is_completed])
+    progress_percent = int((completed_items / total_items * 100)) if total_items > 0 else 0
+    
+    return jsonify({
+        'success': True,
+        'is_completed': item.is_completed,
+        'completed_at': item.completed_at.strftime('%d/%m/%Y') if item.completed_at else None,
+        'completed_by': item.completed_by.username if item.completed_by else None,
+        'progress': {
+            'completed': completed_items,
+            'total': total_items,
+            'percent': progress_percent
+        }
+    })
