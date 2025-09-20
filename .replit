@@ -45,5 +45,9 @@ args = "uv add flask-login flask-wtf wtforms"
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 44323
+externalPort = 3000
+
 [agent]
 integrations = ["styling_replit==1.0.0", "python_database==1.0.0"]
