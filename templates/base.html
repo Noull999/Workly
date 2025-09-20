@@ -7,7 +7,7 @@
         {%- if current_user.is_authenticated -%}
             {{ current_user.company.name }} - Inventario
         {%- else -%}
-            Inventario INTAC
+            Workly
         {%- endif -%}
     {% endblock %}</title>
     
@@ -24,9 +24,51 @@
                 --company-primary: {{ current_user.company.primary_color }};
                 --company-secondary: {{ current_user.company.secondary_color }};
             {% else %}
-                --company-primary: #007bff;
-                --company-secondary: #6c757d;
+                --company-primary: #ff6b35;  /* Naranja Workly */
+                --company-secondary: #6b46c1; /* Morado Workly */
             {% endif %}
+        }
+        
+        /* Esquema de colores Workly - Fondo morado con texto naranja */
+        body {
+            background-color: #1a1625 !important; /* Fondo morado oscuro */
+            color: #ff6b35 !important; /* Texto naranja */
+        }
+        
+        .navbar {
+            background-color: #2d1b69 !important; /* Navbar morado */
+        }
+        
+        .card {
+            background-color: #2d1b69 !important; /* Cards morado */
+            border-color: #6b46c1 !important;
+            color: #ff6b35 !important;
+        }
+        
+        .card-header {
+            background-color: #3b2282 !important;
+            border-color: #6b46c1 !important;
+            color: #ff6b35 !important;
+        }
+        
+        .table {
+            color: #ff6b35 !important;
+        }
+        
+        .table-dark {
+            background-color: #2d1b69 !important;
+            color: #ff6b35 !important;
+        }
+        
+        .btn-primary {
+            background-color: #ff6b35 !important;
+            border-color: #ff6b35 !important;
+            color: #1a1625 !important;
+        }
+        
+        .btn-primary:hover {
+            background-color: #e55a2e !important;
+            border-color: #e55a2e !important;
         }
         
         .low-stock {
@@ -83,7 +125,7 @@
                 {% if current_user.is_authenticated and current_user.company.logo_url %}
                     <img src="{{ current_user.company.logo_url }}" alt="{{ current_user.company.name }}" class="company-logo">
                 {% else %}
-                    <i class="fas fa-boxes me-2"></i>
+                    <i class="fas fa-rocket me-2" style="color: #ff6b35;"></i>
                 {% endif %}
                 {% if current_user.is_authenticated %}
                     {{ current_user.company.name }}
@@ -93,7 +135,7 @@
                         <span class="admin-badge">ADMIN</span>
                     {% endif %}
                 {% else %}
-                    Inventario INTAC
+                    Workly - Plataforma Empresarial
                 {% endif %}
             </a>
             
@@ -298,7 +340,7 @@
     <!-- Footer -->
     <footer class="bg-dark text-light py-3 mt-5">
         <div class="container text-center">
-            <small>&copy; 2025 Inventario INTAC. Construido con Flask & Bootstrap.</small>
+            <small>&copy; 2025 Workly. Construido con Flask & Bootstrap.</small>
         </div>
     </footer>
 

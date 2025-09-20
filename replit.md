@@ -1,8 +1,8 @@
-# Inventario INTAC
+# Workly
 
 ## Descripción General
 
-Sistema de gestión empresarial modular "Inventario INTAC" basado en web construido con Flask. Es una solución de pago para empresas que requiere contacto directo con el desarrollador para obtener acceso. La aplicación proporciona un sistema integral multiempresa con inventario base y módulos opcionales: POS (Punto de Venta), Sistema de Citas/Reservas (con página pública), y Página de Presentación personalizable. Incluye control de roles, branding personalizado por empresa, y activación modular según necesidades del cliente. Sistema comercial sin registro público disponible.
+Sistema de gestión empresarial modular "Workly" basado en web construido con Flask. Es una plataforma integral de productividad empresarial que combina gestión de inventario, punto de venta, sistema de citas, workspace colaborativo estilo Notion, gestión ágil de proyectos y páginas de presentación. La aplicación proporciona un sistema multiempresa completo con módulos activables según las necesidades específicas de cada organización. Incluye control avanzado de roles, colaboración en tiempo real, y personalización completa por empresa.
 
 ## User Preferences
 
@@ -10,11 +10,13 @@ Sistema de gestión empresarial modular "Inventario INTAC" basado en web constru
 - Application must be fully localized in Spanish for Chilean company use
 - Remove price/value fields from all models, forms, and templates as they are not needed
 - Complete category system for organizing inventory items
-- Application name changed to "Inventario INTAC" throughout the system
-- Business model: Paid service - no public registration allowed, users must contact developer for access
-- Professional access control: Only authorized users can access the system through provided credentials
-- Modular system: Inventory base + optional POS, Appointments, and Portfolio modules per company
+- Application name changed to "Workly" throughout the system
+- Business model: Enterprise productivity platform with modular activation
+- Professional access control: Multi-tenant system with comprehensive role management
+- Modular system: 6 core modules - Inventory, POS, Appointments, Notion Workspace, Scrum Agile, and Portfolio
+- Advanced features: Real-time collaboration, rich text editing, file management, kanban boards, project tracking
 - Public pages: Company portfolio and booking system accessible without login when modules are active
+- Color scheme: Purple background with orange text for modern, professional appearance
 
 ## System Architecture
 
