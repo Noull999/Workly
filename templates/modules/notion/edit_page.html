@@ -80,6 +80,8 @@
                 <div class="card-body">
                     <!-- Duplicar Página -->
                     <form method="POST" action="{{ url_for('notion_duplicate_page', slug=page.slug) }}" class="mb-2">
+                        {{ block_action_form.hidden_tag() }}
+                        {{ block_action_form.action(value='duplicate') }}
                         <button type="submit" class="btn btn-info w-100" onclick="return confirm('¿Duplicar esta página?')">
                             <i class="fas fa-copy"></i> Duplicar Página
                         </button>
@@ -133,6 +135,8 @@
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <form method="POST" action="{{ url_for('notion_delete_block', block_id=block.id) }}" class="d-inline">
+                                            {{ block_action_form.hidden_tag() }}
+                                            {{ block_action_form.action(value='delete') }}
                                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar este bloque?')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -175,6 +179,7 @@
                                 <!-- Editor del Bloque (Oculto por defecto) -->
                                 <div class="block-editor-form" id="block-editor-{{ block.id }}" style="display: none;">
                                     <form method="POST" action="{{ url_for('notion_edit_block', block_id=block.id) }}">
+                                        {{ block_action_form.hidden_tag() }}
                                         <div class="row mb-2">
                                             <div class="col-md-4">
                                                 <select name="block_type" class="form-select">

@@ -1999,11 +1999,16 @@ def notion_edit_page(slug):
             flash('Bloque agregado exitosamente', 'success')
             return redirect(url_for('notion_edit_page', slug=slug))
     
+    # Crear formularios para acciones de bloque
+    from forms import NotionBlockActionForm
+    block_action_form = NotionBlockActionForm()
+    
     return render_template('modules/notion/edit_page.html', 
                          page=page, 
                          blocks=blocks,
                          page_form=page_form,
                          block_form=block_form,
+                         block_action_form=block_action_form,
                          company=current_user.company)
 
 
