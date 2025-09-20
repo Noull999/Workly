@@ -17,103 +17,172 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- White Label Custom Styles -->
+    <!-- Workly Custom Styles - Nueva Paleta de Colores -->
     <style>
         :root {
+            /* Nueva paleta de colores Workly */
+            --workly-purple: #6C63FF;     /* Morado principal - Logo, headers, botones principales */
+            --workly-orange: #FF6B35;     /* Naranja vibrante - Botones CTA, íconos activos */
+            --workly-dark: #1C1C1C;      /* Gris oscuro - Texto y fondos secundarios */
+            --workly-dark-alt: #2E2E2E;  /* Gris oscuro alternativo */
+            --workly-white: #FFFFFF;     /* Blanco - Fondos principales y balance */
+            
             {% if current_user.is_authenticated %}
-                --company-primary: {{ current_user.company.primary_color }};
-                --company-secondary: {{ current_user.company.secondary_color }};
+                --company-primary: {{ current_user.company.primary_color or '#6C63FF' }};
+                --company-secondary: {{ current_user.company.secondary_color or '#FF6B35' }};
             {% else %}
-                --company-primary: #ff6b35;  /* Naranja Workly */
-                --company-secondary: #6b46c1; /* Morado Workly */
+                --company-primary: #6C63FF;  /* Morado principal Workly */
+                --company-secondary: #FF6B35; /* Naranja vibrante Workly */
             {% endif %}
         }
         
-        /* Esquema de colores Workly - Fondo morado con texto naranja */
+        /* Esquema de colores Workly - Fondo gris oscuro con acentos morados y naranjas */
         body {
-            background-color: #1a1625 !important; /* Fondo morado oscuro */
-            color: #ff6b35 !important; /* Texto naranja */
+            background-color: var(--workly-dark) !important;
+            color: var(--workly-white) !important;
         }
         
         .navbar {
-            background-color: #2d1b69 !important; /* Navbar morado */
+            background-color: var(--workly-purple) !important;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--workly-white) !important;
+        }
+        
+        .navbar-nav .nav-link {
+            color: var(--workly-white) !important;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            color: var(--workly-orange) !important;
         }
         
         .card {
-            background-color: #2d1b69 !important; /* Cards morado */
-            border-color: #6b46c1 !important;
-            color: #ff6b35 !important;
+            background-color: var(--workly-dark-alt) !important;
+            border-color: var(--workly-purple) !important;
+            color: var(--workly-white) !important;
+            box-shadow: 0 0.125rem 0.25rem rgba(108, 99, 255, 0.3);
         }
         
         .card-header {
-            background-color: #3b2282 !important;
-            border-color: #6b46c1 !important;
-            color: #ff6b35 !important;
+            background-color: var(--workly-purple) !important;
+            border-color: var(--workly-purple) !important;
+            color: var(--workly-white) !important;
         }
         
         .table {
-            color: #ff6b35 !important;
+            color: var(--workly-white) !important;
         }
         
         .table-dark {
-            background-color: #2d1b69 !important;
-            color: #ff6b35 !important;
+            background-color: var(--workly-dark-alt) !important;
+            color: var(--workly-white) !important;
         }
         
+        .table th {
+            border-top: none;
+            color: var(--workly-orange) !important;
+        }
+        
+        /* Botones principales con morado */
         .btn-primary {
-            background-color: #ff6b35 !important;
-            border-color: #ff6b35 !important;
-            color: #1a1625 !important;
+            background-color: var(--workly-purple) !important;
+            border-color: var(--workly-purple) !important;
+            color: var(--workly-white) !important;
         }
         
         .btn-primary:hover {
+            background-color: #5a54e6 !important;
+            border-color: #5a54e6 !important;
+            color: var(--workly-white) !important;
+        }
+        
+        /* Botones de acción con naranja */
+        .btn-warning, .btn-cta {
+            background-color: var(--workly-orange) !important;
+            border-color: var(--workly-orange) !important;
+            color: var(--workly-white) !important;
+        }
+        
+        .btn-warning:hover, .btn-cta:hover {
             background-color: #e55a2e !important;
             border-color: #e55a2e !important;
+            color: var(--workly-white) !important;
+        }
+        
+        .text-primary {
+            color: var(--workly-purple) !important;
+        }
+        
+        .text-warning {
+            color: var(--workly-orange) !important;
+        }
+        
+        .bg-primary {
+            background-color: var(--workly-purple) !important;
+        }
+        
+        .bg-warning {
+            background-color: var(--workly-orange) !important;
         }
         
         .low-stock {
-            color: var(--bs-warning);
+            color: var(--workly-orange);
             font-weight: bold;
         }
-        .navbar-brand {
-            font-weight: bold;
-            color: var(--company-primary) !important;
-        }
-        .btn-primary {
-            background-color: var(--company-primary);
-            border-color: var(--company-primary);
-        }
-        .btn-primary:hover {
-            background-color: var(--company-secondary);
-            border-color: var(--company-secondary);
-        }
-        .text-primary {
-            color: var(--company-primary) !important;
-        }
-        .bg-primary {
-            background-color: var(--company-primary) !important;
-        }
-        .card {
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
-        }
-        .table th {
-            border-top: none;
-        }
+        
         .btn-sm {
             padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
         }
+        
         .company-logo {
             max-height: 40px;
             margin-right: 10px;
         }
+        
         .admin-badge {
-            background-color: var(--company-secondary);
-            color: white;
+            background-color: var(--workly-orange);
+            color: var(--workly-white);
             font-size: 0.7rem;
             padding: 2px 6px;
             border-radius: 10px;
             margin-left: 5px;
+        }
+        
+        /* Footer */
+        .bg-dark {
+            background-color: var(--workly-dark-alt) !important;
+        }
+        
+        /* Dropdown menus */
+        .dropdown-menu {
+            background-color: var(--workly-dark-alt) !important;
+            border-color: var(--workly-purple) !important;
+        }
+        
+        .dropdown-item {
+            color: var(--workly-white) !important;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--workly-purple) !important;
+            color: var(--workly-white) !important;
+        }
+        
+        /* Alertas */
+        .alert-success {
+            background-color: rgba(108, 99, 255, 0.1) !important;
+            border-color: var(--workly-purple) !important;
+            color: var(--workly-purple) !important;
+        }
+        
+        .alert-danger {
+            background-color: rgba(255, 107, 53, 0.1) !important;
+            border-color: var(--workly-orange) !important;
+            color: var(--workly-orange) !important;
         }
     </style>
 </head>
@@ -125,7 +194,7 @@
                 {% if current_user.is_authenticated and current_user.company.logo_url %}
                     <img src="{{ current_user.company.logo_url }}" alt="{{ current_user.company.name }}" class="company-logo">
                 {% else %}
-                    <i class="fas fa-rocket me-2" style="color: #ff6b35;"></i>
+                    <i class="fas fa-rocket me-2" style="color: #FF6B35;"></i>
                 {% endif %}
                 {% if current_user.is_authenticated %}
                     {{ current_user.company.name }}
