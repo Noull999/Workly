@@ -2243,10 +2243,37 @@ def notion_new_checklist():
     return render_template('modules/notion/new_checklist.html', form=form, company=current_user.company)
 
 
-@app.route('/notion/checklist/<int:checklist_id>')
+@app.route('/notion/checklist/<int:checklist_id>', methods=['GET', 'POST'])
 @login_required
 @module_required('notion')
 def notion_checklist(checklist_id):
     """Ver checklist específico"""
+    from forms import NotionChecklistItemForm
     checklist = company_query(NotionChecklist).filter_by(id=checklist_id).first_or_404()
-    return render_template('modules/notion/checklist.html', checklist=checklist, company=current_user.company)
+    
+    form = NotionChecklistItemForm(company_id=current_user.company_id)
+    
+    if form.validate_on_submit():
+        # Crear nuevo item del checklist
+        item = NotionChecklistItem(
+            content=form.content.data,
+            assignee_id=form.assignee_id.data if form.assignee_id.data != 0 else None,
+            due_date=form.due_date.data,
+            checklist_id=checklist.id,
+            position=len(checklist.items)  # Agregar al final
+        )
+        db.session.add(item)
+        checklist.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        flash('Tarea agregada exitosamente', 'success')
+        return redirect(url_for('notion_checklist', checklist_id=checklist.id))
+    
+    # Obtener items del checklist ordenados por posición
+    items = checklist.items
+    
+    return render_template('modules/notion/checklist.html', 
+                         checklist=checklist, 
+                         items=items,
+                         form=form,
+                         company=current_user.company)
