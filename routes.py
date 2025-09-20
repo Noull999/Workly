@@ -2260,6 +2260,7 @@ def notion_checklist(checklist_id):
             assignee_id=form.assignee_id.data if form.assignee_id.data != 0 else None,
             due_date=form.due_date.data,
             checklist_id=checklist.id,
+            company_id=current_user.company_id,
             position=len(checklist.items)  # Agregar al final
         )
         db.session.add(item)

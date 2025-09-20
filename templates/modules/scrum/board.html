@@ -297,15 +297,38 @@ document.addEventListener('DOMContentLoaded', function() {
             const taskId = e.dataTransfer.getData('text/plain');
             const columnId = this.dataset.columnId;
             
-            // Here you would normally send an AJAX request to update the task's column
             console.log(`Move task ${taskId} to column ${columnId}`);
             
-            // For now, just move the DOM element
-            const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
-            if (taskCard) {
-                this.appendChild(taskCard);
-                showNotification('Tarea movida correctamente', 'success');
-            }
+            // Send AJAX request to update the task's column
+            fetch('/scrum/task/move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    task_id: parseInt(taskId),
+                    column_id: parseInt(columnId),
+                    position: 0
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Move the DOM element only after successful backend update
+                    const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+                    if (taskCard) {
+                        this.appendChild(taskCard);
+                        showNotification('Tarea movida correctamente', 'success');
+                    }
+                } else {
+                    showNotification('Error al mover la tarea', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error al mover la tarea', 'danger');
+            });
         });
     });
 });
@@ -333,6 +356,17 @@ function createTask() {
     // Set the action URL with both board_id and column_id
     form.action = `{{ url_for('create_task', board_id=0, column_id=0) }}`.replace('0/0', `{{ board.id }}/${columnId}`);
     form.submit();
+}
+
+function getCsrfToken() {
+    // Get CSRF token from meta tag or form
+    const token = document.querySelector('meta[name=csrf-token]');
+    if (token) {
+        return token.getAttribute('content');
+    }
+    // Fallback: get from form
+    const csrfInput = document.querySelector('input[name="csrf_token"]');
+    return csrfInput ? csrfInput.value : '';
 }
 
 function showNotification(message, type) {
