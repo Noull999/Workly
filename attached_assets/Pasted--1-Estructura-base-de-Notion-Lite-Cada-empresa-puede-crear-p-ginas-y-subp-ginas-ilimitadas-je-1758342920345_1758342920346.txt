@@ -1,0 +1,96 @@
+🔹 1. Estructura base de Notion Lite
+	•	Cada empresa puede crear páginas y subpáginas ilimitadas (jerarquía anidada).
+	•	Cada página debe tener: título, contenido editable, propiedades (etiquetas, categoría, fecha, autor).
+	•	Editor de bloques con:
+	•	Texto enriquecido (negrita, cursiva, subrayado, tachado).
+	•	Listas numeradas y con viñetas.
+	•	Checklists.
+	•	Citas y separadores.
+	•	Adjuntar imágenes, PDFs, enlaces (con vista previa).
+
+Botones obligatorios y su acción:
+	•	Crear Página: abre formulario → guarda la nueva página en DB.
+	•	Guardar Cambios: guarda el contenido editado de la página actual en DB.
+	•	Eliminar Página: elimina la página y subpáginas asociadas (con confirmación).
+	•	Duplicar Página: crea una copia editable de la página actual.
+	•	Cancelar / Atrás: vuelve al listado sin perder datos ya guardados.
+
+⸻
+
+🔹 2. Bases de datos dentro de páginas
+	•	Tablas personalizadas con columnas: texto, número, fecha, estado.
+	•	Filtros y ordenamiento básico.
+	•	Tableros tipo Kanban para tareas.
+
+Botones y acciones:
+	•	Agregar Fila: añade nueva fila en la tabla y guarda automáticamente.
+	•	Editar Fila: abre celda editable → guarda cambios al confirmar.
+	•	Eliminar Fila: borra fila con confirmación.
+	•	Crear Tablero Kanban: genera columnas predeterminadas (Pendiente, En Proceso, Hecho).
+	•	Agregar Tarjeta: añade tarea en la columna seleccionada.
+	•	Mover Tarjeta: drag & drop → actualiza estado en DB.
+
+⸻
+
+🔹 3. Colaboración
+	•	Comentarios en bloques.
+	•	Menciones con @usuario.
+
+Botones y acciones:
+	•	Agregar Comentario: inserta comentario al bloque con autor/fecha.
+	•	Eliminar Comentario: borra comentario (solo autor o admin).
+	•	Notificar: envía notificación al usuario mencionado.
+
+⸻
+
+🔹 4. Plantillas reutilizables
+	•	Plantillas predefinidas: Acta de reunión, Plan semanal, Checklist, Documentación.
+	•	Empresas pueden crear sus propias plantillas.
+
+Botones y acciones:
+	•	Usar Plantilla: crea nueva página con el contenido base de la plantilla.
+	•	Guardar como Plantilla: convierte una página en plantilla.
+	•	Eliminar Plantilla: borra plantilla (solo admin_empresa).
+
+⸻
+
+🔹 5. Integración con otros módulos
+	•	Relacionar páginas con Scrum Lite, POS, Inventario, Citas.
+
+Botones y acciones:
+	•	Vincular con…: abre modal para elegir objeto (ej. tarea, producto, venta, cita).
+	•	Ver Relación: abre la página vinculada desde otro módulo.
+	•	Desvincular: elimina relación sin borrar datos.
+
+⸻
+
+🔹 6. Funciones avanzadas
+	•	Historial de cambios/versionado.
+	•	Búsqueda global.
+	•	Etiquetas y categorías.
+	•	Modo offline con sincronización.
+
+Botones y acciones:
+	•	Guardar Versión: guarda snapshot manual.
+	•	Restaurar Versión: recupera versión anterior.
+	•	Buscar: campo global para filtrar por título/contenido/etiqueta.
+	•	Sincronizar Ahora: fuerza sincronización de cambios offline.
+
+⸻
+
+🔹 7. Seguridad
+	•	Aislamiento multiempresa.
+	•	Archivos seguros y encriptados.
+	•	Logs de auditoría de accesos y cambios.
+
+Botones y acciones:
+	•	Descargar Archivo: descarga archivo vinculado respetando permisos.
+	•	Subir Archivo: adjunta archivo a la página actual.
+	•	Eliminar Archivo: lo elimina físicamente y en la DB.
+
+⸻
+
+⚡ Notas clave:
+	1.	Todos los botones deben estar conectados a un endpoint en Flask que ejecute realmente la acción (no botones vacíos).
+	2.	Cada acción debe confirmar éxito o error con mensaje visual.
+	3.	El sistema debe respetar los roles (admin_global, admin_empresa, empleado).
