@@ -1756,6 +1756,8 @@ def move_task():
     if not task:
         return jsonify({'error': 'Tarea no encontrada'}), 404
     
+    old_column_id = task.column_id
+    
     # Actualizar tarea
     task.column_id = new_column_id
     task.position = new_position
@@ -1774,7 +1776,18 @@ def move_task():
     
     db.session.commit()
     
-    return jsonify({'success': True})
+    # Calcular contadores actualizados para ambas columnas
+    old_count = company_query(Task).filter_by(column_id=old_column_id, company_id=current_user.company_id).count()
+    new_count = company_query(Task).filter_by(column_id=new_column_id, company_id=current_user.company_id).count()
+    
+    return jsonify({
+        'success': True,
+        'old_column_id': old_column_id,
+        'new_column_id': new_column_id,
+        'old_count': old_count,
+        'new_count': new_count,
+        'task_status': task.status
+    })
 
 
 # ===== MÓDULO NOTION =====
