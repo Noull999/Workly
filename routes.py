@@ -1813,7 +1813,7 @@ def notion_new_page():
     
     if form.validate_on_submit():
         # Generar slug único
-        base_slug = form.title.data.lower().replace(' ', '-').replace('_', '-')
+        base_slug = (form.title.data or '').lower().replace(' ', '-').replace('_', '-')
         slug = base_slug
         counter = 1
         while company_query(NotionPage).filter_by(slug=slug).first():
@@ -1888,13 +1888,315 @@ def notion_page(slug):
         source_id=page.id
     ).all()
     
+    # Crear formularios para acciones de página
+    from forms import NotionPageActionForm, NotionDeletePageForm
+    duplicate_form = NotionPageActionForm()
+    duplicate_form.action.data = 'duplicate'
+    delete_form = NotionDeletePageForm()
+    
     return render_template('modules/notion/page.html', 
                          page=page, 
                          blocks=blocks,
                          child_pages=child_pages,
                          module_links=module_links,
                          can_edit=can_edit,
+                         duplicate_form=duplicate_form,
+                         delete_form=delete_form,
                          company=current_user.company)
+
+
+@app.route('/notion/page/<slug>/edit', methods=['GET', 'POST'])
+@login_required
+@module_required('notion')
+def notion_edit_page(slug):
+    """Editar página existente"""
+    page = company_query(NotionPage).filter_by(slug=slug).first_or_404()
+    
+    # Verificar permisos de edición (NO depende de is_public)
+    can_edit = (page.creator_id == current_user.id or 
+               current_user.is_admin_empresa() or 
+               current_user.is_admin_global())
+    
+    if not can_edit:
+        # Verificar permisos específicos independientemente de is_public
+        permission = company_query(NotionPermission).filter_by(
+            page_id=page.id, 
+            user_id=current_user.id
+        ).first()
+        if not permission or permission.permission_type not in ['edit', 'admin']:
+            flash('No tienes permisos para editar esta página', 'danger')
+            return redirect(url_for('notion_page', slug=slug))
+    
+    # Obtener bloques existentes
+    blocks = company_query(NotionBlock).filter_by(page_id=page.id).order_by(NotionBlock.position).all()
+    
+    # Formularios
+    page_form = NotionPageForm(company_id=current_user.company_id, obj=page)
+    block_form = NotionBlockForm()
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'update_page' and page_form.validate_on_submit():
+            # Validar parent_id (debe ser de la misma empresa y sin ciclos)
+            new_parent_id = page_form.parent_id.data if page_form.parent_id.data != 0 else None
+            if new_parent_id:
+                parent_page = company_query(NotionPage).filter_by(id=new_parent_id).first()
+                if not parent_page:
+                    flash('Página padre no válida', 'danger')
+                    return redirect(url_for('notion_edit_page', slug=slug))
+                
+                # Verificar que no se cree un ciclo
+                def creates_cycle(page_id, potential_parent_id):
+                    if page_id == potential_parent_id:
+                        return True
+                    parent = company_query(NotionPage).filter_by(id=potential_parent_id).first()
+                    if parent and parent.parent_id:
+                        return creates_cycle(page_id, parent.parent_id)
+                    return False
+                
+                if creates_cycle(page.id, new_parent_id):
+                    flash('No se puede crear un ciclo de páginas padre-hijo', 'danger')
+                    return redirect(url_for('notion_edit_page', slug=slug))
+            
+            # Actualizar información de la página
+            original_title = page.title
+            page.title = page_form.title.data
+            page.icon = page_form.icon.data or '📄'
+            page.is_public = page_form.is_public.data
+            page.is_template = page_form.is_template.data
+            page.parent_id = new_parent_id
+            page.updated_at = datetime.utcnow()
+            
+            # Actualizar slug si cambió el título
+            if original_title != page.title:
+                base_slug = (page.title or '').lower().replace(' ', '-').replace('_', '-')
+                new_slug = base_slug
+                counter = 1
+                while company_query(NotionPage).filter(NotionPage.slug == new_slug, NotionPage.id != page.id).first():
+                    new_slug = f"{base_slug}-{counter}"
+                    counter += 1
+                page.slug = new_slug
+            
+            db.session.commit()
+            log_audit('notion', f'Página actualizada: {page.title}', current_user.id, current_user.company_id)
+            flash('Página actualizada exitosamente', 'success')
+            return redirect(url_for('notion_page', slug=page.slug))
+        
+        elif action == 'add_block' and block_form.validate_on_submit():
+            # Agregar nuevo bloque
+            max_position = db.session.query(db.func.max(NotionBlock.position)).filter_by(page_id=page.id).scalar() or 0
+            new_block = NotionBlock(
+                block_type=block_form.block_type.data,
+                content=block_form.content.data,
+                position=max_position + 1,
+                page_id=page.id,
+                company_id=current_user.company_id
+            )
+            db.session.add(new_block)
+            page.updated_at = datetime.utcnow()
+            db.session.commit()
+            flash('Bloque agregado exitosamente', 'success')
+            return redirect(url_for('notion_edit_page', slug=slug))
+    
+    return render_template('modules/notion/edit_page.html', 
+                         page=page, 
+                         blocks=blocks,
+                         page_form=page_form,
+                         block_form=block_form,
+                         company=current_user.company)
+
+
+@app.route('/notion/page/<slug>/duplicate', methods=['POST'])
+@login_required
+@module_required('notion')
+def notion_duplicate_page(slug):
+    """Duplicar página"""
+    from forms import NotionPageActionForm
+    
+    form = NotionPageActionForm()
+    if not form.validate_on_submit():
+        flash('Error de seguridad: token CSRF inválido', 'danger')
+        return redirect(url_for('notion_page', slug=slug))
+    
+    original_page = company_query(NotionPage).filter_by(slug=slug).first_or_404()
+    
+    # Verificar permisos (NO depende de is_public)
+    can_duplicate = (original_page.creator_id == current_user.id or 
+                    current_user.is_admin_empresa() or 
+                    current_user.is_admin_global())
+    
+    if not can_duplicate:
+        # Verificar permisos específicos
+        permission = company_query(NotionPermission).filter_by(
+            page_id=original_page.id, 
+            user_id=current_user.id
+        ).first()
+        if not permission or permission.permission_type not in ['edit', 'admin']:
+            flash('No tienes permisos para duplicar esta página', 'danger')
+            return redirect(url_for('notion_page', slug=slug))
+    
+    # Crear slug único para la copia
+    base_title = f"Copia de {original_page.title}"
+    base_slug = base_title.lower().replace(' ', '-').replace('_', '-')
+    new_slug = base_slug
+    counter = 1
+    while company_query(NotionPage).filter_by(slug=new_slug).first():
+        new_slug = f"{base_slug}-{counter}"
+        counter += 1
+    
+    # Crear página duplicada
+    new_page = NotionPage(
+        title=base_title,
+        slug=new_slug,
+        icon=original_page.icon,
+        is_public=False,  # Las copias son privadas por defecto
+        is_template=False,  # Las copias no son plantillas
+        parent_id=original_page.parent_id,
+        company_id=current_user.company_id,
+        creator_id=current_user.id
+    )
+    
+    db.session.add(new_page)
+    db.session.commit()
+    
+    # Duplicar todos los bloques
+    original_blocks = company_query(NotionBlock).filter_by(page_id=original_page.id).order_by(NotionBlock.position).all()
+    for block in original_blocks:
+        new_block = NotionBlock(
+            block_type=block.block_type,
+            content=block.content,
+            properties=block.properties,
+            position=block.position,
+            page_id=new_page.id,
+            company_id=current_user.company_id
+        )
+        db.session.add(new_block)
+    
+    db.session.commit()
+    log_audit('notion', f'Página duplicada: {original_page.title} → {new_page.title}', current_user.id, current_user.company_id)
+    flash(f'Página duplicada como "{new_page.title}"', 'success')
+    return redirect(url_for('notion_page', slug=new_page.slug))
+
+
+@app.route('/notion/page/<slug>/delete', methods=['POST'])
+@login_required
+@module_required('notion')
+def notion_delete_page(slug):
+    """Eliminar página con confirmación"""
+    from forms import NotionDeletePageForm
+    
+    form = NotionDeletePageForm()
+    if not form.validate_on_submit():
+        flash('Error de validación. Verifica que hayas escrito DELETE correctamente.', 'danger')
+        return redirect(url_for('notion_page', slug=slug))
+    
+    page = company_query(NotionPage).filter_by(slug=slug).first_or_404()
+    
+    # Verificar permisos (NO depende de is_public)
+    can_delete = (page.creator_id == current_user.id or 
+                 current_user.is_admin_empresa() or 
+                 current_user.is_admin_global())
+    
+    if not can_delete:
+        # Verificar permisos específicos
+        permission = company_query(NotionPermission).filter_by(
+            page_id=page.id, 
+            user_id=current_user.id
+        ).first()
+        if not permission or permission.permission_type not in ['admin']:  # Solo admin puede eliminar
+            flash('No tienes permisos para eliminar esta página', 'danger')
+            return redirect(url_for('notion_page', slug=slug))
+    
+    page_title = page.title
+    
+    # Eliminar páginas hijas recursivamente
+    def delete_page_and_children(page_to_delete):
+        child_pages = company_query(NotionPage).filter_by(parent_id=page_to_delete.id).all()
+        for child in child_pages:
+            delete_page_and_children(child)
+        
+        # Los bloques se eliminan automáticamente por la relación cascade
+        db.session.delete(page_to_delete)
+    
+    delete_page_and_children(page)
+    db.session.commit()
+    
+    log_audit('notion', f'Página eliminada: {page_title}', current_user.id, current_user.company_id)
+    flash(f'Página "{page_title}" eliminada exitosamente', 'success')
+    return redirect(url_for('notion_dashboard'))
+
+
+@app.route('/notion/block/<int:block_id>/edit', methods=['POST'])
+@login_required
+@module_required('notion')
+def notion_edit_block(block_id):
+    """Editar bloque específico"""
+    block = company_query(NotionBlock).filter_by(id=block_id).first_or_404()
+    page = block.page
+    
+    # Verificar permisos (NO depende de is_public)
+    can_edit = (page.creator_id == current_user.id or 
+               current_user.is_admin_empresa() or 
+               current_user.is_admin_global())
+    
+    if not can_edit:
+        # Verificar permisos específicos independientemente de is_public
+        permission = company_query(NotionPermission).filter_by(
+            page_id=page.id, 
+            user_id=current_user.id
+        ).first()
+        if not permission or permission.permission_type not in ['edit', 'admin']:
+            flash('No tienes permisos para editar este bloque', 'danger')
+            return redirect(url_for('notion_page', slug=page.slug))
+    
+    # Actualizar bloque
+    block.content = request.form.get('content', '')
+    block.block_type = request.form.get('block_type', block.block_type)
+    block.updated_at = datetime.utcnow()
+    page.updated_at = datetime.utcnow()
+    
+    db.session.commit()
+    flash('Bloque actualizado exitosamente', 'success')
+    return redirect(url_for('notion_edit_page', slug=page.slug))
+
+
+@app.route('/notion/block/<int:block_id>/delete', methods=['POST'])
+@login_required
+@module_required('notion')
+def notion_delete_block(block_id):
+    """Eliminar bloque específico"""
+    from forms import NotionBlockActionForm
+    
+    form = NotionBlockActionForm()
+    if not form.validate_on_submit():
+        flash('Error de seguridad: token CSRF inválido', 'danger')
+        return redirect(url_for('notion_dashboard'))
+    
+    block = company_query(NotionBlock).filter_by(id=block_id).first_or_404()
+    page = block.page
+    
+    # Verificar permisos (NO depende de is_public)
+    can_edit = (page.creator_id == current_user.id or 
+               current_user.is_admin_empresa() or 
+               current_user.is_admin_global())
+    
+    if not can_edit:
+        # Verificar permisos específicos independientemente de is_public
+        permission = company_query(NotionPermission).filter_by(
+            page_id=page.id, 
+            user_id=current_user.id
+        ).first()
+        if not permission or permission.permission_type not in ['edit', 'admin']:
+            flash('No tienes permisos para eliminar este bloque', 'danger')
+            return redirect(url_for('notion_page', slug=page.slug))
+    
+    db.session.delete(block)
+    page.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    flash('Bloque eliminado exitosamente', 'success')
+    return redirect(url_for('notion_edit_page', slug=page.slug))
 
 
 @app.route('/notion/checklists')

@@ -296,6 +296,28 @@ class NotionPermissionForm(FlaskForm):
             self.user_id.choices = [(str(u.id), u.username) for u in users]
 
 
+class NotionPageActionForm(FlaskForm):
+    """Formulario para acciones de página con protección CSRF"""
+    action = HiddenField(validators=[DataRequired()])
+    submit = SubmitField()
+
+
+class NotionDeletePageForm(FlaskForm):
+    """Formulario para eliminar página con confirmación"""
+    confirm = StringField('Confirmación', validators=[
+        DataRequired(message='Debes escribir DELETE para confirmar'),
+        EqualTo('confirm_value', message='Debes escribir exactamente DELETE')
+    ])
+    confirm_value = HiddenField(default='DELETE')
+    submit = SubmitField('Eliminar Página')
+
+
+class NotionBlockActionForm(FlaskForm):
+    """Formulario para acciones de bloque con protección CSRF"""
+    action = HiddenField(validators=[DataRequired()])
+    submit = SubmitField()
+
+
 class ModuleLinkForm(FlaskForm):
     target_module = SelectField('Módulo destino', choices=[
         ('inventory', 'Inventario'),

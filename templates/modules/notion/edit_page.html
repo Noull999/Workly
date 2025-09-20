@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-edit"></i> Editar Página: {{ page.icon }} {{ page.title }}</h1>
+                <div>
+                    <a href="{{ url_for('notion_page', slug=page.slug) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-eye"></i> Ver Página
+                    </a>
+                    <a href="{{ url_for('notion_dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Configuración de la Página -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cog"></i> Configuración de Página</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ page_form.hidden_tag() }}
+                        <input type="hidden" name="action" value="update_page">
+                        
+                        <div class="form-group mb-3">
+                            {{ page_form.title.label(class="form-label") }}
+                            {{ page_form.title(class="form-control") }}
+                            {% for error in page_form.title.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ page_form.icon.label(class="form-label") }}
+                            {{ page_form.icon(class="form-control", placeholder="📄") }}
+                            <small class="form-text text-muted">Usa un emoji como icono</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ page_form.parent_id.label(class="form-label") }}
+                            {{ page_form.parent_id(class="form-control") }}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                {{ page_form.is_public(class="form-check-input") }}
+                                {{ page_form.is_public.label(class="form-check-label") }}
+                            </div>
+                            <small class="form-text text-muted">Visible para toda la empresa</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                {{ page_form.is_template(class="form-check-input") }}
+                                {{ page_form.is_template.label(class="form-check-label") }}
+                            </div>
+                            <small class="form-text text-muted">Usar como plantilla</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Acciones de Página -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-tools"></i> Acciones</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Duplicar Página -->
+                    <form method="POST" action="{{ url_for('notion_duplicate_page', slug=page.slug) }}" class="mb-2">
+                        <button type="submit" class="btn btn-info w-100" onclick="return confirm('¿Duplicar esta página?')">
+                            <i class="fas fa-copy"></i> Duplicar Página
+                        </button>
+                    </form>
+
+                    <!-- Eliminar Página -->
+                    <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash"></i> Eliminar Página
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor de Contenido -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-edit"></i> Contenido de la Página</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Agregar Nuevo Bloque -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6><i class="fas fa-plus"></i> Agregar Nuevo Bloque</h6>
+                        <form method="POST">
+                            {{ block_form.hidden_tag() }}
+                            <input type="hidden" name="action" value="add_block">
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    {{ block_form.block_type(class="form-select") }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ block_form.content(class="form-control", placeholder="Contenido del bloque...") }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ block_form.submit(class="btn btn-primary w-100") }}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Bloques Existentes -->
+                    {% if blocks %}
+                        <div id="blocks-container">
+                            {% for block in blocks %}
+                            <div class="block-editor mb-3 p-3 border rounded" data-block-id="{{ block.id }}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-secondary">{{ block.block_type.replace('_', ' ').title() }}</span>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editBlock({{ block.id }})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form method="POST" action="{{ url_for('notion_delete_block', block_id=block.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar este bloque?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Vista del Bloque -->
+                                <div class="block-content" id="block-content-{{ block.id }}">
+                                    {% if block.block_type == 'heading1' %}
+                                        <h1>{{ block.content }}</h1>
+                                    {% elif block.block_type == 'heading2' %}
+                                        <h2>{{ block.content }}</h2>
+                                    {% elif block.block_type == 'heading3' %}
+                                        <h3>{{ block.content }}</h3>
+                                    {% elif block.block_type == 'list' %}
+                                        <ul>
+                                            {% for item in block.content.split('\n') %}
+                                                {% if item.strip() %}
+                                                <li>{{ item.strip() }}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    {% elif block.block_type == 'checklist' %}
+                                        <div class="checklist">
+                                            {% for item in block.content.split('\n') %}
+                                                {% if item.strip() %}
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox">
+                                                    <label class="form-check-label">{{ item.strip() }}</label>
+                                                </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <p>{{ block.content|nl2br }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Editor del Bloque (Oculto por defecto) -->
+                                <div class="block-editor-form" id="block-editor-{{ block.id }}" style="display: none;">
+                                    <form method="POST" action="{{ url_for('notion_edit_block', block_id=block.id) }}">
+                                        <div class="row mb-2">
+                                            <div class="col-md-4">
+                                                <select name="block_type" class="form-select">
+                                                    <option value="text" {% if block.block_type == 'text' %}selected{% endif %}>Texto</option>
+                                                    <option value="heading1" {% if block.block_type == 'heading1' %}selected{% endif %}>Título 1</option>
+                                                    <option value="heading2" {% if block.block_type == 'heading2' %}selected{% endif %}>Título 2</option>
+                                                    <option value="heading3" {% if block.block_type == 'heading3' %}selected{% endif %}>Título 3</option>
+                                                    <option value="list" {% if block.block_type == 'list' %}selected{% endif %}>Lista</option>
+                                                    <option value="checklist" {% if block.block_type == 'checklist' %}selected{% endif %}>Lista de verificación</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <textarea name="content" class="form-control" rows="3" placeholder="Contenido...">{{ block.content }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button type="button" class="btn btn-sm btn-secondary me-2" onclick="cancelEdit({{ block.id }})">Cancelar</button>
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-save"></i> Guardar
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">No hay bloques en esta página aún.</p>
+                            <p class="text-muted">Agrega tu primer bloque usando el formulario de arriba.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Eliminar -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Eliminar Página</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>¿Estás seguro de que quieres eliminar esta página?</strong></p>
+                <p class="text-danger">Esta acción no se puede deshacer y eliminará:</p>
+                <ul>
+                    <li>La página "{{ page.title }}"</li>
+                    <li>Todos sus bloques de contenido</li>
+                    <li>Todas las subpáginas asociadas</li>
+                </ul>
+                <p>Para confirmar, escribe <strong>DELETE</strong> en el campo de abajo:</p>
+                <form method="POST" action="{{ url_for('notion_delete_page', slug=page.slug) }}" id="deleteForm">
+                    <input type="text" name="confirm" class="form-control" placeholder="Escribe DELETE para confirmar" required>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="deleteForm" class="btn btn-danger">Eliminar Página</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.block-editor {
+    transition: all 0.2s;
+}
+
+.block-editor:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    border-color: #007bff !important;
+}
+
+.checklist .form-check {
+    margin-bottom: 0.5rem;
+}
+
+.badge {
+    font-size: 0.7rem;
+}
+</style>
+
+<script>
+function editBlock(blockId) {
+    // Ocultar vista del bloque y mostrar editor
+    document.getElementById('block-content-' + blockId).style.display = 'none';
+    document.getElementById('block-editor-' + blockId).style.display = 'block';
+}
+
+function cancelEdit(blockId) {
+    // Mostrar vista del bloque y ocultar editor
+    document.getElementById('block-content-' + blockId).style.display = 'block';
+    document.getElementById('block-editor-' + blockId).style.display = 'none';
+}
+
+// Auto-save functionality (básica)
+let autoSaveTimer;
+function setupAutoSave() {
+    const forms = document.querySelectorAll('textarea, input[type="text"]');
+    forms.forEach(form => {
+        form.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                // Aquí se podría implementar auto-save con AJAX
+                console.log('Auto-save triggered');
+            }, 2000);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', setupAutoSave);
+</script>
+{% endblock %}

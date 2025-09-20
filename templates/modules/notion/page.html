@@ -12,6 +12,23 @@
                         <i class="fas fa-edit"></i> Editar
                     </a>
                     {% endif %}
+                    
+                    <!-- Duplicar Página -->
+                    <form method="POST" action="{{ url_for('notion_duplicate_page', slug=page.slug) }}" class="d-inline">
+                        {{ duplicate_form.hidden_tag() }}
+                        {{ duplicate_form.action() }}
+                        <button type="submit" class="btn btn-outline-info" onclick="return confirm('¿Duplicar esta página?')" title="Duplicar Página">
+                            <i class="fas fa-copy"></i> Duplicar
+                        </button>
+                    </form>
+                    
+                    {% if can_edit %}
+                    <!-- Eliminar Página -->
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deletePageModal" title="Eliminar Página">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                    {% endif %}
+                    
                     <a href="{{ url_for('notion_dashboard') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left"></i> Volver
                     </a>
@@ -129,6 +146,37 @@
                 </div>
             </div>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Eliminar Página -->
+<div class="modal fade" id="deletePageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Eliminar Página</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>¿Estás seguro de que quieres eliminar esta página?</strong></p>
+                <p class="text-danger">Esta acción no se puede deshacer y eliminará:</p>
+                <ul>
+                    <li>La página "{{ page.title }}"</li>
+                    <li>Todos sus bloques de contenido</li>
+                    <li>Todas las subpáginas asociadas</li>
+                </ul>
+                <p>Para confirmar, escribe <strong>DELETE</strong> en el campo de abajo:</p>
+                <form method="POST" action="{{ url_for('notion_delete_page', slug=page.slug) }}" id="deletePageForm">
+                    {{ delete_form.hidden_tag() }}
+                    {{ delete_form.confirm(class="form-control", placeholder="Escribe DELETE para confirmar") }}
+                    {{ delete_form.confirm_value() }}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="deletePageForm" class="btn btn-danger">Eliminar Página</button>
+            </div>
         </div>
     </div>
 </div>
