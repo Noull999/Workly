@@ -285,12 +285,17 @@ class Sale(db.Model):
     
     def get_cash_amount(self):
         """Obtiene el monto pagado en efectivo"""
-        cash_payments = [p for p in self.payment_details if p.payment_method == 'efectivo']
+        from typing import cast
+        from decimal import Decimal
+        payments = cast(list, self.payment_details)
+        cash_payments = [p for p in payments if p.payment_method == 'efectivo']
         return sum([float(p.amount) for p in cash_payments])
     
     def get_total_paid(self):
         """Obtiene el total pagado (suma de todos los métodos)"""
-        return sum([float(p.amount) for p in self.payment_details])
+        from typing import cast
+        payments = cast(list, self.payment_details)
+        return sum([float(p.amount) for p in payments])
     
     def __repr__(self):
         return f'<Sale {self.sale_number}>'
@@ -344,8 +349,11 @@ class CashSession(db.Model):
     
     def calculate_expected_amount(self):
         """Calcula el monto esperado en caja"""
-        cash_sales = sum([s.get_cash_amount() for s in self.sales])
-        cash_expenses = sum([e.amount for e in self.expenses])
+        from typing import cast
+        sales_list = cast(list, self.sales)
+        expenses_list = cast(list, self.expenses)
+        cash_sales = sum([s.get_cash_amount() for s in sales_list])
+        cash_expenses = sum([float(e.amount) for e in expenses_list])
         return float(self.opening_amount) + cash_sales - cash_expenses
     
     def __repr__(self):

@@ -228,7 +228,8 @@ class NotionPageForm(FlaskForm):
         if company_id:
             from models import NotionPage
             pages = NotionPage.query.filter_by(company_id=company_id).all()
-            self.parent_id.choices = [(0, 'Sin página padre')] + [(p.id, p.title) for p in pages]
+            from typing import cast
+            self.parent_id.choices = cast(list, [(0, 'Sin página padre')] + [(p.id, p.title) for p in pages])
 
 
 class NotionBlockForm(FlaskForm):
@@ -262,7 +263,8 @@ class NotionChecklistForm(FlaskForm):
         if company_id:
             from models import NotionPage
             pages = NotionPage.query.filter_by(company_id=company_id).all()
-            self.page_id.choices = [(0, 'Sin página asociada')] + [(p.id, p.title) for p in pages]
+            from typing import cast
+            self.page_id.choices = cast(list, [(0, 'Sin página asociada')] + [(p.id, p.title) for p in pages])
 
 
 class NotionChecklistItemForm(FlaskForm):
@@ -276,7 +278,8 @@ class NotionChecklistItemForm(FlaskForm):
         if company_id:
             from models import User
             users = User.query.filter_by(company_id=company_id, active=True).all()
-            self.assignee_id.choices = [(0, 'Sin asignar')] + [(u.id, u.username) for u in users]
+            from typing import cast
+            self.assignee_id.choices = cast(list, [(0, 'Sin asignar')] + [(u.id, u.username) for u in users])
 
 
 class NotionPermissionForm(FlaskForm):

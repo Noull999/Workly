@@ -75,17 +75,16 @@ def log_audit(table_name, record_id, action, old_values=None, new_values=None, a
         if additional_context:
             context.update(additional_context)
         
-        audit_log = AuditLog(
-            table_name=table_name,
-            record_id=record_id,
-            action=action,
-            old_values=serialize_json(old_values) if old_values else None,
-            new_values=serialize_json(new_values) if new_values else None,
-            user_id=current_user.id,
-            company_id=current_user.company_id,
-            ip_address=request.remote_addr if hasattr(request, 'remote_addr') else 'unknown',
-            additional_info=serialize_json(context)
-        )
+        audit_log = AuditLog()
+        audit_log.table_name = table_name
+        audit_log.record_id = record_id
+        audit_log.action = action
+        audit_log.old_values = serialize_json(old_values) if old_values else None
+        audit_log.new_values = serialize_json(new_values) if new_values else None
+        audit_log.user_id = current_user.id
+        audit_log.company_id = current_user.company_id
+        audit_log.ip_address = request.remote_addr if hasattr(request, 'remote_addr') else 'unknown'
+        audit_log.additional_info = serialize_json(context)
         db.session.add(audit_log)
     except Exception as e:
         # Log audit failures gracefully
@@ -113,12 +112,11 @@ def _get_action_summary(table_name, action, old_values=None, new_values=None):
 
 def create_default_warehouse(company):
     """Create default warehouse for new company"""
-    default_warehouse = Warehouse(
-        name='Almacén Principal',
-        code='MAIN',
-        address='Ubicación principal',
-        company_id=company.id
-    )
+    default_warehouse = Warehouse()
+    default_warehouse.name = 'Almacén Principal'
+    default_warehouse.code = 'MAIN'
+    default_warehouse.address = 'Ubicación principal'
+    default_warehouse.company_id = company.id
     db.session.add(default_warehouse)
     return default_warehouse
 
@@ -126,10 +124,9 @@ def create_default_warehouse(company):
 def setup_new_company(company_name):
     """Complete setup for a new company"""
     # Create company
-    company = Company(
-        name=company_name,
-        code=Company.generate_code()
-    )
+    company = Company()
+    company.name = company_name
+    company.code = Company.generate_code()
     db.session.add(company)
     db.session.flush()  # Get ID
     
