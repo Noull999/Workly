@@ -57,7 +57,8 @@ app.jinja_env.filters['nl2br'] = nl2br
 with app.app_context():
     # Import models to ensure tables are created
     import models
-    db.create_all()
+    # Use Flask-Migrate instead of create_all in production
+    # db.create_all()  # Commented to favor migrations
 
 # Main routes that don't belong to specific modules
 from flask import render_template, redirect, url_for, g
@@ -144,6 +145,77 @@ def load_user_company():
     """Load user company for all requests to enable multi-tenant queries"""
     if current_user.is_authenticated:
         g.company_id = current_user.company_id
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    """Perfil de usuario - cambiar datos personales y contraseña"""
+    from forms import ProfileForm
+    form = ProfileForm(obj=current_user)
+    
+    if form.validate_on_submit():
+        # Verificar contraseña actual
+        if not current_user.check_password(form.current_password.data):
+            flash('La contraseña actual es incorrecta.', 'danger')
+            return render_template('profile.html', form=form)
+        
+        # Verificar si el email ya existe (excluyendo el usuario actual)
+        from models import User
+        existing_user = User.query.filter(User.email == form.email.data, User.id != current_user.id).first()
+        if existing_user:
+            flash('El correo electrónico ya está registrado por otro usuario.', 'danger')
+            return render_template('profile.html', form=form)
+        
+        # Verificar si el username ya existe (excluyendo el usuario actual)
+        existing_user = User.query.filter(User.username == form.username.data, User.id != current_user.id).first()
+        if existing_user:
+            flash('El nombre de usuario ya está registrado.', 'danger')
+            return render_template('profile.html', form=form)
+        
+        # Actualizar datos
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        
+        # Cambiar contraseña si se proporcionó una nueva
+        if form.new_password.data:
+            current_user.set_password(form.new_password.data)
+        
+        db.session.commit()
+        flash('¡Perfil actualizado exitosamente!', 'success')
+        return redirect(url_for('profile'))
+    
+    return render_template('profile.html', form=form)
+
+@app.route('/company-settings', methods=['GET', 'POST'])
+@login_required
+def company_settings():
+    """Configuración de empresa - solo para admins"""
+    from blueprints.decorators import admin_required
+    
+    # Verificar permisos manualmente
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('Acceso denegado. Se requieren permisos de administrador.', 'danger')
+        return redirect(url_for('index'))
+    
+    from forms import CompanySettingsForm
+    company = current_user.company
+    form = CompanySettingsForm(obj=company)
+    
+    if form.validate_on_submit():
+        # Solo admin_global puede cambiar el nombre de empresa
+        if current_user.is_admin_global() or current_user.is_admin_empresa():
+            company.name = form.name.data
+            company.logo_url = form.logo_url.data if form.logo_url.data else None
+            company.primary_color = form.primary_color.data
+            company.secondary_color = form.secondary_color.data
+            
+            db.session.commit()
+            flash('¡Configuración de empresa actualizada exitosamente!', 'success')
+            return redirect(url_for('company_settings'))
+        else:
+            flash('No tienes permisos para modificar la configuración de la empresa.', 'danger')
+    
+    return render_template('company_settings.html', form=form, company=company)
 
 # Register blueprints
 from blueprints import register_blueprints
