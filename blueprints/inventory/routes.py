@@ -1,0 +1,1 @@
+# Inventory routes placeholder - to be implemented

@@ -23,7 +23,7 @@
                         <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
                         <h5 class="card-title">¿Necesitas Acceso?</h5>
                         <p class="card-text">Plataforma empresarial avanzada. Solicita una demostración personalizada.</p>
-                        <a href="{{ url_for('register') }}" class="btn btn-info">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-info">
                             <i class="fas fa-envelope me-1"></i>Obtener Información
                         </a>
                     </div>
@@ -35,7 +35,7 @@
                         <i class="fas fa-sign-in-alt fa-3x text-primary mb-3"></i>
                         <h5 class="card-title">¿Eres Cliente?</h5>
                         <p class="card-text">Inicia sesión con las credenciales que recibiste por email.</p>
-                        <a href="{{ url_for('login') }}" class="btn btn-primary">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
                             <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
                         </a>
                     </div>

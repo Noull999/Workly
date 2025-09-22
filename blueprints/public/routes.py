@@ -1,0 +1,1 @@
+# Public routes placeholder - to be implemented

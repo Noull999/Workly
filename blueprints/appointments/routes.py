@@ -1,0 +1,1 @@
+# Appointments routes placeholder - to be implemented

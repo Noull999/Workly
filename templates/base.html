@@ -365,19 +365,19 @@
                                 </a></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                     <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
                                 </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">
                                 <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('register') }}">
+                            <a class="nav-link" href="{{ url_for('auth.register') }}">
                                 <i class="fas fa-info-circle me-1"></i>¿Cómo Obtener Acceso?
                             </a>
                         </li>

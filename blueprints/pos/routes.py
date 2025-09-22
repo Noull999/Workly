@@ -1,0 +1,1 @@
+# POS routes placeholder - to be implemented

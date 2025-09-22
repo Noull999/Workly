@@ -1,0 +1,1 @@
+# Admin routes placeholder - to be implemented
