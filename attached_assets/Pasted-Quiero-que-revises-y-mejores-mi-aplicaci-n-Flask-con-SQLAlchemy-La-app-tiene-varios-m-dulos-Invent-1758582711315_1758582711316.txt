@@ -1,0 +1,124 @@
+Quiero que revises y mejores mi aplicación Flask con SQLAlchemy.
+La app tiene varios módulos: Inventario, POS, Citas, Portafolio, Scrum Lite y Notion.
+
+Necesito que hagas una revisión completa de todo el proyecto y apliques los siguientes cambios:
+
+1. Revisar y limpiar carpetas
+
+Revisar estas carpetas y archivos principales:
+
+models/
+
+routes/
+
+forms/
+
+utils/
+
+migrations/ (incluido env.py)
+
+statics/
+
+Eliminar código o datos que ya no correspondan o estén duplicados.
+
+Ordenar mejor la estructura en blueprints de Flask para cada módulo.
+
+2. Mejoras en los modelos
+
+Revisar y corregir todos los modelos en models.py:
+
+Company: confirmar multi-tenancy con company_id y que generate_code genere códigos únicos.
+
+User: validar que username y email sean únicos por empresa.
+
+InventoryItem: revisar generate_barcode y generate_sku.
+
+POS (Sale, SaleItem, CashSession, PaymentDetail, CashExpense, OfflineSync):
+
+Confirmar que las relaciones funcionan (cash_session_id, company_id, user_id).
+
+Mejorar Sale.generate_sale_number para evitar duplicados.
+
+Revisar CashSession.calculate_expected_amount.
+
+Scrum y Notion:
+
+Evitar modelos duplicados.
+
+Confirmar integridad en backref y cascade.
+
+Asegurar que todos los modelos tengan __repr__ útiles.
+
+3. Formularios
+
+Revisar los formularios en forms.py.
+
+Asegurar que los SelectField carguen dinámicamente opciones filtradas por company_id.
+
+Revisar validadores (ejemplo: NotionDeletePageForm que pide escribir DELETE).
+
+Usar nombres coherentes en campos (name, description, notes).
+
+4. Utils
+
+Revisar utils.py:
+
+Confirmar ensure_company_context, company_query, validate_company_access.
+
+Optimizar serialize_json y _get_action_summary para soportar más tablas.
+
+Revisar generate_sku y validate_barcode_format.
+
+Revisar caché (get_cached_dashboard_stats) y limpiar entradas viejas.
+
+5. POS (Punto de Venta)
+
+Confirmar integridad de:
+
+Ventas (Sale) con múltiples métodos de pago (PaymentDetail).
+
+Caja (CashSession): apertura, cierre, egresos (CashExpense).
+
+OfflineSync: mejorar reintentos y control de errores.
+
+Revisar que los cálculos de montos usen siempre Decimal.
+
+6. Migrations
+
+Revisar migrations/env.py.
+
+Asegurar que use la variable DATABASE_URL desde .env.
+
+Confirmar que detecta todos los cambios en modelos (flask db migrate).
+
+7. Archivos estáticos
+
+Reorganizar carpeta statics/ en subcarpetas:
+
+statics/css/
+
+statics/js/
+
+statics/img/
+
+8. Orden y consistencia
+
+Homogeneizar nombres de campos (created_by_id, user_id, etc.).
+
+Evitar código repetido (ejemplo: Scrum duplicado en dos lugares).
+
+Mejorar documentación de clases y métodos.
+
+9. Al final necesito
+
+Código limpio y ordenado.
+
+Migraciones actualizadas y aplicadas.
+
+Archivos statics/ organizados.
+
+Reporte breve con los cambios hechos.
+
+Lista de archivos eliminados para confirmar que no se perdió nada importante.
+
+📌 En resumen: Refactoriza mi aplicación Flask, limpia código duplicado, mejora los modelos (Scrum, Notion, POS, Inventario), revisa formularios y utilidades, organiza las carpetas y asegúrate de que todo funcione bien en Replit.
