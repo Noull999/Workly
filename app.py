@@ -93,12 +93,21 @@ def dashboard():
         
         # Estadísticas simplificadas con valores mock para evitar consultas complejas
         stats = {
-            'inventory': {'total_items': 10, 'low_stock_items': 2},
-            'pos': {'sales_today': 5, 'sales_week': 25},
-            'appointments': {'upcoming_appointments': 3}
+            'inventory': {'total_items': 10, 'low_stock_items': 2, 'low_stock_products': []},
+            'pos': {'today_sales': 5, 'total_sales': 125},
+            'appointments': {'upcoming_appointments': 3},
+            'scrum': {'total_boards': 2, 'pending_tasks': 8, 'my_tasks': []},
+            'notion': {'total_pages': 5, 'recent_pages': []},
+            'portfolio': {'page_views': 42, 'contact_requests': 3}
         }
         
-        return render_template('dashboard.html', modules=modules_active, stats=stats, company=company)
+        # URLs públicas para los módulos
+        public_urls = {
+            'portfolio': f'/empresa/{company.code if company else "demo"}',
+            'booking': f'/empresa/{company.code if company else "demo"}/reservar'
+        }
+        
+        return render_template('dashboard.html', modules=modules_active, stats=stats, company=company, public_urls=public_urls)
     
     except Exception as e:
         # En caso de error, mostrar mensaje de error sin redirección para evitar bucles

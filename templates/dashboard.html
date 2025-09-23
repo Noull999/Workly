@@ -230,7 +230,7 @@
                         <div class="text-center text-muted">
                             <i class="fas fa-boxes fa-3x mb-3"></i>
                             <p>No tienes artículos en inventario</p>
-                            <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+                            <a href="{{ url_for('inventory.add_item') }}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>Agregar tu primer artículo
                             </a>
                         </div>
@@ -252,7 +252,7 @@
                 <div class="card-body">
                     <div class="text-center">
                         <p class="mb-3">Procesa ventas y controla tu caja</p>
-                        <a href="{{ url_for('pos_sales') }}" class="btn btn-success">
+                        <a href="{{ url_for('pos.sales') }}" class="btn btn-success">
                             <i class="fas fa-cash-register me-1"></i>Abrir POS
                         </a>
                     </div>
@@ -284,10 +284,10 @@
                                 <small class="text-info">{{ stats.scrum.pending_tasks }} tareas pendientes</small>
                             </div>
                             <div>
-                                <a href="{{ url_for('scrum_dashboard') }}" class="btn btn-purple me-2">
+                                <a href="{{ url_for('scrum.dashboard') }}" class="btn btn-purple me-2">
                                     <i class="fas fa-project-diagram me-1"></i>Ver Tableros
                                 </a>
-                                <a href="{{ url_for('create_scrum_board') }}" class="btn btn-outline-purple">
+                                <a href="{{ url_for('scrum.create_board') }}" class="btn btn-outline-purple">
                                     <i class="fas fa-plus me-1"></i>Nuevo
                                 </a>
                             </div>
@@ -335,7 +335,7 @@
                         <div class="text-center text-muted">
                             <i class="fas fa-tasks fa-3x mb-3"></i>
                             <p>No tienes tableros Scrum configurados</p>
-                            <a href="{{ url_for('create_scrum_board') }}" class="btn btn-purple">
+                            <a href="{{ url_for('scrum.create_board') }}" class="btn btn-purple">
                                 <i class="fas fa-plus me-1"></i>Crear tu primer tablero
                             </a>
                         </div>
@@ -362,10 +362,10 @@
                                 <small class="text-info">{{ stats.notion.active_checklists }} checklists activos</small>
                             </div>
                             <div>
-                                <a href="{{ url_for('notion_dashboard') }}" class="btn btn-dark me-2">
+                                <a href="{{ url_for('notion.dashboard') }}" class="btn btn-dark me-2">
                                     <i class="fas fa-book me-1"></i>Ver Wiki
                                 </a>
-                                <a href="{{ url_for('notion_new_page') }}" class="btn btn-outline-dark">
+                                <a href="{{ url_for('notion.new_page') }}" class="btn btn-outline-dark">
                                     <i class="fas fa-plus me-1"></i>Nueva Página
                                 </a>
                             </div>
@@ -374,7 +374,7 @@
                         <div class="text-center text-muted">
                             <i class="fas fa-book fa-3x mb-3"></i>
                             <p>Crea páginas colaborativas para tu equipo</p>
-                            <a href="{{ url_for('notion_new_page') }}" class="btn btn-dark">
+                            <a href="{{ url_for('notion.new_page') }}" class="btn btn-dark">
                                 <i class="fas fa-plus me-1"></i>Crear Primera Página
                             </a>
                         </div>
@@ -408,10 +408,10 @@
                             {% endif %}
                         </div>
                         <div>
-                            <a href="{{ url_for('manage_appointments') }}" class="btn btn-info me-2">
+                            <a href="{{ url_for('appointments.manage_services') }}" class="btn btn-info me-2">
                                 <i class="fas fa-calendar-check me-1"></i>Gestionar Citas
                             </a>
-                            <a href="{{ url_for('manage_services') }}" class="btn btn-outline-info">
+                            <a href="{{ url_for('appointments.manage_services') }}" class="btn btn-outline-info">
                                 <i class="fas fa-concierge-bell me-1"></i>Servicios
                             </a>
                         </div>
@@ -474,7 +474,7 @@
                             <a href="{{ public_urls.portfolio }}" target="_blank" class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-external-link-alt me-1"></i>Ver Página
                             </a>
-                            <a href="{{ url_for('portfolio_config') }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ url_for('public.portfolio', company_code=company.code if company else 'demo') }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-edit me-1"></i>Configurar
                             </a>
                         </div>
@@ -509,19 +509,19 @@
                         <!-- Inventario -->
                         {% if company.module_inventory %}
                         <div class="col-md-2 col-6 mb-3">
-                            <a href="{{ url_for('categories') }}" class="btn btn-outline-primary w-100">
+                            <a href="{{ url_for('inventory.categories') }}" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-tags fa-2x d-block mb-2"></i>
                                 Categorías
                             </a>
                         </div>
                         <div class="col-md-2 col-6 mb-3">
-                            <a href="{{ url_for('warehouses') }}" class="btn btn-outline-primary w-100">
+                            <a href="{{ url_for('inventory.warehouses') }}" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-warehouse fa-2x d-block mb-2"></i>
                                 Almacenes
                             </a>
                         </div>
                         <div class="col-md-2 col-6 mb-3">
-                            <a href="{{ url_for('reports') }}" class="btn btn-outline-primary w-100">
+                            <a href="{{ url_for('inventory.reports') }}" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-chart-bar fa-2x d-block mb-2"></i>
                                 Reportes
                             </a>
@@ -531,7 +531,7 @@
                         <!-- POS -->
                         {% if company.module_pos %}
                         <div class="col-md-2 col-6 mb-3">
-                            <a href="{{ url_for('pos_sales') }}" class="btn btn-outline-success w-100">
+                            <a href="{{ url_for('pos.sales') }}" class="btn btn-outline-success w-100">
                                 <i class="fas fa-cash-register fa-2x d-block mb-2"></i>
                                 POS
                             </a>
@@ -541,7 +541,7 @@
                         <!-- Scrum -->
                         {% if company.module_scrum %}
                         <div class="col-md-2 col-6 mb-3">
-                            <a href="{{ url_for('scrum_dashboard') }}" class="btn btn-outline-purple w-100">
+                            <a href="{{ url_for('scrum.dashboard') }}" class="btn btn-outline-purple w-100">
                                 <i class="fas fa-project-diagram fa-2x d-block mb-2"></i>
                                 Scrum
                             </a>
@@ -551,7 +551,7 @@
                         <!-- Citas -->
                         {% if company.module_appointments %}
                         <div class="col-md-2 col-6 mb-3">
-                            <a href="{{ url_for('manage_services') }}" class="btn btn-outline-info w-100">
+                            <a href="{{ url_for('appointments.manage_services') }}" class="btn btn-outline-info w-100">
                                 <i class="fas fa-concierge-bell fa-2x d-block mb-2"></i>
                                 Servicios
                             </a>
@@ -561,7 +561,7 @@
                         <!-- Portfolio -->
                         {% if company.module_portfolio %}
                         <div class="col-md-2 col-6 mb-3">
-                            <a href="{{ url_for('portfolio_config') }}" class="btn btn-outline-warning w-100">
+                            <a href="{{ url_for('public.portfolio', company_code=company.code if company else 'demo') }}" class="btn btn-outline-warning w-100">
                                 <i class="fas fa-globe fa-2x d-block mb-2"></i>
                                 Portfolio
                             </a>

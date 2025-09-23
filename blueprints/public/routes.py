@@ -35,17 +35,16 @@ def booking(company_code):
     form.service_id.choices = [(s.id, f"{s.name} ({s.duration_minutes} min)") for s in services]
     
     if form.validate_on_submit():
-        appointment = Appointment(
-            client_name=form.client_name.data,
-            client_phone=form.client_phone.data,
-            client_email=form.client_email.data,
-            appointment_date=form.appointment_date.data,
-            service_id=form.service_id.data,
-            notes=form.notes.data,
-            is_public=True,
-            company_id=company.id,
-            status='pendiente'
-        )
+        appointment = Appointment()
+        appointment.client_name = form.client_name.data
+        appointment.client_phone = form.client_phone.data
+        appointment.client_email = form.client_email.data
+        appointment.appointment_date = form.appointment_date.data
+        appointment.service_id = form.service_id.data
+        appointment.notes = form.notes.data
+        appointment.is_public = True
+        appointment.company_id = company.id
+        appointment.status = 'pendiente'
         db.session.add(appointment)
         db.session.commit()
         
