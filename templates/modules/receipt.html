@@ -142,7 +142,7 @@
 {% block content %}
 <div class="container-fluid">
     <div class="action-buttons no-print">
-        <a href="{{ url_for('pos_sales') }}" class="btn-back">
+        <a href="{{ url_for('pos.sales') }}" class="btn-back">
             <i class="fas fa-arrow-left"></i> Volver al POS
         </a>
         <button onclick="window.print()" class="btn-print">
@@ -255,7 +255,7 @@
     </div>
 
     <div class="action-buttons no-print" style="margin-top: 30px;">
-        <a href="{{ url_for('pos_sales') }}" class="btn-back">
+        <a href="{{ url_for('pos.sales') }}" class="btn-back">
             <i class="fas fa-arrow-left"></i> Nueva Venta
         </a>
         <button onclick="window.print()" class="btn-print">
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Función para volver atrás después de imprimir
 window.addEventListener('afterprint', function() {
     // Opcional: redirigir automáticamente después de imprimir
-    // window.location.href = "{{ url_for('pos_sales') }}";
+    // window.location.href = "{{ url_for('pos.sales') }}";
 });
 </script>
 {% endblock %}

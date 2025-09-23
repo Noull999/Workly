@@ -11,7 +11,7 @@
                     <i class="fas fa-tasks text-purple me-2"></i>Scrum Lite
                 </h1>
                 {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
-                <a href="{{ url_for('create_scrum_board') }}" class="btn btn-purple">
+                <a href="{{ url_for('scrum.create_board') }}" class="btn btn-purple">
                     <i class="fas fa-plus me-1"></i>Nuevo Tablero
                 </a>
                 {% endif %}
@@ -77,7 +77,7 @@
                         <h4>No hay tableros creados</h4>
                         <p class="text-muted">Crea tu primer tablero Kanban para comenzar a gestionar tareas con Scrum Lite</p>
                         {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
-                        <a href="{{ url_for('create_scrum_board') }}" class="btn btn-purple">
+                        <a href="{{ url_for('scrum.create_board') }}" class="btn btn-purple">
                             <i class="fas fa-plus me-1"></i>Crear Primer Tablero
                         </a>
                         {% endif %}

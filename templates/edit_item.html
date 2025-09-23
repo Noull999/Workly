@@ -122,7 +122,7 @@
                         </div>
                         <div class="form-text">
                             Don't see your category? 
-                            <a href="{{ url_for('categories') }}" target="_blank">Manage categories</a>
+                            <a href="{{ url_for('inventory.categories') }}" target="_blank">Manage categories</a>
                         </div>
                     </div>
                     
@@ -130,7 +130,7 @@
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-save me-1"></i>Update Item
                         </button>
-                        <a href="{{ url_for('inventory') }}" class="btn btn-secondary">
+                        <a href="{{ url_for('inventory.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i>Back to Inventory
                         </a>
                         <button type="button" class="btn btn-danger ms-auto" 
