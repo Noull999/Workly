@@ -4,10 +4,8 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Formulario oculto para token CSRF -->
-    <form style="display: none;" id="csrf-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    </form>
+    <!-- Token CSRF para JavaScript -->
+    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}"/>
     
     <!-- Header del tablero -->
     <div class="row mb-4">
@@ -369,13 +367,8 @@ function createTask() {
 }
 
 function getCsrfToken() {
-    // Get CSRF token from meta tag or form
-    const token = document.querySelector('meta[name=csrf-token]');
-    if (token) {
-        return token.getAttribute('content');
-    }
-    // Fallback: get from form
-    const csrfInput = document.querySelector('input[name="csrf_token"]');
+    // Get CSRF token from hidden input
+    const csrfInput = document.querySelector('#csrf_token');
     return csrfInput ? csrfInput.value : '';
 }
 
