@@ -117,3 +117,163 @@ def sale_receipt(sale_id):
         return redirect(url_for('pos.sales'))
     
     return render_template('modules/receipt.html', sale=sale)
+
+@pos.route('/cash-management')
+@login_required
+@module_required('pos')
+def cash_management():
+    """Gestión de caja - Dashboard"""
+    today = date.today()
+    current_session = CashSession.query.filter_by(
+        company_id=current_user.company_id,
+        session_date=today,
+        status='open'
+    ).first()
+    
+    # Obtener sesiones recientes
+    recent_sessions = CashSession.query.filter_by(
+        company_id=current_user.company_id
+    ).order_by(CashSession.session_date.desc()).limit(10).all()
+    
+    # Estadísticas de la sesión actual
+    session_stats = {}
+    if current_session:
+        session_stats = {
+            'total_sales': current_session.total_sales,
+            'total_expenses': current_session.total_expenses,
+            'expected_amount': current_session.calculate_expected_amount()
+        }
+    
+    return render_template('modules/cash_management.html', 
+                         current_session=current_session,
+                         recent_sessions=recent_sessions,
+                         session_stats=session_stats)
+
+@pos.route('/open-cash-session', methods=['GET', 'POST'])
+@login_required
+@module_required('pos')
+def open_cash_session():
+    """Abrir sesión de caja"""
+    today = date.today()
+    
+    # Verificar si ya hay una sesión abierta hoy
+    existing_session = CashSession.query.filter_by(
+        company_id=current_user.company_id,
+        session_date=today,
+        status='open'
+    ).first()
+    
+    if existing_session:
+        flash('Ya hay una sesión de caja abierta para hoy.', 'warning')
+        return redirect(url_for('pos.cash_management'))
+    
+    form = CashSessionForm()
+    
+    if form.validate_on_submit():
+        session = CashSession(
+            opening_amount=form.opening_amount.data,
+            notes=form.notes.data,
+            company_id=current_user.company_id,
+            opened_by_id=current_user.id,
+            session_date=today
+        )
+        
+        db.session.add(session)
+        db.session.commit()
+        
+        log_audit('pos', f'Sesión de caja abierta con ${form.opening_amount.data}', current_user.id, current_user.company_id)
+        flash(f'Sesión de caja abierta exitosamente con ${form.opening_amount.data}', 'success')
+        return redirect(url_for('pos.cash_management'))
+    
+    return render_template('modules/open_cash_session.html', form=form)
+
+@pos.route('/close-cash-session', methods=['GET', 'POST'])
+@login_required
+@module_required('pos')
+def close_cash_session():
+    """Cerrar sesión de caja"""
+    today = date.today()
+    current_session = CashSession.query.filter_by(
+        company_id=current_user.company_id,
+        session_date=today,
+        status='open'
+    ).first()
+    
+    if not current_session:
+        flash('No hay una sesión de caja abierta para cerrar.', 'warning')
+        return redirect(url_for('pos.cash_management'))
+    
+    form = CashSessionCloseForm()
+    
+    if form.validate_on_submit():
+        current_session.closing_amount = form.closing_amount.data
+        current_session.notes = (current_session.notes or '') + f'\n[CIERRE] {form.notes.data}'
+        current_session.status = 'closed'
+        current_session.closed_by_id = current_user.id
+        current_session.closed_at = datetime.utcnow()
+        
+        # Calcular diferencia
+        expected_amount = current_session.calculate_expected_amount()
+        current_session.expected_amount = expected_amount
+        current_session.difference_amount = float(form.closing_amount.data) - expected_amount
+        
+        db.session.commit()
+        
+        log_audit('pos', f'Sesión de caja cerrada. Diferencia: ${current_session.difference_amount}', current_user.id, current_user.company_id)
+        flash(f'Sesión de caja cerrada. Diferencia: ${current_session.difference_amount:.2f}', 'success')
+        return redirect(url_for('pos.cash_management'))
+    
+    # Calcular monto esperado para mostrar en el formulario
+    expected_amount = current_session.calculate_expected_amount()
+    
+    return render_template('modules/close_cash_session.html', 
+                         form=form, 
+                         session=current_session, 
+                         expected_amount=expected_amount)
+
+@pos.route('/cash-expenses', methods=['GET', 'POST'])
+@login_required
+@module_required('pos')
+def cash_expenses():
+    """Manejar egresos de caja"""
+    today = date.today()
+    current_session = CashSession.query.filter_by(
+        company_id=current_user.company_id,
+        session_date=today,
+        status='open'
+    ).first()
+    
+    if not current_session:
+        flash('Debe abrir una sesión de caja antes de registrar egresos.', 'warning')
+        return redirect(url_for('pos.open_cash_session'))
+    
+    form = CashExpenseForm()
+    
+    if form.validate_on_submit():
+        expense = CashExpense(
+            description=form.description.data,
+            amount=form.amount.data,
+            category=form.category.data,
+            receipt_number=form.receipt_number.data,
+            cash_session_id=current_session.id,
+            company_id=current_user.company_id,
+            user_id=current_user.id
+        )
+        
+        # Actualizar total de egresos en la sesión
+        current_session.total_expenses += form.amount.data
+        
+        db.session.add(expense)
+        db.session.commit()
+        
+        log_audit('pos', f'Egreso registrado: ${form.amount.data} - {form.description.data}', current_user.id, current_user.company_id)
+        flash(f'Egreso registrado exitosamente: ${form.amount.data}', 'success')
+        return redirect(url_for('pos.cash_expenses'))
+    
+    # Obtener egresos de la sesión actual
+    expenses = CashExpense.query.filter_by(cash_session_id=current_session.id).order_by(CashExpense.created_at.desc()).all()
+    
+    return render_template('modules/cash_expenses.html', 
+                         form=form, 
+                         expenses=expenses, 
+                         session=current_session)
