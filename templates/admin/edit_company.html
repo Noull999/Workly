@@ -29,6 +29,19 @@
                         </div>
 
                         <div class="mb-3">
+                            {{ form.company_email.label(class="form-label") }}
+                            {{ form.company_email(class="form-control") }}
+                            {% if form.company_email.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.company_email.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Email principal de la empresa (único en el sistema)</small>
+                        </div>
+
+                        <div class="mb-3">
                             {{ form.logo_url.label(class="form-label") }}
                             {{ form.logo_url(class="form-control", placeholder="https://ejemplo.com/logo.png") }}
                             {% if form.logo_url.errors %}
@@ -166,7 +179,7 @@
                         <p class="mb-0">
                             <strong>Administrador de Empresa:</strong><br>
                             Usuario: <code>admin_{{ company.code.lower() }}</code><br>
-                            Contraseña: <code>empresa123</code> (puede cambiarla desde "Mi Perfil")
+                            Contraseña: <em>Se generó aleatoriamente al crear la empresa</em> (puede cambiarla desde "Credenciales")
                         </p>
                     </div>
                     <div class="d-flex gap-2">

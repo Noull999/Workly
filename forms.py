@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, IntegerField, SelectField, PasswordField, EmailField, DateTimeLocalField, DecimalField, BooleanField, HiddenField, SubmitField, FieldList, FormField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange, Optional
+from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange, Optional, ValidationError
 from models import Category, Warehouse, Service
 from flask_login import current_user
 
@@ -52,9 +52,27 @@ class WarehouseForm(FlaskForm):
 
 class CompanyForm(FlaskForm):
     name = StringField('Nombre de la Empresa', validators=[DataRequired(), Length(max=100)])
+    company_email = EmailField('Email Principal de la Empresa', validators=[DataRequired(), Email(), Length(max=120)])
     logo_url = StringField('URL del Logo', validators=[Optional(), Length(max=255)])
     primary_color = StringField('Color Primario', validators=[DataRequired(), Length(min=7, max=7)], default='#007bff')
     secondary_color = StringField('Color Secundario', validators=[DataRequired(), Length(min=7, max=7)], default='#6c757d')
+    
+    def __init__(self, company_id=None, *args, **kwargs):
+        super(CompanyForm, self).__init__(*args, **kwargs)
+        self.company_id = company_id  # Para excluir la empresa actual en edición
+    
+    def validate_company_email(self, field):
+        """Validar que el email de empresa sea único"""
+        from models import Company
+        query = Company.query.filter_by(company_email=field.data)
+        
+        # Si estamos editando una empresa, excluirla de la búsqueda
+        if self.company_id:
+            query = query.filter(Company.id != self.company_id)
+        
+        existing_company = query.first()
+        if existing_company:
+            raise ValidationError('Este email ya está siendo usado por otra empresa.')
 
 class UserManagementForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired(), Length(min=3, max=64)])

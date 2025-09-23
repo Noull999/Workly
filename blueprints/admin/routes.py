@@ -1,6 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, g
 from flask_login import login_required, current_user
 from datetime import datetime, date
+from sqlalchemy.exc import IntegrityError
 from . import admin
 from ..decorators import admin_global_required, admin_required
 from models import User, Company, Warehouse
@@ -56,6 +57,7 @@ def manage_companies():
         company = Company(
             name=form.name.data,
             code=code,
+            company_email=form.company_email.data,
             logo_url=form.logo_url.data if form.logo_url.data else None,
             primary_color=form.primary_color.data,
             secondary_color=form.secondary_color.data
@@ -86,10 +88,17 @@ def manage_companies():
         )
         db.session.add(warehouse)
         
-        db.session.commit()
-        
-        flash(f'¡Empresa "{company.name}" creada exitosamente! Admin: {admin_user.username}, contraseña temporal: {temp_password}. IMPORTANTE: Cambia la contraseña inmediatamente usando el botón "Credenciales".', 'warning')
-        return redirect(url_for('admin.manage_companies'))
+        try:
+            db.session.commit()
+            flash(f'¡Empresa "{company.name}" creada exitosamente! Admin: {admin_user.username}, contraseña temporal: {temp_password}. IMPORTANTE: Cambia la contraseña inmediatamente usando el botón "Credenciales".', 'warning')
+            return redirect(url_for('admin.manage_companies'))
+        except IntegrityError as e:
+            db.session.rollback()
+            # Verificar si es error de constraint de email único
+            if 'uq_company_company_email' in str(e) or 'company_email' in str(e):
+                flash('El email de empresa ya está siendo usado por otra empresa.', 'danger')
+            else:
+                flash('Error al crear la empresa. Verifica que todos los datos sean únicos.', 'danger')
     
     companies = Company.query.filter_by(is_active=True).all()
     return render_template('admin/companies.html', form=form, companies=companies)
@@ -100,17 +109,26 @@ def manage_companies():
 def edit_company(company_id):
     """Editar empresa existente"""
     company = Company.query.get_or_404(company_id)
-    form = CompanyForm(obj=company)
+    form = CompanyForm(company_id=company.id, obj=company)
     
     if form.validate_on_submit():
         company.name = form.name.data
+        company.company_email = form.company_email.data
         company.logo_url = form.logo_url.data if form.logo_url.data else None
         company.primary_color = form.primary_color.data
         company.secondary_color = form.secondary_color.data
         
-        db.session.commit()
-        flash(f'¡Empresa "{company.name}" actualizada exitosamente!', 'success')
-        return redirect(url_for('admin.manage_companies'))
+        try:
+            db.session.commit()
+            flash(f'¡Empresa "{company.name}" actualizada exitosamente!', 'success')
+            return redirect(url_for('admin.manage_companies'))
+        except IntegrityError as e:
+            db.session.rollback()
+            # Verificar si es error de constraint de email único
+            if 'uq_company_company_email' in str(e) or 'company_email' in str(e):
+                flash('El email de empresa ya está siendo usado por otra empresa.', 'danger')
+            else:
+                flash('Error al actualizar la empresa. Verifica que todos los datos sean únicos.', 'danger')
     
     return render_template('admin/edit_company.html', form=form, company=company)
 

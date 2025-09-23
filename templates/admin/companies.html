@@ -41,6 +41,19 @@
                         </div>
 
                         <div class="mb-3">
+                            {{ form.company_email.label(class="form-label") }}
+                            {{ form.company_email(class="form-control") }}
+                            {% if form.company_email.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.company_email.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Email principal de la empresa (único en el sistema)</small>
+                        </div>
+
+                        <div class="mb-3">
                             {{ form.logo_url.label(class="form-label") }}
                             {{ form.logo_url(class="form-control", placeholder="https://ejemplo.com/logo.png") }}
                             {% if form.logo_url.errors %}
@@ -94,7 +107,7 @@
                                 <li>Un código único de empresa</li>
                                 <li>Un administrador con usuario: admin_[código]</li>
                                 <li>Un almacén principal</li>
-                                <li>Contraseña por defecto: empresa123</li>
+                                <li>Contraseña: generada aleatoriamente (mostrada una vez)</li>
                             </ul>
                         </small>
                     </div>
@@ -117,6 +130,7 @@
                                 <thead>
                                     <tr>
                                         <th>Empresa</th>
+                                        <th>Email</th>
                                         <th>Código</th>
                                         <th>Branding</th>
                                         <th>Estado</th>
@@ -131,6 +145,9 @@
                                                 <img src="{{ company.logo_url }}" alt="{{ company.name }}" class="company-logo me-2" style="max-height: 25px;">
                                             {% endif %}
                                             <strong>{{ company.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ company.company_email }}</small>
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">{{ company.code }}</span>

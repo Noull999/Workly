@@ -10,6 +10,7 @@ class Company(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     code = db.Column(db.String(20), unique=True, nullable=False)  # URL-friendly identifier
+    company_email = db.Column(db.String(120), unique=True, nullable=False)  # Email principal de la empresa
     logo_url = db.Column(db.String(255), nullable=True)  # URL del logo
     primary_color = db.Column(db.String(7), default='#007bff')  # Color primario en hex
     secondary_color = db.Column(db.String(7), default='#6c757d')  # Color secundario en hex
@@ -54,7 +55,7 @@ class Company(db.Model):
                 return code
     
     def __repr__(self):
-        return f'<Company {self.name}>'
+        return f'<Company {self.name} ({self.company_email})>'
 
 class Warehouse(db.Model):
     """Multiple warehouses/locations per company"""
