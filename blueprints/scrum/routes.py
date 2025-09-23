@@ -159,3 +159,63 @@ def delete_task(task_id):
     log_audit('scrum', f'Tarea eliminada: {task.title}', current_user.id, current_user.company_id)
     flash('Tarea eliminada exitosamente', 'success')
     return redirect(url_for('scrum.board', board_id=board_id))
+
+@scrum.route('/task/move', methods=['POST'])
+@login_required
+@module_required('scrum')
+def move_task():
+    """Mover tarea entre columnas (AJAX)"""
+    from flask import jsonify
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'No se recibieron datos'}), 400
+    
+    task_id = data.get('task_id')
+    column_id = data.get('column_id')
+    position = data.get('position', 0)
+    
+    if not task_id or not column_id:
+        return jsonify({'success': False, 'error': 'task_id y column_id son requeridos'}), 400
+    
+    # Buscar la tarea
+    task = company_query(Task).filter_by(id=task_id).first()
+    if not task:
+        return jsonify({'success': False, 'error': 'Tarea no encontrada'}), 404
+    
+    # Buscar la nueva columna
+    new_column = company_query(Column).filter_by(id=column_id).first()
+    if not new_column:
+        return jsonify({'success': False, 'error': 'Columna no encontrada'}), 404
+    
+    # Verificar que la columna pertenece a la misma empresa
+    if new_column.board.company_id != current_user.company_id:
+        return jsonify({'success': False, 'error': 'No autorizado'}), 403
+    
+    # Obtener contadores antes del cambio
+    old_column_id = task.column_id
+    old_count = company_query(Task).filter_by(column_id=old_column_id).count() - 1
+    new_count = company_query(Task).filter_by(column_id=column_id).count() + 1
+    
+    # Actualizar la tarea
+    task.column_id = column_id
+    task.position = position
+    
+    try:
+        db.session.commit()
+        
+        # Log de auditoría
+        log_audit('scrum', f'Tarea "{task.title}" movida a columna "{new_column.name}"', 
+                 current_user.id, current_user.company_id)
+        
+        return jsonify({
+            'success': True,
+            'old_column_id': old_column_id,
+            'new_column_id': column_id,
+            'old_count': old_count,
+            'new_count': new_count
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': f'Error al mover la tarea: {str(e)}'}), 500
