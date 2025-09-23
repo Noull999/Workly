@@ -112,3 +112,65 @@ def checklists():
     """Lista de checklists"""
     checklists = company_query(NotionChecklist).order_by(NotionChecklist.created_at.desc()).all()
     return render_template('modules/notion/checklists.html', checklists=checklists, company=current_user.company)
+
+@notion.route('/checklist/new', methods=['GET', 'POST'])
+@login_required
+@module_required('notion')
+def new_checklist():
+    """Crear nuevo checklist"""
+    form = NotionChecklistForm(company_id=current_user.company_id)
+    
+    if form.validate_on_submit():
+        checklist = NotionChecklist(
+            title=form.title.data,
+            description=form.description.data,
+            checklist_type=form.checklist_type.data,
+            page_id=form.page_id.data if form.page_id.data != 0 else None,
+            company_id=current_user.company_id,
+            creator_id=current_user.id
+        )
+        
+        db.session.add(checklist)
+        db.session.commit()
+        
+        log_audit('notion', f'Checklist creado: {checklist.title}', current_user.id, current_user.company_id)
+        flash('Checklist creado exitosamente', 'success')
+        return redirect(url_for('notion.checklist', checklist_id=checklist.id))
+    
+    return render_template('modules/notion/new_checklist.html', form=form, company=current_user.company)
+
+@notion.route('/checklist/<int:checklist_id>')
+@login_required
+@module_required('notion')
+def checklist(checklist_id):
+    """Ver checklist específico"""
+    checklist = company_query(NotionChecklist).filter_by(id=checklist_id).first_or_404()
+    items = company_query(NotionChecklistItem).filter_by(checklist_id=checklist_id).order_by(NotionChecklistItem.position).all()
+    
+    return render_template('modules/notion/checklist.html', 
+                         checklist=checklist, 
+                         items=items,
+                         company=current_user.company)
+
+@notion.route('/checklist/<int:checklist_id>/edit', methods=['GET', 'POST'])
+@login_required
+@module_required('notion')
+def edit_checklist(checklist_id):
+    """Editar checklist"""
+    checklist = company_query(NotionChecklist).filter_by(id=checklist_id).first_or_404()
+    form = NotionChecklistForm(company_id=current_user.company_id, obj=checklist)
+    
+    if form.validate_on_submit():
+        checklist.title = form.title.data
+        checklist.description = form.description.data
+        checklist.checklist_type = form.checklist_type.data
+        checklist.page_id = form.page_id.data if form.page_id.data != 0 else None
+        checklist.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        log_audit('notion', f'Checklist editado: {checklist.title}', current_user.id, current_user.company_id)
+        flash('Checklist actualizado exitosamente', 'success')
+        return redirect(url_for('notion.checklist', checklist_id=checklist.id))
+    
+    return redirect(url_for('notion.checklist', checklist_id=checklist.id))
