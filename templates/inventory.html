@@ -8,10 +8,10 @@
         <i class="fas fa-boxes me-2"></i>Tu Inventario
     </h2>
     <div>
-        <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+        <a href="{{ url_for('inventory.add_item') }}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i>Agregar Artículo
         </a>
-        <a href="{{ url_for('categories') }}" class="btn btn-outline-secondary">
+        <a href="{{ url_for('inventory.categories') }}" class="btn btn-outline-secondary">
             <i class="fas fa-tags me-1"></i>Gestionar Categorías
         </a>
     </div>
@@ -204,12 +204,12 @@
         <p class="text-muted">
             {% if search or category_filter != 'all' %}
                 Intenta ajustar tus criterios de búsqueda o 
-                <a href="{{ url_for('inventory') }}">limpiar todos los filtros</a>
+                <a href="{{ url_for('inventory.index') }}">limpiar todos los filtros</a>
             {% else %}
                 Comienza agregando tu primer artículo de inventario
             {% endif %}
         </p>
-        <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+        <a href="{{ url_for('inventory.add_item') }}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i>Agregar Primer Artículo
         </a>
     </div>

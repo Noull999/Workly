@@ -190,7 +190,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('index') }}">
+            <a class="navbar-brand" href="{{ url_for('index') if current_user.is_authenticated else url_for('auth.login') }}">
                 {% if current_user.is_authenticated and current_user.company.logo_url %}
                     <img src="{{ current_user.company.logo_url }}" alt="{{ current_user.company.name }}" class="company-logo">
                 {% else %}
@@ -216,7 +216,7 @@
                 <ul class="navbar-nav me-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <a class="nav-link" href="{{ url_for('index') }}">
                                 <i class="fas fa-home me-1"></i>Inicio
                             </a>
                         </li>
@@ -228,21 +228,21 @@
                                 <i class="fas fa-boxes me-1"></i>Inventario
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('inventory') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('inventory.index') }}">
                                     <i class="fas fa-list me-1"></i>Ver Inventario
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('add_item') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('inventory.add_item') }}">
                                     <i class="fas fa-plus me-1"></i>Agregar Artículo
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('categories') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('inventory.categories') }}">
                                     <i class="fas fa-tags me-1"></i>Categorías
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('warehouses') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('inventory.warehouses') }}">
                                     <i class="fas fa-warehouse me-1"></i>Almacenes
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('reports') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('inventory.reports') }}">
                                     <i class="fas fa-chart-bar me-1"></i>Reportes
                                 </a></li>
                             </ul>
@@ -252,7 +252,7 @@
                         <!-- POS (si está activo o es super admin con preferencias) -->
                         {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and current_user.company.module_pos) %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('pos_sales') }}">
+                            <a class="nav-link" href="{{ url_for('pos.sales') }}">
                                 <i class="fas fa-cash-register me-1"></i>POS
                             </a>
                         </li>
@@ -265,11 +265,11 @@
                                 <i class="fas fa-tasks me-1"></i>Scrum
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('scrum_dashboard') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('scrum.dashboard') }}">
                                     <i class="fas fa-project-diagram me-1"></i>Tableros
                                 </a></li>
                                 {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
-                                <li><a class="dropdown-item" href="{{ url_for('create_scrum_board') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('scrum.create_board') }}">
                                     <i class="fas fa-plus me-1"></i>Nuevo Tablero
                                 </a></li>
                                 {% endif %}
@@ -284,13 +284,13 @@
                                 <i class="fas fa-book me-1"></i>Notion
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('notion_dashboard') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('notion.dashboard') }}">
                                     <i class="fas fa-home me-1"></i>Dashboard
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('notion_new_page') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('notion.new_page') }}">
                                     <i class="fas fa-plus me-1"></i>Nueva Página
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('notion_checklists') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('notion.checklists') }}">
                                     <i class="fas fa-check-square me-1"></i>Checklists
                                 </a></li>
                             </ul>
@@ -304,10 +304,10 @@
                                 <i class="fas fa-calendar-alt me-1"></i>Citas
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('manage_appointments') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('appointments.manage_appointments') }}">
                                     <i class="fas fa-calendar-check me-1"></i>Gestionar Citas
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('manage_services') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('appointments.manage_services') }}">
                                     <i class="fas fa-concierge-bell me-1"></i>Servicios
                                 </a></li>
                             </ul>
@@ -316,7 +316,7 @@
                         
                         {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and current_user.company.module_portfolio)) and (current_user.is_admin_global() or current_user.is_admin_empresa()) %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('portfolio_config') }}">
+                            <a class="nav-link" href="{{ url_for('appointments.portfolio_config') }}">
                                 <i class="fas fa-globe me-1"></i>Mi Página
                             </a>
                         </li>
