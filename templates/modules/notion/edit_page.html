@@ -7,7 +7,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1><i class="fas fa-edit"></i> Editar Página: {{ page.icon }} {{ page.title }}</h1>
                 <div>
-                    <a href="{{ url_for('notion_page', slug=page.slug) }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('notion.page', slug=page.slug) }}" class="btn btn-outline-secondary">
                         <i class="fas fa-eye"></i> Ver Página
                     </a>
                     <a href="{{ url_for('notion.dashboard') }}" class="btn btn-outline-secondary">
@@ -79,7 +79,7 @@
                 </div>
                 <div class="card-body">
                     <!-- Duplicar Página -->
-                    <form method="POST" action="{{ url_for('notion_duplicate_page', slug=page.slug) }}" class="mb-2">
+                    <form method="POST" action="#" class="mb-2">
                         {{ block_action_form.hidden_tag() }}
                         {{ block_action_form.action(value='duplicate') }}
                         <button type="submit" class="btn btn-info w-100" onclick="return confirm('¿Duplicar esta página?')">
@@ -134,7 +134,7 @@
                                         <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editBlock({{ block.id }})">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form method="POST" action="{{ url_for('notion_delete_block', block_id=block.id) }}" class="d-inline">
+                                        <form method="POST" action="#" class="d-inline">
                                             {{ block_action_form.hidden_tag() }}
                                             {{ block_action_form.action(value='delete') }}
                                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar este bloque?')">
@@ -178,7 +178,7 @@
 
                                 <!-- Editor del Bloque (Oculto por defecto) -->
                                 <div class="block-editor-form" id="block-editor-{{ block.id }}" style="display: none;">
-                                    <form method="POST" action="{{ url_for('notion_edit_block', block_id=block.id) }}">
+                                    <form method="POST" action="#">
                                         {{ block_action_form.hidden_tag() }}
                                         <div class="row mb-2">
                                             <div class="col-md-4">
@@ -235,7 +235,7 @@
                     <li>Todas las subpáginas asociadas</li>
                 </ul>
                 <p>Para confirmar, escribe <strong>DELETE</strong> en el campo de abajo:</p>
-                <form method="POST" action="{{ url_for('notion_delete_page', slug=page.slug) }}" id="deleteForm">
+                <form method="POST" action="#" id="deleteForm">
                     <input type="text" name="confirm" class="form-control" placeholder="Escribe DELETE para confirmar" required>
                 </form>
             </div>

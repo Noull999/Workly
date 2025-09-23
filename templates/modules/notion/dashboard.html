@@ -30,7 +30,7 @@
                     {% if main_pages %}
                         <div class="list-group list-group-flush">
                             {% for page in main_pages %}
-                            <a href="{{ url_for('notion_page', slug=page.slug) }}" class="list-group-item list-group-item-action">
+                            <a href="{{ url_for('notion.page', slug=page.slug) }}" class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h6 class="mb-1">{{ page.icon }} {{ page.title }}</h6>
                                     <small>{{ page.updated_at.strftime('%d/%m/%Y') }}</small>
@@ -61,7 +61,7 @@
                     {% if recent_pages %}
                         <div class="list-group list-group-flush">
                             {% for page in recent_pages %}
-                            <a href="{{ url_for('notion_page', slug=page.slug) }}" class="list-group-item list-group-item-action">
+                            <a href="{{ url_for('notion.page', slug=page.slug) }}" class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h6 class="mb-1">{{ page.icon }} {{ page.title }}</h6>
                                     <small>{{ page.updated_at.strftime('%d/%m/%Y %H:%M') }}</small>

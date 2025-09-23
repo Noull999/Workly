@@ -8,13 +8,13 @@
                 <h1>{{ page.icon }} {{ page.title }}</h1>
                 <div>
                     {% if can_edit %}
-                    <a href="{{ url_for('notion_edit_page', slug=page.slug) }}" class="btn btn-outline-primary">
+                    <a href="#" class="btn btn-outline-primary">
                         <i class="fas fa-edit"></i> Editar
                     </a>
                     {% endif %}
                     
                     <!-- Duplicar Página -->
-                    <form method="POST" action="{{ url_for('notion_duplicate_page', slug=page.slug) }}" class="d-inline">
+                    <form method="POST" action="#" class="d-inline">
                         {{ duplicate_form.hidden_tag() }}
                         {{ duplicate_form.action() }}
                         <button type="submit" class="btn btn-outline-info" onclick="return confirm('¿Duplicar esta página?')" title="Duplicar Página">
@@ -29,7 +29,7 @@
                     </button>
                     {% endif %}
                     
-                    <a href="{{ url_for('notion_dashboard') }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('notion.dashboard') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left"></i> Volver
                     </a>
                 </div>
@@ -76,7 +76,7 @@
                         </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted">Esta página está vacía. {% if can_edit %}<a href="{{ url_for('notion_edit_page', slug=page.slug) }}">Agrega contenido</a>{% endif %}</p>
+                        <p class="text-muted">Esta página está vacía. {% if can_edit %}<a href="#">Agrega contenido</a>{% endif %}</p>
                     {% endif %}
                 </div>
             </div>
