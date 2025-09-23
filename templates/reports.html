@@ -7,7 +7,7 @@
     <h2>
         <i class="fas fa-chart-bar me-2"></i>Reportes de Inventario
     </h2>
-    <a href="{{ url_for('inventory') }}" class="btn btn-outline-primary">
+    <a href="{{ url_for('inventory.index') }}" class="btn btn-outline-primary">
         <i class="fas fa-arrow-left me-1"></i>Volver al Inventario
     </a>
 </div>
@@ -70,7 +70,7 @@
         {% endfor %}
     </div>
     <hr>
-    <a href="{{ url_for('inventory') }}?sort=quantity" class="btn btn-warning btn-sm">
+    <a href="{{ url_for('inventory.index') }}?sort=quantity" class="btn btn-warning btn-sm">
         <i class="fas fa-eye me-1"></i>Ver Artículos por Cantidad
     </a>
 </div>
@@ -163,11 +163,11 @@
                         <i class="fas fa-tags me-1"></i>Gestionar Categorías
                     </a>
                     {% if low_stock_items %}
-                        <a href="{{ url_for('inventory') }}?sort=quantity" class="btn btn-outline-warning">
+                        <a href="{{ url_for('inventory.index') }}?sort=quantity" class="btn btn-outline-warning">
                             <i class="fas fa-exclamation-triangle me-1"></i>Revisar Stock Bajo
                         </a>
                     {% endif %}
-                    <a href="{{ url_for('inventory') }}" class="btn btn-outline-info">
+                    <a href="{{ url_for('inventory.index') }}" class="btn btn-outline-info">
                         <i class="fas fa-list me-1"></i>Ver Todos los Artículos
                     </a>
                 </div>

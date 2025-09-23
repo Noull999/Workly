@@ -7,7 +7,7 @@
     <h2>
         <i class="fas fa-tags me-2"></i>Gestión de Categorías
     </h2>
-    <a href="{{ url_for('inventory') }}" class="btn btn-outline-primary">
+    <a href="{{ url_for('inventory.index') }}" class="btn btn-outline-primary">
         <i class="fas fa-arrow-left me-1"></i>Volver al Inventario
     </a>
 </div>
@@ -120,7 +120,7 @@
                         <td>{{ category.created_at.strftime('%d/%m/%Y') }}</td>
                         <td>
                             <div class="btn-group" role="group">
-                                <a href="{{ url_for('inventory') }}?category={{ category.id }}" 
+                                <a href="{{ url_for('inventory.index') }}?category={{ category.id }}" 
                                    class="btn btn-sm btn-outline-info" title="Ver artículos">
                                     <i class="fas fa-eye"></i>
                                 </a>
