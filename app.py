@@ -61,7 +61,7 @@ with app.app_context():
     # db.create_all()  # Commented to favor migrations
 
 # Main routes that don't belong to specific modules
-from flask import render_template, redirect, url_for, g
+from flask import render_template, redirect, url_for, g, flash
 from flask_login import current_user, login_required
 
 @app.route('/')
@@ -136,7 +136,7 @@ def dashboard():
             stats['upcoming_appointments'] = upcoming_appointments
         
         # Guardar en caché por 15 minutos
-        set_cached_dashboard_stats(current_user.company_id, current_user.id, modules_active, stats, 900)
+        set_cached_dashboard_stats(current_user.company_id, current_user.id, modules_active, stats)
     
     return render_template('dashboard.html', modules=modules_active, stats=stats, company=company)
 
