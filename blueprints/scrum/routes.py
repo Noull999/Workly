@@ -116,6 +116,7 @@ def create_task(board_id, column_id):
         column_id=column_id,
         board_id=board_id,
         assignee_id=current_user.id,
+        creator_id=current_user.id,
         company_id=current_user.company_id
     )
     
