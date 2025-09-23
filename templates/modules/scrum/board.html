@@ -359,7 +359,7 @@ function createTask() {
     }
     
     // Set the action URL with both board_id and column_id
-    form.action = `{{ url_for('create_task', board_id=0, column_id=0) }}`.replace('0/0', `{{ board.id }}/${columnId}`);
+    form.action = `{{ url_for('scrum.create_task', board_id=0, column_id=0) }}`.replace('0/0', `{{ board.id }}/${columnId}`);
     form.submit();
 }
 

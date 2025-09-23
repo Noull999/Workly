@@ -87,3 +87,75 @@ def create_board():
         return redirect(url_for('scrum.board', board_id=board.id))
     
     return render_template('modules/scrum/create_board.html', company=current_user.company)
+
+@scrum.route('/create-task/<int:board_id>/<int:column_id>', methods=['POST'])
+@login_required
+@module_required('scrum')
+def create_task(board_id, column_id):
+    """Crear nueva tarea"""
+    board = company_query(Board).filter_by(id=board_id, is_active=True).first_or_404()
+    column = company_query(Column).filter_by(id=column_id, board_id=board_id).first_or_404()
+    
+    title = request.form.get('title')
+    description = request.form.get('description', '')
+    priority = request.form.get('priority', 'medium')
+    
+    if not title:
+        flash('El título es obligatorio', 'danger')
+        return redirect(url_for('scrum.board', board_id=board_id))
+    
+    # Obtener siguiente posición
+    max_position = db.session.query(func.max(Task.position)).filter_by(column_id=column_id).scalar() or 0
+    
+    task = Task(
+        title=title,
+        description=description,
+        priority=priority,
+        status='pending',
+        position=max_position + 1,
+        column_id=column_id,
+        board_id=board_id,
+        assignee_id=current_user.id,
+        company_id=current_user.company_id
+    )
+    
+    db.session.add(task)
+    db.session.commit()
+    
+    log_audit('scrum', f'Tarea creada: {task.title}', current_user.id, current_user.company_id)
+    flash('Tarea creada exitosamente', 'success')
+    return redirect(url_for('scrum.board', board_id=board_id))
+
+@scrum.route('/edit-task/<int:task_id>', methods=['GET', 'POST'])
+@login_required
+@module_required('scrum')
+def edit_task(task_id):
+    """Editar tarea"""
+    task = company_query(Task).filter_by(id=task_id).first_or_404()
+    
+    if request.method == 'POST':
+        task.title = request.form.get('title', task.title)
+        task.description = request.form.get('description', task.description)
+        task.priority = request.form.get('priority', task.priority)
+        
+        db.session.commit()
+        log_audit('scrum', f'Tarea editada: {task.title}', current_user.id, current_user.company_id)
+        flash('Tarea actualizada exitosamente', 'success')
+        return redirect(url_for('scrum.board', board_id=task.board_id))
+    
+    return redirect(url_for('scrum.board', board_id=task.board_id))
+
+@scrum.route('/delete-task/<int:task_id>', methods=['POST'])
+@login_required
+@module_required('scrum')
+def delete_task(task_id):
+    """Eliminar tarea"""
+    task = company_query(Task).filter_by(id=task_id).first_or_404()
+    board_id = task.board_id
+    
+    db.session.delete(task)
+    db.session.commit()
+    
+    log_audit('scrum', f'Tarea eliminada: {task.title}', current_user.id, current_user.company_id)
+    flash('Tarea eliminada exitosamente', 'success')
+    return redirect(url_for('scrum.board', board_id=board_id))
