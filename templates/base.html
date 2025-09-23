@@ -329,18 +329,18 @@
                             </a>
                             <ul class="dropdown-menu">
                                 {% if current_user.is_admin_global() %}
-                                <li><a class="dropdown-item" href="{{ url_for('admin_panel') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
                                     <i class="fas fa-tachometer-alt me-1"></i>Panel Global
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('manage_companies') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.manage_companies') }}">
                                     <i class="fas fa-building me-1"></i>Gestionar Empresas
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('manage_modules') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.manage_modules') }}">
                                     <i class="fas fa-puzzle-piece me-1"></i>Módulos por Empresa
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 {% endif %}
-                                <li><a class="dropdown-item" href="{{ url_for('manage_users') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.manage_users') }}">
                                     <i class="fas fa-users me-1"></i>Gestionar Usuarios
                                 </a></li>
                             </ul>
