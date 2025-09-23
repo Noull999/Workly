@@ -121,7 +121,7 @@
                         </div>
                         <div class="form-text">
                             ¿No encuentras tu categoría? 
-                            <a href="{{ url_for('categories') }}" target="_blank">Gestionar categorías</a>
+                            <a href="{{ url_for('inventory.categories') }}" target="_blank">Gestionar categorías</a>
                         </div>
                     </div>
                     
@@ -129,7 +129,7 @@
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-save me-1"></i>Agregar Artículo
                         </button>
-                        <a href="{{ url_for('inventory') }}" class="btn btn-secondary">
+                        <a href="{{ url_for('inventory.index') }}" class="btn btn-secondary">
                             <i class="fas fa-times me-1"></i>Cancelar
                         </a>
                     </div>
