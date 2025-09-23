@@ -4,6 +4,11 @@
 
 {% block content %}
 <div class="container-fluid">
+    <!-- Formulario oculto para token CSRF -->
+    <form style="display: none;" id="csrf-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+    
     <!-- Header del tablero -->
     <div class="row mb-4">
         <div class="col-12">
