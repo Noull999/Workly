@@ -15,7 +15,7 @@
                     <h3 class="mb-3">Módulo No Disponible</h3>
                     
                     <div class="alert alert-warning" role="alert">
-                        <strong>El módulo "{{ module_name.replace('_', ' ').title() }}" no está activo</strong> para tu empresa.
+                        <strong>El módulo "{{ module_name.replace('_', ' ').title() if module_name is defined else 'solicitado' }}" no está activo</strong> para tu empresa.
                     </div>
                     
                     <p class="text-muted mb-4">
