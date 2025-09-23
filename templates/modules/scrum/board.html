@@ -123,6 +123,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="#" id="createTaskForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Título *</label>
@@ -347,7 +348,21 @@ function editTask(taskId) {
 
 function deleteTask(taskId) {
     if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
-        alert('Funcionalidad de eliminar tarea estará disponible en futuras versiones');
+        // Create a form to submit DELETE request with CSRF token
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{ url_for('scrum.delete_task', task_id=0) }}`.replace('0', taskId);
+        
+        // Add CSRF token
+        const csrfToken = getCsrfToken();
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 
