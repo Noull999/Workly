@@ -62,3 +62,42 @@ def manage_appointments():
     
     return render_template('modules/appointments.html', 
                          form=form, appointments=appointments_list, booking_url=booking_url)
+
+@appointments.route('/service/edit/<int:service_id>', methods=['GET', 'POST'])
+@login_required
+@module_required('appointments')
+def edit_service(service_id):
+    """Editar servicio"""
+    service = company_query(Service).filter_by(id=service_id).first_or_404()
+    form = ServiceForm(obj=service)
+    
+    if form.validate_on_submit():
+        service.name = form.name.data
+        service.description = form.description.data
+        service.duration_minutes = form.duration_minutes.data
+        service.price = form.price.data
+        service.is_active = form.is_active.data
+        
+        db.session.commit()
+        log_audit('appointments', f'Servicio editado: {service.name}', current_user.id, current_user.company_id)
+        flash(f'Servicio "{service.name}" actualizado exitosamente!', 'success')
+        return redirect(url_for('appointments.manage_services'))
+    
+    services = company_query(Service).all()
+    return render_template('modules/services.html', form=form, services=services, edit_service=service)
+
+@appointments.route('/service/delete/<int:service_id>', methods=['POST'])
+@login_required
+@module_required('appointments')
+@admin_required
+def delete_service(service_id):
+    """Eliminar servicio"""
+    service = company_query(Service).filter_by(id=service_id).first_or_404()
+    service_name = service.name
+    
+    db.session.delete(service)
+    db.session.commit()
+    
+    log_audit('appointments', f'Servicio eliminado: {service_name}', current_user.id, current_user.company_id)
+    flash(f'Servicio "{service_name}" eliminado exitosamente!', 'success')
+    return redirect(url_for('appointments.manage_services'))
