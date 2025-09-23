@@ -163,7 +163,8 @@
                                         <td>
                                             {% if user.id != current_user.id and current_user.can_manage_users(user.company_id) %}
                                                 <div class="btn-group btn-group-sm">
-                                                    <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" class="d-inline">
+                                                    <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="d-inline">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                         <button type="submit" class="btn btn-outline-danger" onclick="return confirm('¿Eliminar al usuario {{ user.username }}? Esta acción no se puede deshacer.')" title="Eliminar Usuario">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
