@@ -316,7 +316,7 @@
                         
                         {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and current_user.company.module_portfolio)) and (current_user.is_admin_global() or current_user.is_admin_empresa()) %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('appointments.portfolio_config') }}">
+                            <a class="nav-link" href="{{ url_for('public.portfolio', company_code=current_user.company.code if current_user.company else 'default') }}">
                                 <i class="fas fa-globe me-1"></i>Mi Página
                             </a>
                         </li>
