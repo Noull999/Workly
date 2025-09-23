@@ -53,11 +53,15 @@ def sales():
                 for cart_item in cart_items:
                     inventory_item = company_query(InventoryItem).filter_by(id=cart_item['id']).first()
                     if inventory_item and inventory_item.quantity >= cart_item['quantity']:
-                        # Crear item de venta
+                        # SEGURIDAD: Usar precio del servidor, no del cliente
+                        server_unit_price = inventory_item.price or Decimal('0')
+                        server_total_price = server_unit_price * Decimal(str(cart_item['quantity']))
+                        
+                        # Crear item de venta con precios del servidor
                         sale_item = SaleItem(
                             quantity=cart_item['quantity'],
-                            unit_price=cart_item['price'],
-                            total_price=cart_item['price'] * cart_item['quantity'],
+                            unit_price=server_unit_price,
+                            total_price=server_total_price,
                             inventory_item_id=inventory_item.id
                         )
                         sale.items.append(sale_item)
