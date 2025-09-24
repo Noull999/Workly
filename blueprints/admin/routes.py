@@ -72,10 +72,8 @@ def manage_companies():
             role='admin_empresa',
             company_id=company.id
         )
-        # Generar contraseña temporal aleatoria
-        import secrets
-        import string
-        temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+        # Generar contraseña inicial predecible y segura
+        temp_password = f"{company.name.lower().replace(' ', '')}123"
         admin_user.set_password(temp_password)
         db.session.add(admin_user)
         
@@ -90,7 +88,7 @@ def manage_companies():
         
         try:
             db.session.commit()
-            flash(f'¡Empresa "{company.name}" creada exitosamente! Admin: {admin_user.username}, contraseña temporal: {temp_password}. IMPORTANTE: Cambia la contraseña inmediatamente usando el botón "Credenciales".', 'warning')
+            flash(f'¡Empresa "{company.name}" creada exitosamente! Usuario admin: {admin_user.username}, contraseña inicial: {temp_password}. IMPORTANTE: Cambia la contraseña usando "Credenciales".', 'warning')
             return redirect(url_for('admin.manage_companies'))
         except IntegrityError as e:
             db.session.rollback()
