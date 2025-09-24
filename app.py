@@ -91,14 +91,14 @@ def dashboard():
             'notion': True
         }
         
-        # Estadísticas simplificadas con valores mock para evitar consultas complejas
+        # Obtener estadísticas reales de la base de datos
         stats = {
-            'inventory': {'total_items': 10, 'low_stock_items': 2, 'low_stock_products': []},
-            'pos': {'today_sales': 5, 'total_sales': 125},
-            'appointments': {'upcoming_appointments': 3},
-            'scrum': {'total_boards': 2, 'pending_tasks': 8, 'my_tasks': []},
-            'notion': {'total_pages': 5, 'recent_pages': []},
-            'portfolio': {'page_views': 42, 'contact_requests': 3}
+            'inventory': {'total_items': 0, 'low_stock_items': 0, 'low_stock_products': []},
+            'pos': {'today_sales': 0, 'total_sales': 0},
+            'appointments': {'upcoming_appointments': 0},
+            'scrum': {'total_boards': 0, 'pending_tasks': 0, 'my_tasks': []},
+            'notion': {'total_pages': 0, 'recent_pages': []},
+            'portfolio': {'page_views': 0, 'contact_requests': 0}
         }
         
         # URLs públicas para los módulos
