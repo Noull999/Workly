@@ -143,7 +143,7 @@
         {% endif %}
 
         <!-- Páginas Públicas (si están activas) -->
-        {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio)) or ((current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments)) %}
+        {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio)) or ((current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments)) or (current_user.email == 'yangprroo@gmail.com') %}
         <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
             <div class="card border-left-warning shadow h-100 py-2 stat-card">
                 <div class="card-body">
@@ -151,10 +151,26 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Páginas Públicas</div>
                             <div class="h6 mb-0 font-weight-bold text-gray-800">
-                                {% if company.module_portfolio %}Portfolio{% endif %}
-                                {% if company.module_appointments %}{{ " + Reservas" if company.module_portfolio else "Reservas" }}{% endif %}
+                                {% if current_user.email == 'yangprroo@gmail.com' %}
+                                    Mi Página Personal
+                                {% else %}
+                                    {% if company.module_portfolio %}Portfolio{% endif %}
+                                    {% if company.module_appointments %}{{ " + Reservas" if company.module_portfolio else "Reservas" }}{% endif %}
+                                {% endif %}
                             </div>
+                            
+                            {% if current_user.email == 'yangprroo@gmail.com' %}
+                            <div class="mt-2">
+                                <a href="{{ url_for('public.yanglee_page') }}" target="_blank" class="btn btn-warning btn-sm me-1">
+                                    <i class="fas fa-external-link-alt me-1"></i>Ver
+                                </a>
+                                <button class="btn btn-outline-warning btn-sm" onclick="copyPublicUrl()" title="Copiar URL">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            {% else %}
                             <small class="text-muted">Activas para clientes</small>
+                            {% endif %}
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-globe fa-2x text-gray-300"></i>
