@@ -1,9 +1,10 @@
 from flask import render_template, redirect, url_for, flash, request
 from datetime import datetime
 from . import public
-from models import Company, Service, Appointment
+from models import Company, Service, Appointment, User, PublicPage
 from forms import PublicAppointmentForm
 from app import db
+import json
 
 @public.route('/empresa/<company_code>')
 def portfolio(company_code):
@@ -61,3 +62,59 @@ def booking_confirmation(company_code, appointment_id):
     
     return render_template('public/booking_confirmation.html', 
                          company=company, appointment=appointment)
+
+@public.route('/yanglee')
+def yanglee_page():
+    """Página pública personalizada de Yanglee"""
+    # Buscar usuario Yanglee
+    user = User.query.filter_by(email='yangprroo@gmail.com').first_or_404()
+    
+    # Buscar su página pública
+    public_page = PublicPage.query.filter_by(user_id=user.id).first()
+    
+    if not public_page:
+        # Si no existe, crear una página por defecto
+        public_page = PublicPage()
+        public_page.user_id = user.id
+        public_page.title = "Página oficial de Yanglee"
+        public_page.description = "Bienvenido a mi página personal. Aquí encontrarás contenido exclusivo y novedades."
+        public_page.primary_color = "#ff6600"
+        public_page.secondary_color = "#1a1a1a"
+        public_page.background_type = "gradient"
+        public_page.background_value = "linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%)"
+        public_page.social_links = json.dumps({
+            "twitch": "https://twitch.tv/yanglee",
+            "youtube": "https://youtube.com/@yanglee",
+            "twitter": "https://twitter.com/yanglee",
+            "instagram": "https://instagram.com/yanglee"
+        })
+        public_page.sections = json.dumps({
+            "bio": True,
+            "clips": True,
+            "gallery": True,
+            "contact": True
+        })
+        db.session.add(public_page)
+        db.session.commit()
+    
+    # Procesar JSON para el template
+    social_links = {}
+    sections = {}
+    
+    try:
+        if public_page.social_links:
+            social_links = json.loads(public_page.social_links)
+    except:
+        social_links = {}
+    
+    try:
+        if public_page.sections:
+            sections = json.loads(public_page.sections)
+    except:
+        sections = {}
+    
+    return render_template('public/public_page.html', 
+                         user=user, 
+                         page=public_page,
+                         social_links=social_links,
+                         sections=sections)
