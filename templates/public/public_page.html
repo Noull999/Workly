@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }}</title>
+    <meta name="description" content="{{ page.description }}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: {{ page.primary_color }};
+            --secondary-color: {{ page.secondary_color }};
+            --text-light: #ffffff;
+            --text-dark: #333333;
+            --gradient-bg: {{ page.background_value if page.background_type == 'gradient' else 'linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%)' }};
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-light);
+            {% if page.background_type == 'color' %}
+            background-color: {{ page.background_value or page.secondary_color }};
+            {% elif page.background_type == 'gradient' %}
+            background: var(--gradient-bg);
+            {% elif page.background_type == 'image' and page.background_value %}
+            background-image: url('{{ page.background_value }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            {% else %}
+            background: var(--gradient-bg);
+            {% endif %}
+            min-height: 100vh;
+        }
+
+        /* Animaciones */
+        {% if page.animations_enabled %}
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 1s ease-in forwards;
+        }
+
+        .slide-up {
+            opacity: 0;
+            transform: translateY(50px);
+            animation: slideUp 0.8s ease-out forwards;
+        }
+
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        {% endif %}
+
+        /* Header Hero Section */
+        .hero-section {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            {% if page.banner_image_url %}
+            background-image: url('{{ page.banner_image_url }}');
+            background-size: cover;
+            background-position: center;
+            {% endif %}
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .profile-image {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 5px solid var(--primary-color);
+            margin: 0 auto 2rem;
+            {% if page.profile_image_url %}
+            background-image: url('{{ page.profile_image_url }}');
+            background-size: cover;
+            background-position: center;
+            {% else %}
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+            {% endif %}
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: var(--primary-color);
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-color);
+        }
+
+        .cta-button:hover {
+            background: transparent;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sections */
+        .section {
+            padding: 5rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--text-light);
+        }
+
+        /* Social Links */
+        .social-links {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 2rem 0;
+        }
+
+        .social-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .social-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-light);
+        }
+
+        .social-item:hover {
+            background: var(--primary-color);
+            color: var(--text-light);
+            transform: translateY(-5px);
+        }
+
+        .social-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* Clips/Gallery Section */
+        .clips-section {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .clips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .clip-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .clip-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .clip-placeholder {
+            height: 200px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .clip-content {
+            padding: 1.5rem;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .contact-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-email {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-button {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 12px 30px;
+            background: var(--primary-color);
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .contact-button:hover {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .profile-image {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .section {
+                padding: 3rem 0;
+            }
+            
+            .social-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .clips-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero-section fade-in">
+        <div class="hero-banner"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="profile-image">
+                {% if not page.profile_image_url %}
+                <i class="fas fa-user"></i>
+                {% endif %}
+            </div>
+            <h1 class="hero-title">{{ page.title }}</h1>
+            <p class="hero-subtitle">{{ page.description or 'Bienvenido a mi página personal. Aquí encontrarás contenido exclusivo y novedades.' }}</p>
+            
+            {% if social_links.twitch %}
+            <a href="{{ social_links.twitch }}" target="_blank" class="cta-button hover-scale">
+                <i class="fab fa-twitch me-2"></i>Ver en Twitch
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <div class="container-fluid">
+        <!-- Social Links Section -->
+        {% if sections.get('bio', True) and social_links %}
+        <section class="section slide-up">
+            <div class="container">
+                <h2 class="section-title">Sígueme en Redes</h2>
+                <div class="social-links">
+                    <div class="social-grid">
+                        {% if social_links.twitch %}
+                        <a href="{{ social_links.twitch }}" target="_blank" class="social-item hover-scale">
+                            <i class="fab fa-twitch social-icon" style="color: #9146ff;"></i>
+                            <div>Twitch</div>
+                        </a>
+                        {% endif %}
+                        
+                        {% if social_links.youtube %}
+                        <a href="{{ social_links.youtube }}" target="_blank" class="social-item hover-scale">
+                            <i class="fab fa-youtube social-icon" style="color: #ff0000;"></i>
+                            <div>YouTube</div>
+                        </a>
+                        {% endif %}
+                        
+                        {% if social_links.twitter %}
+                        <a href="{{ social_links.twitter }}" target="_blank" class="social-item hover-scale">
+                            <i class="fab fa-twitter social-icon" style="color: #1da1f2;"></i>
+                            <div>Twitter</div>
+                        </a>
+                        {% endif %}
+                        
+                        {% if social_links.instagram %}
+                        <a href="{{ social_links.instagram }}" target="_blank" class="social-item hover-scale">
+                            <i class="fab fa-instagram social-icon" style="color: #e4405f;"></i>
+                            <div>Instagram</div>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Clips/Gallery Section -->
+        {% if sections.get('clips', True) %}
+        <section class="section clips-section slide-up">
+            <div class="container">
+                <h2 class="section-title">Clips Destacados</h2>
+                <div class="clips-grid">
+                    <div class="clip-item hover-scale">
+                        <div class="clip-placeholder">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="clip-content">
+                            <h4>Clip Épico #1</h4>
+                            <p>Una jugada increíble que no te puedes perder.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="clip-item hover-scale">
+                        <div class="clip-placeholder">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="clip-content">
+                            <h4>Momento Divertido</h4>
+                            <p>Los mejores momentos de diversión en stream.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="clip-item hover-scale">
+                        <div class="clip-placeholder">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="clip-content">
+                            <h4>Gameplay Destacado</h4>
+                            <p>Gameplay de alto nivel y estrategias únicas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Contact Section -->
+        {% if sections.get('contact', True) %}
+        <section class="section contact-section slide-up">
+            <div class="container">
+                <h2 class="section-title">Contacto</h2>
+                <div class="contact-card">
+                    <i class="fas fa-envelope fa-3x mb-3" style="color: var(--primary-color);"></i>
+                    <h4>¿Tienes alguna consulta?</h4>
+                    <p class="mb-3">No dudes en contactarme directamente</p>
+                    <a href="mailto:{{ user.email }}" class="contact-email">{{ user.email }}</a>
+                    <br>
+                    <a href="mailto:{{ user.email }}?subject=Contacto%20desde%20página%20web" class="contact-button hover-scale">
+                        <i class="fas fa-paper-plane me-2"></i>Enviar Mensaje
+                    </a>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-4" style="background: rgba(0, 0, 0, 0.8);">
+        <div class="container">
+            <p class="mb-0">&copy; 2024 {{ page.title }}. Todos los derechos reservados.</p>
+            <p class="mb-0 mt-2">
+                <small>Desarrollado con ❤️ por Workly</small>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% if page.animations_enabled %}
+    <script>
+        // Intersection Observer para animaciones de scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = '0.1s';
+                    entry.target.classList.add('slide-up');
+                }
+            });
+        });
+
+        // Observar elementos con animación
+        document.querySelectorAll('.slide-up').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Efecto parallax suave para el fondo
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.hero-banner');
+            if (parallax) {
+                parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        });
+    </script>
+    {% endif %}
+
+</body>
+</html>
