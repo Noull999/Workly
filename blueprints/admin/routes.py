@@ -128,7 +128,9 @@ def edit_company(company_id):
             else:
                 flash('Error al actualizar la empresa. Verifica que todos los datos sean únicos.', 'danger')
     
-    return render_template('admin/edit_company.html', form=form, company=company)
+    # Obtener credenciales del admin para mostrar
+    admin_user = User.query.filter_by(company_id=company_id, role='admin_empresa').first()
+    return render_template('admin/edit_company.html', form=form, company=company, admin_user=admin_user)
 
 @admin.route('/edit_admin_credentials/<int:company_id>', methods=['GET', 'POST'])
 @login_required
@@ -182,6 +184,32 @@ def edit_admin_credentials(company_id):
         return redirect(url_for('admin.manage_companies'))
     
     return render_template('admin/edit_admin_credentials.html', form=form, company=company, admin_user=admin_user)
+
+@admin.route('/reset_admin_password/<int:company_id>', methods=['POST'])
+@login_required
+@admin_global_required
+def reset_admin_password(company_id):
+    """Resetear contraseña del administrador de empresa a la predeterminada"""
+    company = Company.query.get_or_404(company_id)
+    
+    # Buscar el administrador de la empresa
+    admin_user = User.query.filter_by(company_id=company_id, role='admin_empresa').first()
+    if not admin_user:
+        flash('No se encontró un administrador para esta empresa.', 'danger')
+        return redirect(url_for('admin.manage_companies'))
+    
+    # Generar la contraseña predeterminada 
+    default_password = f"{company.name.lower().replace(' ', '')}123"
+    admin_user.set_password(default_password)
+    
+    try:
+        db.session.commit()
+        flash(f'¡Contraseña del administrador de "{company.name}" reseteada! Usuario: {admin_user.username}, nueva contraseña: {default_password}', 'warning')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al resetear la contraseña. Inténtalo de nuevo.', 'danger')
+    
+    return redirect(url_for('admin.manage_companies'))
 
 @admin.route('/users', methods=['GET', 'POST'])
 @login_required

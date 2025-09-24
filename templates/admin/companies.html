@@ -107,7 +107,7 @@
                                 <li>Un código único de empresa</li>
                                 <li>Un administrador con usuario: admin_[código]</li>
                                 <li>Un almacén principal</li>
-                                <li>Contraseña: generada aleatoriamente (mostrada una vez)</li>
+                                <li>Contraseña inicial: [nombreempresa]123 (debe cambiarse)</li>
                             </ul>
                         </small>
                     </div>
@@ -174,6 +174,12 @@
                                                 <a href="{{ url_for('admin.edit_admin_credentials', company_id=company.id) }}" class="btn btn-outline-info" title="Editar Credenciales del Admin">
                                                     <i class="fas fa-user-cog"></i>
                                                 </a>
+                                                <form method="POST" action="{{ url_for('admin.reset_admin_password', company_id=company.id) }}" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-outline-warning" onclick="return confirm('¿Resetear la contraseña del administrador de {{ company.name }} a la predeterminada?')" title="Resetear Contraseña Admin">
+                                                        <i class="fas fa-key"></i>
+                                                    </button>
+                                                </form>
                                                 <form method="POST" action="{{ url_for('admin.toggle_company_status', company_id=company.id) }}" class="d-inline">
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                     {% if company.is_active %}
