@@ -164,6 +164,31 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- Mi Página (específico para Yanglee) -->
+        {% if current_user.email == 'yangprroo@gmail.com' %}
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2 stat-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Mi Página Pública</div>
+                            <div class="h6 mb-2 font-weight-bold text-gray-800">URL para compartir</div>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" value="{{ request.url_root }}public/yanglee" id="publicUrlCopy" readonly>
+                                <button class="btn btn-outline-warning btn-sm" type="button" onclick="copyPublicUrl()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-globe fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Contenido específico por módulos -->
@@ -579,6 +604,41 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+
+        <!-- Panel Mi Página (específico para Yanglee) -->
+        {% if current_user.email == 'yangprroo@gmail.com' %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-globe me-2"></i>Mi Página Pública
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle fa-4x text-warning mb-3"></i>
+                        <h5 class="text-gray-900">Tu página personalizada está lista</h5>
+                        <p class="text-muted">Comparte tu página pública con tu audiencia y seguidores</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <a href="{{ url_for('public.yanglee_page') }}" target="_blank" class="btn btn-warning btn-lg me-2">
+                            <i class="fas fa-external-link-alt me-1"></i>Ver Mi Página
+                        </a>
+                        <button class="btn btn-outline-warning" onclick="copyPublicUrl()">
+                            <i class="fas fa-share-alt me-1"></i>Compartir URL
+                        </button>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>URL pública:</strong> 
+                        <code>{{ request.url_root }}public/yanglee</code>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -623,4 +683,41 @@
     color: white;
 }
 </style>
+
+<script>
+function copyPublicUrl() {
+    const urlInput = document.getElementById('publicUrlCopy');
+    const urlText = '{{ request.url_root }}public/yanglee';
+    
+    if (urlInput) {
+        // Si existe el input, seleccionar y copiar
+        urlInput.select();
+        urlInput.setSelectionRange(0, 99999); // Para móviles
+        document.execCommand('copy');
+    } else {
+        // Si no existe el input, copiar directamente el texto
+        navigator.clipboard.writeText(urlText).then(() => {
+            console.log('URL copiada al portapapeles');
+        });
+    }
+    
+    // Mostrar notificación visual
+    const button = event.target.closest('button');
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+    button.classList.add('btn-success');
+    button.classList.remove('btn-outline-warning', 'btn-warning');
+    
+    setTimeout(() => {
+        button.innerHTML = originalHtml;
+        button.classList.remove('btn-success');
+        if (button.closest('.card-body')) {
+            button.classList.add('btn-outline-warning');
+        } else {
+            button.classList.add('btn-outline-warning');
+        }
+    }, 2000);
+}
+</script>
+
 {% endblock %}
