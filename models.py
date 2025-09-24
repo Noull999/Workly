@@ -708,3 +708,27 @@ class CompletedTask(db.Model):
     
     def __repr__(self):
         return f'<CompletedTask {self.title[:30]}>'
+
+class PublicPage(db.Model):
+    """Página pública personalizada para usuarios específicos"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    title = db.Column(db.String(200), nullable=False, default='Página oficial de Yanglee')
+    description = db.Column(db.Text, nullable=True)  # Biografía corta editable
+    primary_color = db.Column(db.String(7), default='#ff6600')  # Color principal
+    secondary_color = db.Column(db.String(7), default='#1a1a1a')  # Color secundario
+    background_type = db.Column(db.String(20), default='color')  # color, gradient, image
+    background_value = db.Column(db.String(500), nullable=True)  # Valor según tipo
+    profile_image_url = db.Column(db.String(500), nullable=True)  # Avatar del usuario
+    banner_image_url = db.Column(db.String(500), nullable=True)  # Portada
+    social_links = db.Column(db.Text, nullable=True)  # JSON con redes sociales
+    sections = db.Column(db.Text, nullable=True)  # JSON con bloques configurables
+    animations_enabled = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('public_page', uselist=False))
+    
+    def __repr__(self):
+        return f'<PublicPage {self.title} - User {self.user_id}>'

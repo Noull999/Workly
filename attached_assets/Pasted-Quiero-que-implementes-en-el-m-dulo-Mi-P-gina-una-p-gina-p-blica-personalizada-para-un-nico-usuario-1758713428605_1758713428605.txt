@@ -1,0 +1,100 @@
+Quiero que implementes en el módulo Mi Página una página pública personalizada para un único usuario, el cual ya existe en la base de datos:
+
+Nombre de usuario: Yanglee
+
+Correo asociado: yangprroo@gmail.com
+
+Esta página debe estar vinculada únicamente a este usuario, para que sea fácil de ubicar y editar desde la base de datos.
+
+1. Modelo (models.py)
+
+Agrega el modelo PublicPage asociado al usuario:
+
+id
+
+user_id (FK a la tabla User)
+
+title → “Página oficial de Yanglee”
+
+description → Biografía corta editable
+
+primary_color → color principal (ej: #ff6600)
+
+secondary_color → color secundario (ej: #1a1a1a)
+
+background_type → (color, gradient, image)
+
+background_value → valor según tipo
+
+profile_image_url → avatar del streamer
+
+banner_image_url → portada
+
+social_links → JSON con redes sociales (twitch, youtube, twitter, etc.)
+
+sections → JSON con bloques configurables (bio, clips, galería, contacto)
+
+animations_enabled → boolean
+
+⚡ Este registro debe quedar asociado al user_id de Yanglee.
+
+2. Ruta (routes.py)
+
+Crear la ruta: /yanglee
+
+Debe renderizar la plantilla public_page.html
+
+Cargar los datos desde el modelo PublicPage del usuario yangprroo@gmail.com.
+
+3. Template (public_page.html)
+
+La página debe estar inspirada en TroyRewards
+, pero adaptada a Yanglee:
+
+Header:
+
+Banner animado con su banner_image_url.
+
+Foto de perfil circular.
+
+Título (title) + subtítulo (description).
+
+Botón CTA (ejemplo: “Ver en Twitch”).
+
+Sección Social Links:
+
+Lista de iconos enlazados a redes sociales desde social_links.
+
+Sección Clips/Galería:
+
+Grid responsiva con videos o imágenes del usuario.
+
+Sección Contacto:
+
+Mostrar el correo yangprroo@gmail.com.
+
+Botón de contacto o formulario básico.
+
+🎨 Estilo dinámico:
+
+Colores definidos en primary_color y secondary_color.
+
+Fondo con background_type.
+
+Animaciones si animations_enabled es true:
+
+fade-in al cargar.
+
+hover-scale en botones.
+
+slide-up en secciones.
+
+4. Extras
+
+Página responsive (móvil y escritorio).
+
+Optimizar imágenes de banner y avatar.
+
+Agregar animaciones suaves tipo fade-in y scroll-reveal.
+
+Guardar en DB como registro único vinculado a Yanglee.
