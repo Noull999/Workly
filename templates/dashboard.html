@@ -3,7 +3,7 @@
 {% block title %}Panel Principal - {{ company.name }}{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container container-dashboard">
     <!-- Título principal dinámico -->
     <div class="row">
         <div class="col-12">
@@ -18,8 +18,8 @@
     <div class="row mb-4">
         <!-- Inventario (si está activo) -->
         {% if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and company.module_inventory) %}
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -44,8 +44,8 @@
 
         <!-- POS (si está activo) -->
         {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos) %}
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-success shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -69,8 +69,8 @@
 
         <!-- Citas (si está activo) -->
         {% if (current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments) %}
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-info shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -94,8 +94,8 @@
 
         <!-- Scrum Lite (si está activo) -->
         {% if (current_user.is_admin_global() and current_user.admin_pref_scrum) or (not current_user.is_admin_global() and company.module_scrum) %}
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-purple shadow h-100 py-2">
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-purple shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -119,8 +119,8 @@
 
         <!-- Notion (si está activo) -->
         {% if (current_user.is_admin_global() and current_user.admin_pref_notion) or (not current_user.is_admin_global() and company.module_notion) %}
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-dark shadow h-100 py-2">
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-dark shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -144,8 +144,8 @@
 
         <!-- Páginas Públicas (si están activas) -->
         {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio)) or ((current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments)) %}
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -170,7 +170,7 @@
     <div class="row">
         <!-- Panel de inventario -->
         {% if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and company.module_inventory) %}
-        <div class="col-lg-6 mb-4">
+        <div class="col-lg-6 col-xl-7 col-xxl-8 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
@@ -242,7 +242,7 @@
 
         <!-- Panel POS -->
         {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos) %}
-        <div class="col-lg-6 mb-4">
+        <div class="col-lg-6 col-xl-5 col-xxl-4 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-success">

@@ -151,6 +151,52 @@
             border-radius: 10px;
             margin-left: 5px;
         }
+
+        /* Dashboard responsive improvements */
+        @media (min-width: 1400px) {
+            .container-dashboard {
+                max-width: 1600px;
+            }
+            
+            /* Stat cards improvements for large screens */
+            .stat-card .card-body {
+                padding: 1.25rem 1.5rem;
+            }
+            
+            .stat-card .fa-2x {
+                font-size: 2.75rem;
+            }
+            
+            .stat-card .h5 {
+                font-size: clamp(1.25rem, 1.1vw + 1rem, 1.75rem);
+            }
+            
+            .stat-card .text-xs {
+                font-size: 0.95rem;
+                letter-spacing: 0.02em;
+            }
+            
+            /* Module panels improvements */
+            .card-header {
+                padding: 1rem 1.25rem;
+            }
+            
+            .card-body {
+                padding: 1.25rem;
+            }
+            
+            /* Better button sizes */
+            .btn {
+                font-size: 0.95rem;
+                padding: 0.5rem 1rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .container-dashboard {
+                max-width: 1400px;
+            }
+        }
         
         /* Footer */
         .bg-dark {
