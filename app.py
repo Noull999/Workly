@@ -214,3 +214,8 @@ def register_all_blueprints():
 
 # Call blueprint registration
 register_all_blueprints()
+
+# Ruta especial para URL personalizada de Yanglee
+@app.route('/portfolio/yanglee')
+def portfolio_yanglee_redirect():
+    return redirect(url_for('public.yanglee_page'))

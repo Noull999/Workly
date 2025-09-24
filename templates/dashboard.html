@@ -505,7 +505,7 @@
                             
                             <!-- URL para copiar -->
                             <div class="input-group input-group-sm mb-2">
-                                <input type="text" class="form-control form-control-sm" value="{{ request.url_root }}public/yanglee" id="publicUrlCopy" readonly>
+                                <input type="text" class="form-control form-control-sm" value="{{ request.url_root }}portfolio/yanglee" id="publicUrlCopy" readonly>
                                 <button class="btn btn-outline-warning btn-sm" type="button" onclick="copyPublicUrl()" title="Copiar URL">
                                     <i class="fas fa-copy"></i>
                                 </button>
@@ -680,7 +680,7 @@
 <script>
 function copyPublicUrl() {
     const urlInput = document.getElementById('publicUrlCopy');
-    const urlText = '{{ request.url_root }}public/yanglee';
+    const urlText = '{{ request.url_root }}portfolio/yanglee';
     
     if (urlInput) {
         // Si existe el input, seleccionar y copiar
