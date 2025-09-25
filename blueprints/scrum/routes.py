@@ -57,7 +57,7 @@ def create_board():
             return redirect(url_for('scrum.create_board'))
         
         # Crear tablero
-        board = Board(
+        board = Board(  # type: ignore
             name=name,
             description=description,
             company_id=current_user.company_id
@@ -73,7 +73,7 @@ def create_board():
         ]
         
         for col_data in default_columns:
-            column = Column(
+            column = Column(  # type: ignore
                 name=col_data['name'],
                 position=col_data['position'],
                 color=col_data['color'],
@@ -107,7 +107,7 @@ def create_task(board_id, column_id):
     # Obtener siguiente posición
     max_position = db.session.query(func.max(Task.position)).filter_by(column_id=column_id).scalar() or 0
     
-    task = Task(
+    task = Task(  # type: ignore
         title=title,
         description=description,
         priority=priority,
