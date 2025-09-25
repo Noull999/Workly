@@ -175,7 +175,7 @@ def edit_page(slug):
         return redirect(url_for('notion.page', slug=slug))
     
     # Obtener bloques de la página
-    blocks = company_query(NotionBlock).filter_by(page_id=page.id).order_by(NotionBlock.order).all()
+    blocks = company_query(NotionBlock).filter_by(page_id=page.id).order_by(NotionBlock.position).all()
     
     # Inicializar formularios
     page_form = NotionPageForm(company_id=current_user.company_id, obj=page)
@@ -211,12 +211,12 @@ def edit_page(slug):
             
         elif action == 'add_block' and block_form.validate_on_submit():
             # Agregar nuevo bloque
-            next_order = len(blocks)
+            next_position = len(blocks)
             new_block = NotionBlock(
                 page_id=page.id,
                 block_type=block_form.block_type.data,
                 content=block_form.content.data,
-                order=next_order,
+                position=next_position,
                 company_id=current_user.company_id
             )
             db.session.add(new_block)
@@ -279,7 +279,7 @@ def edit_page(slug):
                     page_id=new_page.id,
                     block_type=block.block_type,
                     content=block.content,
-                    order=block.order,
+                    position=block.position,
                     company_id=current_user.company_id
                 )
                 db.session.add(new_block)
