@@ -432,3 +432,90 @@ def toggle_checklist_item(item_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
+
+@notion.route('/checklist/<int:checklist_id>/clear-completed', methods=['POST'])
+@login_required
+@module_required('notion')
+def clear_completed_checklist_items(checklist_id):
+    """Eliminar todas las tareas completadas de un checklist"""
+    try:
+        checklist = company_query(NotionChecklist).filter_by(id=checklist_id).first_or_404()
+        
+        # Buscar y eliminar tareas completadas
+        completed_items = company_query(NotionChecklistItem).filter_by(
+            checklist_id=checklist_id, 
+            is_completed=True
+        ).all()
+        
+        count = len(completed_items)
+        for item in completed_items:
+            db.session.delete(item)
+        
+        db.session.commit()
+        
+        log_audit('notion', f'{count} tareas completadas eliminadas del checklist: {checklist.title}', current_user.id, current_user.company_id)
+        
+        return jsonify({
+            'success': True, 
+            'message': f'{count} tareas completadas eliminadas',
+            'deleted_count': count
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+
+@notion.route('/checklist-item/<int:item_id>/delete', methods=['POST'])
+@login_required
+@module_required('notion')
+def delete_checklist_item(item_id):
+    """Eliminar una tarea específica del checklist"""
+    try:
+        item = company_query(NotionChecklistItem).filter_by(id=item_id).first_or_404()
+        item_content = item.content
+        
+        db.session.delete(item)
+        db.session.commit()
+        
+        log_audit('notion', f'Tarea eliminada: {item_content}', current_user.id, current_user.company_id)
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Tarea eliminada exitosamente'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+
+@notion.route('/checklist-item/<int:item_id>/edit', methods=['POST'])
+@login_required
+@module_required('notion')
+def edit_checklist_item(item_id):
+    """Editar una tarea específica del checklist"""
+    try:
+        item = company_query(NotionChecklistItem).filter_by(id=item_id).first_or_404()
+        
+        data = request.get_json()
+        new_content = data.get('content', '').strip()
+        
+        if not new_content:
+            return jsonify({'success': False, 'message': 'El contenido no puede estar vacío'})
+        
+        old_content = item.content
+        item.content = new_content
+        item.updated_at = datetime.now()
+        
+        db.session.commit()
+        
+        log_audit('notion', f'Tarea editada: "{old_content}" → "{new_content}"', current_user.id, current_user.company_id)
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Tarea actualizada exitosamente',
+            'new_content': new_content
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
