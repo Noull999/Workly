@@ -396,4 +396,39 @@ def edit_checklist(checklist_id):
         flash('Checklist actualizado exitosamente', 'success')
         return redirect(url_for('notion.checklist', checklist_id=checklist.id))
     
-    return redirect(url_for('notion.checklist', checklist_id=checklist.id))
+    return render_template('modules/notion/edit_checklist.html', 
+                         form=form, 
+                         checklist=checklist, 
+                         company=current_user.company)
+
+@notion.route('/checklist-item/<int:item_id>/toggle', methods=['POST'])
+@login_required
+@module_required('notion')
+def toggle_checklist_item(item_id):
+    """Alternar estado de completado de item de checklist via AJAX"""
+    try:
+        # Obtener el item del checklist
+        item = company_query(NotionChecklistItem).filter_by(id=item_id).first_or_404()
+        
+        # Alternar estado de completado
+        item.is_completed = not item.is_completed
+        item.completed_at = datetime.now() if item.is_completed else None
+        item.completed_by_id = current_user.id if item.is_completed else None
+        item.updated_at = datetime.now()
+        
+        db.session.commit()
+        
+        # Log audit
+        status = "completada" if item.is_completed else "marcada como pendiente"
+        log_audit('notion', f'Tarea {status}: {item.content}', current_user.id, current_user.company_id)
+        
+        return jsonify({
+            'success': True, 
+            'is_completed': item.is_completed,
+            'completed_by': current_user.username if item.is_completed else None,
+            'completed_at': item.completed_at.strftime('%d/%m/%Y') if item.completed_at else None
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
