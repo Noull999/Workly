@@ -97,7 +97,7 @@ def dashboard():
             'pos': {'today_sales': 0, 'total_sales': 0},
             'appointments': {'upcoming_appointments': 0},
             'scrum': {'total_boards': 0, 'pending_tasks': 0, 'my_tasks': []},
-            'notion': {'total_pages': 0, 'recent_pages': []},
+            'notion': {'total_pages': 0, 'recent_pages': [], 'active_checklists': 0},
             'portfolio': {'page_views': 0, 'contact_requests': 0}
         }
         
