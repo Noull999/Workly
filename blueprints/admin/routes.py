@@ -54,7 +54,7 @@ def manage_companies():
         # Generar código único
         code = Company.generate_code()
         
-        company = Company(
+        company = Company(  # type: ignore
             name=form.name.data,
             code=code,
             company_email=form.company_email.data,
@@ -66,7 +66,7 @@ def manage_companies():
         db.session.flush()  # Get company ID
         
         # Crear admin automático para la empresa
-        admin_user = User(
+        admin_user = User(  # type: ignore
             username=f"admin_{code.lower()}",
             email=f"admin@{company.name.lower().replace(' ', '')}.com",
             role='admin_empresa',
@@ -78,7 +78,7 @@ def manage_companies():
         db.session.add(admin_user)
         
         # Crear almacén principal automático
-        warehouse = Warehouse(
+        warehouse = Warehouse(  # type: ignore
             name='Almacén Principal',
             code='MAIN',
             address='Almacén principal de la empresa',
@@ -272,7 +272,7 @@ def manage_users():
         elif existing_username:
             flash('El nombre de usuario ya existe en esta empresa.', 'danger')
         else:
-            user = User(
+            user = User(  # type: ignore
                 username=form.username.data,
                 email=form.email.data,
                 role=form.role.data,
