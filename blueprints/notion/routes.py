@@ -145,7 +145,7 @@ def new_checklist():
     
     return render_template('modules/notion/new_checklist.html', form=form, company=current_user.company)
 
-@notion.route('/checklist/<int:checklist_id>')
+@notion.route('/checklist/<int:checklist_id>', methods=['GET', 'POST'])
 @login_required
 @module_required('notion')
 def checklist(checklist_id):
@@ -153,9 +153,32 @@ def checklist(checklist_id):
     checklist = company_query(NotionChecklist).filter_by(id=checklist_id).first_or_404()
     items = company_query(NotionChecklistItem).filter_by(checklist_id=checklist_id).order_by(NotionChecklistItem.position).all()
     
+    # Formulario para agregar nuevos items
+    form = NotionChecklistItemForm(company_id=current_user.company_id)
+    
+    if request.method == 'POST' and form.validate_on_submit():
+        # Agregar nuevo item al checklist
+        next_position = len(items)
+        new_item = NotionChecklistItem(
+            content=form.content.data,
+            checklist_id=checklist.id,
+            assignee_id=form.assignee_id.data if form.assignee_id.data != 0 else None,
+            due_date=form.due_date.data,
+            position=next_position,
+            company_id=current_user.company_id
+        )
+        
+        db.session.add(new_item)
+        db.session.commit()
+        
+        log_audit('notion', f'Item agregado al checklist: {checklist.title}', current_user.id, current_user.company_id)
+        flash('Tarea agregada exitosamente', 'success')
+        return redirect(url_for('notion.checklist', checklist_id=checklist.id))
+    
     return render_template('modules/notion/checklist.html', 
                          checklist=checklist, 
                          items=items,
+                         form=form,
                          company=current_user.company)
 
 @notion.route('/page/<slug>/edit', methods=['GET', 'POST'])
