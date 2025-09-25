@@ -465,6 +465,149 @@ function showNotification(message, type) {
         }
     }, 3000);
 }
+
+function clearCompletedTasks() {
+    if (!confirm('¿Estás seguro de que quieres eliminar todas las tareas completadas? Esta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    const checklistId = new URLSearchParams(window.location.search).get('id') || window.location.pathname.split('/').pop();
+    
+    fetch(`/notion/checklist/${checklistId}/clear-completed`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Eliminar todas las tareas completadas del DOM
+            const completedSection = document.querySelector('.completed-tasks');
+            if (completedSection) {
+                completedSection.remove();
+            }
+            
+            showNotification(data.message, 'success');
+            
+            // Actualizar barra de progreso
+            updateProgressAfterDeletion();
+        } else {
+            showNotification('Error al eliminar las tareas completadas', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al eliminar las tareas completadas', 'danger');
+    });
+}
+
+function deleteTask(itemId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta tarea? Esta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    fetch(`/notion/checklist-item/${itemId}/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Eliminar elemento del DOM
+            const taskElement = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (taskElement) {
+                taskElement.remove();
+            }
+            
+            showNotification(data.message, 'success');
+            
+            // Actualizar barra de progreso
+            updateProgressAfterDeletion();
+        } else {
+            showNotification('Error al eliminar la tarea', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al eliminar la tarea', 'danger');
+    });
+}
+
+function editTask(itemId, currentContent) {
+    const newContent = prompt('Editar tarea:', currentContent);
+    
+    if (newContent === null || newContent.trim() === '') {
+        return;
+    }
+    
+    if (newContent.trim() === currentContent.trim()) {
+        return;
+    }
+    
+    fetch(`/notion/checklist-item/${itemId}/edit`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({
+            content: newContent.trim()
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar contenido en el DOM
+            const taskContent = document.querySelector(`[data-item-id="${itemId}"].task-content`);
+            if (taskContent) {
+                taskContent.textContent = data.new_content;
+            }
+            
+            // Actualizar onclick del botón de editar
+            const editButton = document.querySelector(`[onclick="editTask(${itemId}, '${currentContent}')"]`);
+            if (editButton) {
+                editButton.setAttribute('onclick', `editTask(${itemId}, '${data.new_content}')`);
+            }
+            
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.message || 'Error al editar la tarea', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al editar la tarea', 'danger');
+    });
+}
+
+function updateProgressAfterDeletion() {
+    // Contar tareas restantes
+    const allTasks = document.querySelectorAll('[data-item-id]');
+    const completedTasks = document.querySelectorAll('.completed-tasks [data-item-id]');
+    
+    const total = allTasks.length;
+    const completed = completedTasks.length;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    // Actualizar barra de progreso
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        progressBar.style.width = percent + '%';
+        progressBar.textContent = percent + '%';
+        progressBar.setAttribute('aria-valuenow', percent);
+    }
+    
+    // Actualizar texto de progreso
+    const progressText = document.querySelector('.progress').nextElementSibling;
+    if (progressText) {
+        progressText.innerHTML = `<strong>${completed}</strong> de <strong>${total}</strong> completadas`;
+    }
+}
 </script>
 
 {% endblock %}
