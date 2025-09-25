@@ -1,6 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from datetime import datetime
+import json
 from . import notion
 from ..decorators import module_required
 from models import NotionPage, NotionBlock, NotionPermission, NotionChecklist, NotionChecklistItem, ModuleLink
@@ -296,6 +297,60 @@ def edit_page(slug):
                          block_action_form=block_action_form,
                          delete_form=delete_form,
                          company=current_user.company)
+
+@notion.route('/block/<int:block_id>/checklist-item', methods=['POST'])
+@login_required
+@module_required('notion')
+def update_checklist_item(block_id):
+    """Actualizar estado de item de checklist via AJAX"""
+    try:
+        # Obtener el bloque
+        block = company_query(NotionBlock).filter_by(id=block_id).first_or_404()
+        
+        # Verificar que es un checklist
+        if block.block_type != 'checklist':
+            return jsonify({'success': False, 'message': 'Block is not a checklist'})
+        
+        # Obtener datos del request
+        data = request.get_json()
+        item_index = data.get('item_index')
+        is_checked = data.get('is_checked')
+        
+        if item_index is None or is_checked is None:
+            return jsonify({'success': False, 'message': 'Missing required parameters'})
+        
+        # Obtener o crear properties
+        if block.properties:
+            properties = json.loads(block.properties)
+        else:
+            properties = {}
+        
+        # Obtener lista de items marcados
+        checked_items = properties.get('checked_items', [])
+        
+        # Actualizar estado
+        if is_checked:
+            if item_index not in checked_items:
+                checked_items.append(item_index)
+        else:
+            if item_index in checked_items:
+                checked_items.remove(item_index)
+        
+        # Guardar cambios
+        properties['checked_items'] = checked_items
+        block.properties = json.dumps(properties)
+        block.updated_at = datetime.now()
+        
+        db.session.commit()
+        
+        # Log audit
+        log_audit('notion', f'Checklist item updated in block {block_id}', current_user.id, current_user.company_id)
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
 
 @notion.route('/checklist/<int:checklist_id>/edit', methods=['GET', 'POST'])
 @login_required

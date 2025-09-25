@@ -162,12 +162,20 @@
                                             {% endfor %}
                                         </ul>
                                     {% elif block.block_type == 'checklist' %}
-                                        <div class="checklist">
+                                        <div class="checklist" data-block-id="{{ block.id }}">
+                                            {% set properties = block.properties|from_json if block.properties else {} %}
+                                            {% set checked_items = properties.get('checked_items', []) %}
                                             {% for item in block.content.split('\n') %}
                                                 {% if item.strip() %}
+                                                {% set loop_index = loop.index0 %}
                                                 <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox">
-                                                    <label class="form-check-label">{{ item.strip() }}</label>
+                                                    <input class="form-check-input checklist-item" 
+                                                           type="checkbox" 
+                                                           data-block-id="{{ block.id }}" 
+                                                           data-item-index="{{ loop_index }}"
+                                                           {% if loop_index in checked_items %}checked{% endif %}
+                                                           onchange="updateChecklistItem({{ block.id }}, {{ loop_index }}, this.checked)">
+                                                    <label class="form-check-label {% if loop_index in checked_items %}text-decoration-line-through text-muted{% endif %}">{{ item.strip() }}</label>
                                                 </div>
                                                 {% endif %}
                                             {% endfor %}
@@ -298,5 +306,45 @@ function setupAutoSave() {
 }
 
 document.addEventListener('DOMContentLoaded', setupAutoSave);
+
+// Función para actualizar estado de checkboxes en checklists
+function updateChecklistItem(blockId, itemIndex, isChecked) {
+    fetch(`/notion/block/${blockId}/checklist-item`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            item_index: itemIndex,
+            is_checked: isChecked
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar visual del label
+            const checkbox = document.querySelector(`input[data-block-id="${blockId}"][data-item-index="${itemIndex}"]`);
+            const label = checkbox.nextElementSibling;
+            
+            if (isChecked) {
+                label.classList.add('text-decoration-line-through', 'text-muted');
+            } else {
+                label.classList.remove('text-decoration-line-through', 'text-muted');
+            }
+        } else {
+            console.error('Error updating checklist item:', data.message);
+            // Revertir checkbox si hubo error
+            const checkbox = document.querySelector(`input[data-block-id="${blockId}"][data-item-index="${itemIndex}"]`);
+            checkbox.checked = !isChecked;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Revertir checkbox si hubo error
+        const checkbox = document.querySelector(`input[data-block-id="${blockId}"][data-item-index="${itemIndex}"]`);
+        checkbox.checked = !isChecked;
+    });
+}
 </script>
 {% endblock %}

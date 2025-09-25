@@ -52,7 +52,16 @@ def nl2br(value):
     import re
     return Markup(re.sub(r'\n', '<br>', str(value)))
 
+def from_json(value):
+    """Parse JSON string to Python object."""
+    import json
+    try:
+        return json.loads(value) if value else {}
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
 app.jinja_env.filters['nl2br'] = nl2br
+app.jinja_env.filters['from_json'] = from_json
 
 with app.app_context():
     # Import models to ensure tables are created
