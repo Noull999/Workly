@@ -101,14 +101,51 @@ def dashboard():
         }
         
         # Obtener estadísticas reales de la base de datos
-        stats = {
-            'inventory': {'total_items': 0, 'low_stock_items': 0, 'low_stock_products': []},
-            'pos': {'today_sales': 0, 'total_sales': 0},
-            'appointments': {'upcoming_appointments': 0},
-            'scrum': {'total_boards': 0, 'pending_tasks': 0, 'my_tasks': []},
-            'notion': {'total_pages': 0, 'recent_pages': [], 'active_checklists': 0},
-            'portfolio': {'page_views': 0, 'contact_requests': 0}
-        }
+        if company:
+            from models import InventoryItem, Sale, SaleItem, Appointment, Board, Task, NotionPage, NotionChecklistItem
+            from datetime import datetime, date
+            from utils import company_query
+            
+            # Estadísticas de Inventario
+            total_items = company_query(InventoryItem).count()
+            low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= 5).count()
+            low_stock_products = company_query(InventoryItem).filter(InventoryItem.quantity <= 5).limit(5).all()
+            
+            # Estadísticas de POS
+            today = date.today()
+            today_sales = company_query(Sale).filter(Sale.created_at >= datetime.combine(today, datetime.min.time())).count()
+            total_sales = company_query(Sale).count()
+            
+            # Estadísticas de Citas
+            upcoming_appointments = company_query(Appointment).filter(Appointment.appointment_date >= datetime.now()).count()
+            
+            # Estadísticas de Scrum
+            total_boards = company_query(Board).filter_by(is_active=True).count()
+            pending_tasks = company_query(Task).filter(Task.status.in_(['to_do', 'in_progress'])).count()
+            my_tasks = company_query(Task).filter_by(assignee_id=current_user.id).filter(Task.status != 'done').limit(5).all()
+            
+            # Estadísticas de Notion
+            total_pages = company_query(NotionPage).count()
+            recent_pages = company_query(NotionPage).order_by(NotionPage.updated_at.desc()).limit(5).all()
+            active_checklists = company_query(NotionChecklistItem).filter_by(is_completed=False).count()
+            
+            stats = {
+                'inventory': {'total_items': total_items, 'low_stock_items': low_stock_items, 'low_stock_products': low_stock_products},
+                'pos': {'today_sales': today_sales, 'total_sales': total_sales},
+                'appointments': {'upcoming_appointments': upcoming_appointments},
+                'scrum': {'total_boards': total_boards, 'pending_tasks': pending_tasks, 'my_tasks': my_tasks},
+                'notion': {'total_pages': total_pages, 'recent_pages': recent_pages, 'active_checklists': active_checklists},
+                'portfolio': {'page_views': 0, 'contact_requests': 0}  # Estos podrían calcularse si hay modelos para ello
+            }
+        else:
+            stats = {
+                'inventory': {'total_items': 0, 'low_stock_items': 0, 'low_stock_products': []},
+                'pos': {'today_sales': 0, 'total_sales': 0},
+                'appointments': {'upcoming_appointments': 0},
+                'scrum': {'total_boards': 0, 'pending_tasks': 0, 'my_tasks': []},
+                'notion': {'total_pages': 0, 'recent_pages': [], 'active_checklists': 0},
+                'portfolio': {'page_views': 0, 'contact_requests': 0}
+            }
         
         # URLs públicas para los módulos
         public_urls = {
