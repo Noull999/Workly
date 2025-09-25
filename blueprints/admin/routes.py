@@ -229,7 +229,14 @@ def view_admin_credentials(company_id):
     company = Company.query.get_or_404(company_id)
     
     # Buscar el administrador de la empresa
+    # Para empresas normales: role='admin_empresa'
+    # Para empresa Workly (superadmin): role='admin_global'
     admin_user = User.query.filter_by(company_id=company_id, role='admin_empresa').first()
+    
+    # Si no encuentra admin_empresa, buscar admin_global (caso Workly)
+    if not admin_user:
+        admin_user = User.query.filter_by(company_id=company_id, role='admin_global').first()
+    
     if not admin_user:
         flash('No se encontró un administrador para esta empresa.', 'danger')
         return redirect(url_for('admin.manage_companies'))
