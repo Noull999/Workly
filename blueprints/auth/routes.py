@@ -11,7 +11,11 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        # Permitir login con username o email
+        username_or_email = form.username.data
+        user = User.query.filter(
+            (User.username == username_or_email) | (User.email == username_or_email)
+        ).first()
         if user and user.check_password(form.password.data):
             login_user(user)
             next_page = request.args.get('next')
