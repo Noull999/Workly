@@ -241,13 +241,50 @@ def view_admin_credentials(company_id):
         flash('No se encontró un administrador para esta empresa.', 'danger')
         return redirect(url_for('admin.manage_companies'))
     
-    # Generar contraseña de acceso temporal para soporte
-    support_password = f"{company.name.lower().replace(' ', '')}123"
+    # No generar contraseña adivinada - mostrar info real del usuario
+    # La contraseña se mostrará solo si se resetea para soporte
+    reset_password = None
+    show_reset_option = True
     
     return render_template('admin/view_admin_credentials.html', 
                          company=company, 
                          admin_user=admin_user,
-                         support_password=support_password)
+                         reset_password=reset_password,
+                         show_reset_option=show_reset_option)
+
+@admin.route('/reset_for_support/<int:company_id>', methods=['POST'])
+@login_required
+@admin_global_required
+def reset_for_support(company_id):
+    """Resetear contraseña del administrador específicamente para acceso de soporte"""
+    company = Company.query.get_or_404(company_id)
+    
+    # Buscar el administrador de la empresa
+    admin_user = User.query.filter_by(company_id=company_id, role='admin_empresa').first()
+    if not admin_user:
+        admin_user = User.query.filter_by(company_id=company_id, role='admin_global').first()
+    
+    if not admin_user:
+        flash('No se encontró un administrador para esta empresa.', 'danger')
+        return redirect(url_for('admin.manage_companies'))
+    
+    # Generar contraseña de soporte temporal
+    support_password = f"Support{company.code}2024!"
+    admin_user.set_password(support_password)
+    
+    try:
+        db.session.commit()
+        flash(f'¡Contraseña de soporte establecida para "{company.name}"! Nueva contraseña: {support_password}', 'warning')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al establecer la contraseña de soporte. Inténtalo de nuevo.', 'danger')
+        support_password = None
+    
+    return render_template('admin/view_admin_credentials.html', 
+                         company=company, 
+                         admin_user=admin_user,
+                         reset_password=support_password,
+                         show_reset_option=False)
 
 @admin.route('/users', methods=['GET', 'POST'])
 @login_required
