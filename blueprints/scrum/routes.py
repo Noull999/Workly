@@ -111,7 +111,7 @@ def create_task(board_id, column_id):
         title=title,
         description=description,
         priority=priority,
-        status='pending',
+        status='to_do',
         position=max_position + 1,
         column_id=column_id,
         board_id=board_id,
@@ -198,9 +198,26 @@ def move_task():
     old_count = company_query(Task).filter_by(column_id=old_column_id).count() - 1
     new_count = company_query(Task).filter_by(column_id=column_id).count() + 1
     
+    # Mapeo de nombres de columnas a status
+    column_status_map = {
+        'To Do': 'to_do',
+        'In Progress': 'in_progress', 
+        'Done': 'done'
+    }
+    
     # Actualizar la tarea
     task.column_id = column_id
     task.position = position
+    
+    # Actualizar el status basándose en el nombre de la columna
+    if new_column.name in column_status_map:
+        task.status = column_status_map[new_column.name]
+    
+    # Marcar completed_at si se movió a Done
+    if new_column.name == 'Done':
+        task.completed_at = datetime.utcnow()
+    elif task.completed_at:  # Si se mueve fuera de Done, quitar completed_at
+        task.completed_at = None
     
     try:
         db.session.commit()
