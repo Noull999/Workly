@@ -51,8 +51,8 @@
                             <span class="badge bg-light text-dark task-counter ms-2">{{ item.tasks|length }}</span>
                         </h6>
                     </div>
-                    <div class="card-body p-2 kanban-column-body" style="min-height: 500px;" data-column-id="{{ item.column.id }}">
-                        <div class="tasks-container sortable-container" data-column-id="{{ item.column.id }}" style="min-height: 450px; padding: 10px;">
+                    <div class="card-body p-2 kanban-column-body" style="min-height: 500px; max-height: 70vh; overflow-y: auto;" data-column-id="{{ item.column.id }}">
+                        <div class="tasks-container sortable-container" data-column-id="{{ item.column.id }}" style="min-height: 450px; padding: 10px; position: relative;">
                             {% for task in item.tasks %}
                             <div class="task-card card mb-2 shadow-sm sortable-item" data-task-id="{{ task.id }}" draggable="true">
                                 <div class="card-body p-3">
@@ -256,9 +256,12 @@
 
 .sortable-container {
     min-height: 400px;
+    max-height: none;
+    overflow: visible;
     border: 2px dashed transparent;
     border-radius: 8px;
     transition: all 0.3s ease;
+    position: relative;
 }
 
 .sortable-container.drag-over {
@@ -266,10 +269,28 @@
     background-color: rgba(108, 99, 255, 0.08);
 }
 
+.sortable-item {
+    position: relative;
+    z-index: 1;
+    cursor: grab;
+    transition: all 0.2s ease;
+}
+
+.sortable-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+}
+
+.sortable-item:active {
+    cursor: grabbing;
+}
+
 .sortable-item.dragging {
-    opacity: 0.4;
-    transform: rotate(2deg);
-    z-index: 1000;
+    opacity: 0.6;
+    transform: rotate(3deg) scale(1.02);
+    z-index: 9999;
+    cursor: grabbing;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25) !important;
 }
 
 .drag-placeholder {
@@ -411,6 +432,10 @@ function onDrop(e) {
     const taskId = draggedElement.dataset.taskId;
     const newColumnId = this.dataset.columnId;
     
+    // Store reference to the dragged element
+    const taskElement = draggedElement;
+    const originalParent = taskElement.parentNode;
+    
     // Calculate position based on placeholder position
     const ph = this.querySelector('.drag-placeholder');
     let position = 0;
@@ -423,7 +448,25 @@ function onDrop(e) {
     
     console.log(`Move task ${taskId} to column ${newColumnId} at position ${position}`);
     
-    // Send AJAX request
+    // Move element immediately in DOM to provide visual feedback
+    if (ph) {
+        try {
+            this.insertBefore(taskElement, ph);
+            ph.remove();
+        } catch (e) {
+            console.error('Error moving element:', e);
+            // Fallback: append to end
+            this.appendChild(taskElement);
+            if (ph) ph.remove();
+        }
+    } else {
+        this.appendChild(taskElement);
+    }
+    
+    // Remove dragging class
+    taskElement.classList.remove('dragging');
+    
+    // Send AJAX request to backend
     fetch('/scrum/task/move', {
         method: 'POST',
         headers: {
@@ -439,27 +482,28 @@ function onDrop(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Move element in DOM
-            if (ph) {
-                this.replaceChild(draggedElement, ph);
-            } else {
-                this.appendChild(draggedElement);
-            }
-            
             // Update counters
             updateColumnCounter(data.old_column_id, data.old_count);
             updateColumnCounter(data.new_column_id, data.new_count);
             
-            // Hide empty placeholder if needed
+            // Update empty states
             updateEmptyStates();
             
             showNotification('Tarea movida correctamente', 'success');
         } else {
+            // Revert move on failure
+            if (originalParent !== this) {
+                originalParent.appendChild(taskElement);
+            }
             showNotification('Error al mover la tarea: ' + (data.message || 'Error desconocido'), 'danger');
         }
     })
     .catch(error => {
         console.error('Error:', error);
+        // Revert move on error
+        if (originalParent !== this) {
+            originalParent.appendChild(taskElement);
+        }
         showNotification('Error al mover la tarea', 'danger');
     });
 }
@@ -467,9 +511,18 @@ function onDrop(e) {
 function getDragAfterElement(container, y) {
     const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
     
+    if (draggableElements.length === 0) {
+        return null;
+    }
+    
     return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
+        const containerBox = container.getBoundingClientRect();
+        
+        // Adjust for container scroll
+        const adjustedY = y - containerBox.top + container.scrollTop;
+        const childTop = box.top - containerBox.top + container.scrollTop;
+        const offset = adjustedY - childTop - box.height / 2;
         
         if (offset < 0 && offset > closest.offset) {
             return { offset: offset, element: child };
