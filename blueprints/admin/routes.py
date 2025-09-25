@@ -99,7 +99,17 @@ def manage_companies():
                 flash('Error al crear la empresa. Verifica que todos los datos sean únicos.', 'danger')
     
     companies = Company.query.filter_by(is_active=True).all()
-    return render_template('admin/companies.html', form=form, companies=companies)
+    
+    # Obtener los administradores de cada empresa para mostrar credenciales
+    companies_with_admins = []
+    for company in companies:
+        admin_user = User.query.filter_by(company_id=company.id, role='admin_empresa').first()
+        companies_with_admins.append({
+            'company': company,
+            'admin': admin_user
+        })
+    
+    return render_template('admin/companies.html', form=form, companies_with_admins=companies_with_admins)
 
 @admin.route('/edit_company/<int:company_id>', methods=['GET', 'POST'])
 @login_required

@@ -124,7 +124,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% if companies %}
+                    {% if companies_with_admins %}
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
@@ -132,13 +132,16 @@
                                         <th>Empresa</th>
                                         <th>Email</th>
                                         <th>Código</th>
+                                        <th>Credenciales Admin</th>
                                         <th>Branding</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for company in companies %}
+                                    {% for item in companies_with_admins %}
+                                    {% set company = item.company %}
+                                    {% set admin = item.admin %}
                                     <tr>
                                         <td>
                                             {% if company.logo_url %}
@@ -151,6 +154,22 @@
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">{{ company.code }}</span>
+                                        </td>
+                                        <td>
+                                            {% if admin %}
+                                                <div class="small">
+                                                    <div class="text-info fw-bold">{{ admin.username }}</div>
+                                                    <div class="text-muted">{{ admin.email }}</div>
+                                                    <small class="text-warning">
+                                                        <i class="fas fa-key me-1"></i>
+                                                        Usa el botón de reset para generar contraseña
+                                                    </small>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-danger">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Sin admin
+                                                </span>
+                                            {% endif %}
                                         </td>
                                         <td>
                                             <div class="d-flex gap-1 align-items-center">
