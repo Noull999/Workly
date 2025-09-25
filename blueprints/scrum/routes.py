@@ -16,12 +16,27 @@ def dashboard():
     company = current_user.company
     boards = company_query(Board).filter_by(is_active=True).all()
     
+    # Calcular contadores para cada tablero
+    boards_with_counts = []
+    for board in boards:
+        # Obtener contadores de tareas por status
+        todo_count = company_query(Task).filter_by(board_id=board.id, status='to_do').count()
+        in_progress_count = company_query(Task).filter_by(board_id=board.id, status='in_progress').count()
+        done_count = company_query(Task).filter_by(board_id=board.id, status='done').count()
+        
+        # Agregar los contadores al objeto board
+        board.todo_count = todo_count
+        board.in_progress_count = in_progress_count
+        board.done_count = done_count
+        
+        boards_with_counts.append(board)
+    
     # Estadísticas rápidas
     my_tasks = company_query(Task).filter_by(assignee_id=current_user.id).filter(
         Task.status != 'done'
     ).all()
     
-    return render_template('modules/scrum/dashboard.html', boards=boards, my_tasks=my_tasks, company=company)
+    return render_template('modules/scrum/dashboard.html', boards=boards_with_counts, my_tasks=my_tasks, company=company)
 
 @scrum.route('/board/<int:board_id>')
 @login_required

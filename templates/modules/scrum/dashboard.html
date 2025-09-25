@@ -37,21 +37,21 @@
                             <div class="col-4">
                                 <div class="text-danger">
                                     <i class="fas fa-exclamation-circle"></i>
-                                    <div class="h6">{{ board.tasks|selectattr("status", "equalto", "to_do")|list|length }}</div>
+                                    <div class="h6">{{ board.todo_count }}</div>
                                     <small>To Do</small>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="text-warning">
                                     <i class="fas fa-clock"></i>
-                                    <div class="h6">{{ board.tasks|selectattr("status", "equalto", "in_progress")|list|length }}</div>
+                                    <div class="h6">{{ board.in_progress_count }}</div>
                                     <small>In Progress</small>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="text-success">
                                     <i class="fas fa-check-circle"></i>
-                                    <div class="h6">{{ board.tasks|selectattr("status", "equalto", "done")|list|length }}</div>
+                                    <div class="h6">{{ board.done_count }}</div>
                                     <small>Done</small>
                                 </div>
                             </div>
