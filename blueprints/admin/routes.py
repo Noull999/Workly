@@ -221,6 +221,27 @@ def reset_admin_password(company_id):
     
     return redirect(url_for('admin.manage_companies'))
 
+@admin.route('/view_admin_credentials/<int:company_id>')
+@login_required
+@admin_global_required
+def view_admin_credentials(company_id):
+    """Ver credenciales del administrador para soporte remoto"""
+    company = Company.query.get_or_404(company_id)
+    
+    # Buscar el administrador de la empresa
+    admin_user = User.query.filter_by(company_id=company_id, role='admin_empresa').first()
+    if not admin_user:
+        flash('No se encontró un administrador para esta empresa.', 'danger')
+        return redirect(url_for('admin.manage_companies'))
+    
+    # Generar contraseña de acceso temporal para soporte
+    support_password = f"{company.name.lower().replace(' ', '')}123"
+    
+    return render_template('admin/view_admin_credentials.html', 
+                         company=company, 
+                         admin_user=admin_user,
+                         support_password=support_password)
+
 @admin.route('/users', methods=['GET', 'POST'])
 @login_required
 @admin_required
