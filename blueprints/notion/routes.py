@@ -48,7 +48,7 @@ def new_page():
             slug = f"{base_slug}-{counter}"
             counter += 1
         
-        page = NotionPage(
+        page = NotionPage(  # type: ignore
             title=form.title.data,
             slug=slug,
             icon=form.icon.data or '📄',
@@ -63,7 +63,7 @@ def new_page():
         db.session.commit()
         
         # Crear bloque inicial de texto
-        initial_block = NotionBlock(
+        initial_block = NotionBlock(  # type: ignore
             block_type='text',
             content='Comienza a escribir aquí...',
             position=0,
@@ -121,7 +121,7 @@ def new_checklist():
     form = NotionChecklistForm(company_id=current_user.company_id)
     
     if form.validate_on_submit():
-        checklist = NotionChecklist(
+        checklist = NotionChecklist(  # type: ignore
             title=form.title.data,
             description=form.description.data,
             checklist_type=form.checklist_type.data,
