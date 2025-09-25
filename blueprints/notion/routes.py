@@ -4,7 +4,7 @@ from datetime import datetime
 from . import notion
 from ..decorators import module_required
 from models import NotionPage, NotionBlock, NotionPermission, NotionChecklist, NotionChecklistItem, ModuleLink
-from forms import NotionPageForm, NotionBlockForm, NotionChecklistForm, NotionChecklistItemForm
+from forms import NotionPageForm, NotionBlockForm, NotionChecklistForm, NotionChecklistItemForm, NotionPageActionForm
 from utils import company_query, log_audit
 from app import db
 
@@ -98,11 +98,16 @@ def page(slug):
     # Páginas hijas
     child_pages = company_query(NotionPage).filter_by(parent_id=page.id).order_by(NotionPage.position).all()
     
+    # Formulario para acciones de página (duplicar, etc.)
+    duplicate_form = NotionPageActionForm()
+    duplicate_form.action.data = 'duplicate'
+    
     return render_template('modules/notion/page.html', 
                          page=page, 
                          blocks=blocks,
                          child_pages=child_pages,
                          can_edit=can_edit,
+                         duplicate_form=duplicate_form,
                          company=current_user.company)
 
 @notion.route('/checklists')
