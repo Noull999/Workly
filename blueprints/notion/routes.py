@@ -219,7 +219,7 @@ def edit_page(slug):
             page.updated_at = datetime.now()
             
             # Actualizar slug si cambió el título
-            new_slug = page.title.lower().replace(' ', '-')
+            new_slug = (page.title or '').lower().replace(' ', '-')
             new_slug = ''.join(c for c in new_slug if c.isalnum() or c in '-_')
             if new_slug != page.slug:
                 # Verificar que el nuevo slug no exista
