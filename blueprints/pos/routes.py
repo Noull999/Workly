@@ -38,7 +38,7 @@ def sales():
                 cart_items = json.loads(cart_data)
                 
                 # Crear venta
-                sale = Sale(
+                sale = Sale(  # type: ignore
                     sale_number=Sale.generate_sale_number(current_user.company_id),
                     company_id=current_user.company_id,
                     user_id=current_user.id,
@@ -58,7 +58,7 @@ def sales():
                         server_total_price = server_unit_price * Decimal(str(cart_item['quantity']))
                         
                         # Crear item de venta con precios del servidor
-                        sale_item = SaleItem(
+                        sale_item = SaleItem(  # type: ignore
                             quantity=cart_item['quantity'],
                             unit_price=server_unit_price,
                             total_price=server_total_price,
@@ -78,7 +78,7 @@ def sales():
                 sale.total_amount = total_amount + sale.tax_amount
                 
                 # Crear detalle de pago (método único por ahora)
-                payment_detail = PaymentDetail(
+                payment_detail = PaymentDetail(  # type: ignore
                     payment_method=form.payment_method.data,
                     amount=sale.total_amount,
                     notes=f"Pago completo por {form.payment_method.data}"
@@ -174,7 +174,7 @@ def open_cash_session():
     form = CashSessionForm()
     
     if form.validate_on_submit():
-        session = CashSession(
+        session = CashSession(  # type: ignore
             opening_amount=form.opening_amount.data,
             notes=form.notes.data,
             company_id=current_user.company_id,
@@ -219,7 +219,7 @@ def close_cash_session():
         # Calcular diferencia
         expected_amount = current_session.calculate_expected_amount()
         current_session.expected_amount = expected_amount
-        current_session.difference_amount = float(form.closing_amount.data) - expected_amount
+        current_session.difference_amount = float(form.closing_amount.data) - float(expected_amount)  # type: ignore
         
         db.session.commit()
         
@@ -254,7 +254,7 @@ def cash_expenses():
     form = CashExpenseForm()
     
     if form.validate_on_submit():
-        expense = CashExpense(
+        expense = CashExpense(  # type: ignore
             description=form.description.data,
             amount=form.amount.data,
             category=form.category.data,
