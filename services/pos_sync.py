@@ -1,6 +1,6 @@
 """
 Servicio de sincronización POS Offline
-Inventario INTAC - Sistema multiempresa
+Workly - Sistema multiempresa
 """
 
 from datetime import datetime

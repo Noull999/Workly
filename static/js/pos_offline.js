@@ -1,6 +1,6 @@
 /**
  * POS Offline Manager - Gestión de ventas sin conexión
- * Inventario INTAC - Sistema multiempresa
+ * Workly - Sistema multiempresa
  */
 
 class POSOfflineManager {
