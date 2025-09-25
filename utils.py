@@ -107,7 +107,7 @@ def _get_action_summary(table_name, action, old_values=None, new_values=None):
         elif action == 'DELETE':
             return f"Artículo eliminado"
     
-    return f"{table_name} {action.lower()}"
+    return f"{table_name} {str(action).lower()}"
 
 
 def create_default_warehouse(company):
