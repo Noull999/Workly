@@ -16,7 +16,7 @@
                     <!-- Duplicar Página -->
                     <form method="POST" action="#" class="d-inline">
                         {{ duplicate_form.hidden_tag() }}
-                        {{ duplicate_form.action() }}
+                        <input type="hidden" name="action" value="duplicate">
                         <button type="submit" class="btn btn-outline-info" onclick="return confirm('¿Duplicar esta página?')" title="Duplicar Página">
                             <i class="fas fa-copy"></i> Duplicar
                         </button>
@@ -167,10 +167,10 @@
                     <li>Todas las subpáginas asociadas</li>
                 </ul>
                 <p>Para confirmar, escribe <strong>DELETE</strong> en el campo de abajo:</p>
-                <form method="POST" action="{{ url_for('notion_delete_page', slug=page.slug) }}" id="deletePageForm">
-                    {{ delete_form.hidden_tag() }}
-                    {{ delete_form.confirm(class="form-control", placeholder="Escribe DELETE para confirmar") }}
-                    {{ delete_form.confirm_value() }}
+                <form method="POST" action="#" id="deletePageForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="text" name="confirm" class="form-control" placeholder="Escribe DELETE para confirmar" required>
+                    <input type="hidden" name="confirm_value" value="DELETE">
                 </form>
             </div>
             <div class="modal-footer">
