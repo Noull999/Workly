@@ -79,9 +79,9 @@
                 </div>
                 <div class="card-body">
                     <!-- Duplicar Página -->
-                    <form method="POST" action="#" class="mb-2">
+                    <form method="POST" class="mb-2">
                         {{ block_action_form.hidden_tag() }}
-                        {{ block_action_form.action(value='duplicate') }}
+                        <input type="hidden" name="action" value="duplicate">
                         <button type="submit" class="btn btn-info w-100" onclick="return confirm('¿Duplicar esta página?')">
                             <i class="fas fa-copy"></i> Duplicar Página
                         </button>
@@ -134,9 +134,10 @@
                                         <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editBlock({{ block.id }})">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form method="POST" action="#" class="d-inline">
+                                        <form method="POST" class="d-inline">
                                             {{ block_action_form.hidden_tag() }}
-                                            {{ block_action_form.action(value='delete') }}
+                                            <input type="hidden" name="action" value="delete_block">
+                                            <input type="hidden" name="block_id" value="{{ block.id }}">
                                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar este bloque?')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -178,8 +179,10 @@
 
                                 <!-- Editor del Bloque (Oculto por defecto) -->
                                 <div class="block-editor-form" id="block-editor-{{ block.id }}" style="display: none;">
-                                    <form method="POST" action="#">
+                                    <form method="POST">
                                         {{ block_action_form.hidden_tag() }}
+                                        <input type="hidden" name="action" value="update_block">
+                                        <input type="hidden" name="block_id" value="{{ block.id }}">
                                         <div class="row mb-2">
                                             <div class="col-md-4">
                                                 <select name="block_type" class="form-select">
