@@ -4,7 +4,7 @@ from datetime import datetime
 from . import notion
 from ..decorators import module_required
 from models import NotionPage, NotionBlock, NotionPermission, NotionChecklist, NotionChecklistItem, ModuleLink
-from forms import NotionPageForm, NotionBlockForm, NotionChecklistForm, NotionChecklistItemForm, NotionPageActionForm
+from forms import NotionPageForm, NotionBlockForm, NotionChecklistForm, NotionChecklistItemForm, NotionPageActionForm, NotionBlockActionForm, NotionDeletePageForm
 from utils import company_query, log_audit
 from app import db
 
@@ -155,6 +155,146 @@ def checklist(checklist_id):
     return render_template('modules/notion/checklist.html', 
                          checklist=checklist, 
                          items=items,
+                         company=current_user.company)
+
+@notion.route('/page/<slug>/edit', methods=['GET', 'POST'])
+@login_required
+@module_required('notion')
+def edit_page(slug):
+    """Editar página de Notion con funcionalidades completas"""
+    page = company_query(NotionPage).filter_by(slug=slug).first_or_404()
+    
+    # Verificar permisos de edición
+    can_edit = (page.creator_id == current_user.id or 
+               current_user.is_admin_empresa() or 
+               current_user.is_admin_global())
+    
+    if not can_edit:
+        flash('No tienes permisos para editar esta página', 'danger')
+        return redirect(url_for('notion.page', slug=slug))
+    
+    # Obtener bloques de la página
+    blocks = company_query(NotionBlock).filter_by(page_id=page.id).order_by(NotionBlock.order).all()
+    
+    # Inicializar formularios
+    page_form = NotionPageForm(company_id=current_user.company_id, obj=page)
+    block_form = NotionBlockForm()
+    block_action_form = NotionBlockActionForm()
+    delete_form = NotionDeletePageForm()
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'update_page' and page_form.validate_on_submit():
+            # Actualizar configuración de página
+            page.title = page_form.title.data
+            page.icon = page_form.icon.data or '📄'
+            page.parent_id = page_form.parent_id.data if page_form.parent_id.data != 0 else None
+            page.is_public = page_form.is_public.data
+            page.is_template = page_form.is_template.data
+            page.updated_at = datetime.now()
+            
+            # Actualizar slug si cambió el título
+            new_slug = page.title.lower().replace(' ', '-')
+            new_slug = ''.join(c for c in new_slug if c.isalnum() or c in '-_')
+            if new_slug != page.slug:
+                # Verificar que el nuevo slug no exista
+                existing = company_query(NotionPage).filter_by(slug=new_slug).first()
+                if not existing:
+                    page.slug = new_slug
+            
+            db.session.commit()
+            log_audit('notion', f'Página actualizada: {page.title}', current_user.id, current_user.company_id)
+            flash('Página actualizada exitosamente', 'success')
+            return redirect(url_for('notion.edit_page', slug=page.slug))
+            
+        elif action == 'add_block' and block_form.validate_on_submit():
+            # Agregar nuevo bloque
+            next_order = len(blocks)
+            new_block = NotionBlock(
+                page_id=page.id,
+                block_type=block_form.block_type.data,
+                content=block_form.content.data,
+                order=next_order,
+                company_id=current_user.company_id
+            )
+            db.session.add(new_block)
+            db.session.commit()
+            
+            log_audit('notion', f'Bloque agregado a página: {page.title}', current_user.id, current_user.company_id)
+            flash('Bloque agregado exitosamente', 'success')
+            return redirect(url_for('notion.edit_page', slug=slug))
+            
+        elif action == 'update_block':
+            # Actualizar bloque existente
+            block_id = request.form.get('block_id')
+            if block_id:
+                block = company_query(NotionBlock).filter_by(id=block_id).first()
+                if block:
+                    block.block_type = request.form.get('block_type')
+                    block.content = request.form.get('content')
+                    db.session.commit()
+                    flash('Bloque actualizado exitosamente', 'success')
+                    return redirect(url_for('notion.edit_page', slug=slug))
+                    
+        elif action == 'delete_block':
+            # Eliminar bloque
+            block_id = request.form.get('block_id')
+            if block_id:
+                block = company_query(NotionBlock).filter_by(id=block_id).first()
+                if block:
+                    db.session.delete(block)
+                    db.session.commit()
+                    flash('Bloque eliminado exitosamente', 'success')
+                    return redirect(url_for('notion.edit_page', slug=slug))
+                    
+        elif action == 'duplicate':
+            # Duplicar página
+            new_title = f"{page.title} (Copia)"
+            new_slug = f"{page.slug}-copia"
+            
+            # Asegurar slug único
+            counter = 1
+            while company_query(NotionPage).filter_by(slug=new_slug).first():
+                new_slug = f"{page.slug}-copia-{counter}"
+                counter += 1
+            
+            new_page = NotionPage(
+                title=new_title,
+                slug=new_slug,
+                icon=page.icon,
+                is_public=page.is_public,
+                is_template=page.is_template,
+                parent_id=page.parent_id,
+                creator_id=current_user.id,
+                company_id=current_user.company_id
+            )
+            db.session.add(new_page)
+            db.session.flush()  # Para obtener el ID
+            
+            # Duplicar bloques
+            for block in blocks:
+                new_block = NotionBlock(
+                    page_id=new_page.id,
+                    block_type=block.block_type,
+                    content=block.content,
+                    order=block.order,
+                    company_id=current_user.company_id
+                )
+                db.session.add(new_block)
+            
+            db.session.commit()
+            log_audit('notion', f'Página duplicada: {new_title}', current_user.id, current_user.company_id)
+            flash(f'Página duplicada como "{new_title}"', 'success')
+            return redirect(url_for('notion.edit_page', slug=new_slug))
+    
+    return render_template('modules/notion/edit_page.html',
+                         page=page, 
+                         blocks=blocks,
+                         page_form=page_form,
+                         block_form=block_form,
+                         block_action_form=block_action_form,
+                         delete_form=delete_form,
                          company=current_user.company)
 
 @notion.route('/checklist/<int:checklist_id>/edit', methods=['GET', 'POST'])

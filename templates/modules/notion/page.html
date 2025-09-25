@@ -8,7 +8,7 @@
                 <h1>{{ page.icon }} {{ page.title }}</h1>
                 <div>
                     {% if can_edit %}
-                    <a href="#" class="btn btn-outline-primary">
+                    <a href="{{ url_for('notion.edit_page', slug=page.slug) }}" class="btn btn-outline-primary">
                         <i class="fas fa-edit"></i> Editar
                     </a>
                     {% endif %}
