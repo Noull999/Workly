@@ -256,7 +256,7 @@ def register_all_blueprints():
     app.register_blueprint(appointments, url_prefix='/appointments')
     app.register_blueprint(scrum, url_prefix='/scrum')
     app.register_blueprint(notion, url_prefix='/notion')
-    app.register_blueprint(public, url_prefix='/public')
+    app.register_blueprint(public)
 
 # Call blueprint registration
 register_all_blueprints()
