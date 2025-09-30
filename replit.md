@@ -87,6 +87,10 @@ Sistema de gestión empresarial modular "Workly" basado en web construido con Fl
 - **POS Module**: Point-of-sale system integrated with inventory for retail operations
 - **Appointments Module**: Service management with public booking pages for clients
 - **Portfolio Module**: Public-facing company presentation pages with contact forms
+  - **Dynamic User Profiles**: JSON-driven profile system with `/perfil/<email>` route for streamer/creator pages
+  - **Modern Gaming Design**: Tailwind CSS + GSAP animations for professional gaming/streaming profiles
+  - **Customizable Branding**: Per-user colors, metrics, schedules, and social media links from JSON
+  - **File**: `user_data.json` contains array of users with email, name, photo, social links, viewer metrics, schedules
 
 ### Database Support
 - **PostgreSQL**: Primary database system with Flask-Migrate for schema management
