@@ -1,0 +1,28 @@
+[
+  {
+    "email": "yangprroo@gmail.com",
+    "nombre": "YANGLEE",
+    "foto_perfil": "/static/images/yanglee-logo.png",
+    "canal": {
+      "plataforma": "Twitch",
+      "url": "https://twitch.tv/yanglee"
+    },
+    "redes": {
+      "twitch": "https://twitch.tv/yanglee",
+      "youtube": "https://youtube.com/@yanglee",
+      "twitter": "https://twitter.com/yanglee",
+      "instagram": "https://instagram.com/yanglee",
+      "discord": "https://discord.gg/yanglee"
+    },
+    "promedio_viewers": 2500,
+    "horarios_stream": "Lunes a Viernes, 20:00 - 02:00",
+    "contenido": "Streams diarios de los mejores juegos competitivos. Estrategias, diversión y la mejor comunidad gaming.",
+    "clip_destacado": "https://clips.twitch.tv/yanglee/epic-clip",
+    "beneficios": "Suscríbete con mi código YANGLEE2024 y recibe recompensas especiales",
+    "descripcion": "Streamer profesional de gaming y entretenimiento",
+    "victorias_consecutivas": 47,
+    "codigo_promocional": "YANGLEE2024",
+    "color_primario": "#ff6600",
+    "color_secundario": "#1a1a1a"
+  }
+]
