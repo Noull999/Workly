@@ -118,3 +118,71 @@ def yanglee_page():
                          page=public_page,
                          social_links=social_links,
                          sections=sections)
+
+@public.route('/perfil/<email>')
+def perfil_dinamico(email):
+    """Página pública dinámica basada en JSON para cualquier usuario"""
+    import os
+    from urllib.parse import unquote_plus
+    
+    # Decodificar email si viene URL-encoded
+    email = unquote_plus(email)
+    
+    # Leer archivo JSON
+    json_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'user_data.json')
+    
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            usuarios = json.load(f)
+    except FileNotFoundError:
+        return render_template('errors/404.html', message="Archivo de usuarios no encontrado"), 404
+    except json.JSONDecodeError:
+        return render_template('errors/404.html', message="Error al leer datos de usuarios"), 500
+    
+    # Buscar usuario por email
+    usuario_data = None
+    for user in usuarios:
+        if user.get('email', '').lower() == email.lower():
+            usuario_data = user
+            break
+    
+    # Si no se encuentra el usuario
+    if not usuario_data:
+        return render_template('errors/404.html', message=f"Usuario con email '{email}' no encontrado"), 404
+    
+    # Preparar datos para el template (similar a yanglee_page)
+    # Crear objeto similar a PublicPage para compatibilidad con la plantilla
+    page_data = {
+        'title': usuario_data.get('nombre', 'Usuario'),
+        'description': usuario_data.get('descripcion', ''),
+        'profile_image_url': usuario_data.get('foto_perfil', ''),
+        'primary_color': usuario_data.get('color_primario', '#ff6600'),
+        'secondary_color': usuario_data.get('color_secundario', '#1a1a1a'),
+        'background_type': 'gradient',
+        'background_value': 'linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%)'
+    }
+    
+    # Redes sociales
+    social_links = usuario_data.get('redes', {})
+    
+    # Secciones (por defecto todas activas)
+    sections = {
+        'bio': True,
+        'clips': True,
+        'gallery': True,
+        'contact': True
+    }
+    
+    # Crear objeto usuario con email y nombre
+    user_obj = type('obj', (object,), {
+        'email': usuario_data.get('email', ''),
+        'username': usuario_data.get('nombre', '')
+    })()
+    
+    # Pasar todos los datos del JSON al template
+    return render_template('public/public_page.html', 
+                         user=user_obj,
+                         page=type('obj', (object,), page_data)(),
+                         social_links=social_links,
+                         sections=sections,
+                         usuario_json=usuario_data)
