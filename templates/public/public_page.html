@@ -15,8 +15,6 @@
     <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <!-- Lottie -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.4/lottie.min.js"></script>
     
     <style>
         :root {
@@ -290,19 +288,6 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
-        .lottie-icon {
-            width: 24px;
-            height: 24px;
-            flex-shrink: 0;
-        }
-        
-        @media (min-width: 640px) {
-            .lottie-icon {
-                width: 32px;
-                height: 32px;
-            }
-        }
-
         /* Secciones mejoradas */
         .enhanced-card {
             background: linear-gradient(135deg, rgba(30,30,30,0.9), rgba(20,20,20,0.95));
@@ -355,7 +340,7 @@
                         {% if social_links.kick %}
                         <a href="{{ social_links.kick }}" target="_blank" 
                            class="social-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg shadow-green-500/40">
-                            <div class="lottie-icon" id="lottie-kick"></div>
+                            <i class="fas fa-play-circle text-2xl sm:text-3xl"></i>
                             <span>Ver en Kick</span>
                         </a>
                         {% endif %}
@@ -363,7 +348,7 @@
                         {% if social_links.instagram %}
                         <a href="{{ social_links.instagram }}" target="_blank" 
                            class="social-btn bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/40">
-                            <div class="lottie-icon" id="lottie-instagram"></div>
+                            <i class="fab fa-instagram text-2xl sm:text-3xl"></i>
                             <span>Instagram</span>
                         </a>
                         {% endif %}
@@ -371,7 +356,7 @@
                         {% if social_links.tiktok %}
                         <a href="{{ social_links.tiktok }}" target="_blank" 
                            class="social-btn bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white shadow-lg shadow-gray-500/30 border border-gray-700">
-                            <div class="lottie-icon" id="lottie-tiktok"></div>
+                            <i class="fab fa-tiktok text-2xl sm:text-3xl"></i>
                             <span>TikTok</span>
                         </a>
                         {% endif %}
@@ -660,45 +645,6 @@
             }
         }
         createParticles();
-
-        // Lottie Animations for Social Buttons
-        if (typeof lottie !== 'undefined') {
-            // Kick animation (green sparkle)
-            const kickElement = document.getElementById('lottie-kick');
-            if (kickElement) {
-                lottie.loadAnimation({
-                    container: kickElement,
-                    renderer: 'svg',
-                    loop: true,
-                    autoplay: true,
-                    path: 'https://assets10.lottiefiles.com/packages/lf20_4kx2q32n.json' // Sparkle animation
-                });
-            }
-
-            // Instagram animation (heart pulse)
-            const instagramElement = document.getElementById('lottie-instagram');
-            if (instagramElement) {
-                lottie.loadAnimation({
-                    container: instagramElement,
-                    renderer: 'svg',
-                    loop: true,
-                    autoplay: true,
-                    path: 'https://assets2.lottiefiles.com/packages/lf20_zfhokhrk.json' // Heart animation
-                });
-            }
-
-            // TikTok animation (music note)
-            const tiktokElement = document.getElementById('lottie-tiktok');
-            if (tiktokElement) {
-                lottie.loadAnimation({
-                    container: tiktokElement,
-                    renderer: 'svg',
-                    loop: true,
-                    autoplay: true,
-                    path: 'https://assets4.lottiefiles.com/packages/lf20_khzniaya.json' // Music note animation
-                });
-            }
-        }
 
         // Counter Animation
         function animateCounter(element) {
