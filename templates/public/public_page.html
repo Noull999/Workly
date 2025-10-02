@@ -15,6 +15,8 @@
     <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- Lottie -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.4/lottie.min.js"></script>
     
     <style>
         :root {
@@ -211,6 +213,90 @@
         .social-float:hover::after {
             opacity: 1;
         }
+
+        /* Animaciones de entrada */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+
+        /* Botones de redes mejorados */
+        .social-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 1.125rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .social-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .social-btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .social-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .lottie-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        /* Secciones mejoradas */
+        .enhanced-card {
+            background: linear-gradient(135deg, rgba(30,30,30,0.9), rgba(20,20,20,0.95));
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+        }
+
+        .enhanced-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(var(--primary-color), 0.3);
+            border-color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -239,47 +325,53 @@
 
                 <!-- Right: Info -->
                 <div class="text-center lg:text-left" data-animate="right">
-                    <h1 class="text-6xl lg:text-7xl font-bold orbitron gradient-text mb-4">
+                    <h1 class="text-6xl lg:text-7xl font-extrabold orbitron gradient-text mb-6 fade-in-up tracking-wider">
                         {{ page.title or 'YANGLEE' }}
                     </h1>
-                    <p class="text-2xl text-gray-300 mb-8 max-w-xl">
+                    <p class="text-2xl text-gray-300 mb-10 max-w-xl font-medium tracking-wide fade-in-up delay-200 leading-relaxed">
                         {{ page.description or 'Streamer profesional de gaming y entretenimiento' }}
                     </p>
                     
-                    <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
-                        {% if social_links.twitch %}
-                        <a href="{{ social_links.twitch }}" target="_blank" 
-                           class="px-8 py-4 bg-purple-600 rounded-full font-bold text-lg neon-glow inline-flex items-center gap-3">
-                            <i class="fab fa-twitch"></i>
-                            Ver en Twitch
+                    <div class="flex flex-wrap gap-4 justify-center lg:justify-start mb-8 fade-in-up delay-300">
+                        {% if social_links.kick %}
+                        <a href="{{ social_links.kick }}" target="_blank" 
+                           class="social-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg shadow-green-500/40">
+                            <div class="lottie-icon" id="lottie-kick"></div>
+                            <span>Ver en Kick</span>
                         </a>
                         {% endif %}
                         
-                        <button class="px-8 py-4 border-2 border-orange-500 rounded-full font-bold text-lg hover:bg-orange-500 transition-all">
-                            <i class="fas fa-bell"></i>
-                            Suscríbete
-                        </button>
+                        {% if social_links.instagram %}
+                        <a href="{{ social_links.instagram }}" target="_blank" 
+                           class="social-btn bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/40">
+                            <div class="lottie-icon" id="lottie-instagram"></div>
+                            <span>Instagram</span>
+                        </a>
+                        {% endif %}
+
+                        {% if social_links.tiktok %}
+                        <a href="{{ social_links.tiktok }}" target="_blank" 
+                           class="social-btn bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white shadow-lg shadow-gray-500/30 border border-gray-700">
+                            <div class="lottie-icon" id="lottie-tiktok"></div>
+                            <span>TikTok</span>
+                        </a>
+                        {% endif %}
                     </div>
 
                     <!-- Quick Social Links -->
-                    <div class="flex gap-4 mt-8 justify-center lg:justify-start">
+                    <div class="flex gap-6 mt-8 justify-center lg:justify-start fade-in-up delay-400">
                         {% if social_links.youtube %}
-                        <a href="{{ social_links.youtube }}" target="_blank" class="text-3xl hover:text-red-500 transition-colors">
+                        <a href="{{ social_links.youtube }}" target="_blank" class="text-4xl hover:text-red-500 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
                             <i class="fab fa-youtube"></i>
                         </a>
                         {% endif %}
                         {% if social_links.twitter %}
-                        <a href="{{ social_links.twitter }}" target="_blank" class="text-3xl hover:text-blue-400 transition-colors">
+                        <a href="{{ social_links.twitter }}" target="_blank" class="text-4xl hover:text-blue-400 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
                             <i class="fab fa-twitter"></i>
                         </a>
                         {% endif %}
-                        {% if social_links.instagram %}
-                        <a href="{{ social_links.instagram }}" target="_blank" class="text-3xl hover:text-pink-500 transition-colors">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        {% endif %}
                         {% if social_links.discord %}
-                        <a href="{{ social_links.discord }}" target="_blank" class="text-3xl hover:text-indigo-500 transition-colors">
+                        <a href="{{ social_links.discord }}" target="_blank" class="text-4xl hover:text-indigo-500 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
                             <i class="fab fa-discord"></i>
                         </a>
                         {% endif %}
@@ -294,9 +386,9 @@
         <div class="container mx-auto">
             <div class="grid lg:grid-cols-3 gap-8">
                 <!-- Content Description -->
-                <div class="lg:col-span-1 bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-2xl border border-gray-700">
-                    <i class="fas fa-gamepad text-5xl text-orange-500 mb-4"></i>
-                    <h3 class="text-3xl font-bold orbitron mb-4">Contenido Gaming</h3>
+                <div class="lg:col-span-1 enhanced-card p-8 rounded-3xl shadow-2xl shadow-purple-500/20 fade-in-up">
+                    <i class="fas fa-gamepad text-6xl text-orange-500 mb-6 pulse-slow"></i>
+                    <h3 class="text-4xl font-extrabold orbitron mb-6 gradient-text tracking-wide">Contenido Gaming</h3>
                     <p class="text-gray-300 text-lg leading-relaxed">
                         {{ (usuario_json.contenido if usuario_json else '')|default('Streams diarios de los mejores juegos competitivos. Estrategias, diversión y la mejor comunidad gaming.', true) }}
                     </p>
@@ -330,12 +422,12 @@
                 </div>
 
                 <!-- Benefits -->
-                <div class="lg:col-span-1 bg-gradient-to-br from-orange-900 to-gray-800 p-8 rounded-2xl border border-orange-700">
-                    <i class="fas fa-gift text-5xl text-orange-500 mb-4"></i>
-                    <h3 class="text-3xl font-bold orbitron mb-4">Beneficios VIP</h3>
-                    <div class="bg-black bg-opacity-50 p-6 rounded-xl mb-4">
-                        <div class="text-sm text-gray-400 mb-2">CÓDIGO PROMOCIONAL</div>
-                        <div class="text-3xl font-mono font-bold text-orange-500">{{ (usuario_json.codigo_promocional if usuario_json else '')|default('YANGLEE2024', true) }}</div>
+                <div class="lg:col-span-1 enhanced-card p-8 rounded-3xl shadow-2xl shadow-orange-500/20 fade-in-up delay-200 bg-gradient-to-br from-orange-900/30 to-transparent">
+                    <i class="fas fa-gift text-6xl text-orange-500 mb-6 pulse-slow"></i>
+                    <h3 class="text-4xl font-extrabold orbitron mb-6 gradient-text tracking-wide">Beneficios VIP</h3>
+                    <div class="bg-black/70 p-8 rounded-2xl mb-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/30">
+                        <div class="text-sm font-bold text-gray-400 mb-3 tracking-widest">CÓDIGO PROMOCIONAL</div>
+                        <div class="text-4xl font-mono font-extrabold text-orange-500 tracking-wider animate-pulse">{{ (usuario_json.codigo_promocional if usuario_json else '')|default('YANGLEE2024', true) }}</div>
                     </div>
                     <ul class="space-y-3 text-gray-300">
                         <li class="flex items-center gap-3">
@@ -359,33 +451,33 @@
     <!-- Metrics Section -->
     <section class="py-20 px-4 bg-gradient-to-b from-transparent to-gray-900" data-animate="fade">
         <div class="container mx-auto">
-            <h2 class="text-5xl font-bold orbitron text-center mb-16 gradient-text">
+            <h2 class="text-6xl font-extrabold orbitron text-center mb-20 gradient-text tracking-wider fade-in-up">
                 Estadísticas en Vivo
             </h2>
             
-            <div class="grid md:grid-cols-3 gap-8">
+            <div class="grid md:grid-cols-3 gap-10">
                 <!-- Average Viewers -->
-                <div class="text-center p-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700 neon-glow">
-                    <i class="fas fa-users text-5xl text-purple-500 mb-4"></i>
-                    <div class="counter orbitron" data-target="{{ (usuario_json.promedio_viewers|int if usuario_json else 0)|default(2500, true) }}">0</div>
-                    <div class="text-xl text-gray-400 mt-2">Viewers Promedio</div>
+                <div class="text-center enhanced-card p-10 rounded-3xl shadow-2xl shadow-purple-500/30 fade-in-up">
+                    <i class="fas fa-users text-7xl text-purple-500 mb-6 pulse-slow"></i>
+                    <div class="counter orbitron text-5xl" data-target="{{ (usuario_json.promedio_viewers|int if usuario_json else 0)|default(2500, true) }}">0</div>
+                    <div class="text-xl text-gray-400 mt-4 font-semibold tracking-wide">Viewers Promedio</div>
                 </div>
 
                 <!-- Schedule -->
-                <div class="text-center p-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700 neon-glow">
-                    <i class="fas fa-clock text-5xl text-orange-500 mb-4"></i>
+                <div class="text-center enhanced-card p-10 rounded-3xl shadow-2xl shadow-orange-500/30 fade-in-up delay-100">
+                    <i class="fas fa-clock text-7xl text-orange-500 mb-6 pulse-slow"></i>
                     {% set horario = (usuario_json.horarios_stream if usuario_json else '')|default('Lunes a Viernes, 20:00 - 02:00', true) %}
                     {% set horario_partes = horario.split(',') %}
-                    <div class="text-4xl font-bold orbitron text-orange-500">{{ horario_partes[0]|trim if horario_partes|length > 0 else 'Lun - Vie' }}</div>
-                    <div class="text-2xl mt-2">{{ horario_partes[1]|trim if horario_partes|length > 1 else '20:00 - 02:00' }}</div>
-                    <div class="text-xl text-gray-400 mt-2">Horario de Stream</div>
+                    <div class="text-5xl font-extrabold orbitron text-orange-500 tracking-wide">{{ horario_partes[0]|trim if horario_partes|length > 0 else 'Lun - Vie' }}</div>
+                    <div class="text-3xl mt-3 font-bold">{{ horario_partes[1]|trim if horario_partes|length > 1 else '20:00 - 02:00' }}</div>
+                    <div class="text-xl text-gray-400 mt-4 font-semibold tracking-wide">Horario de Stream</div>
                 </div>
 
                 <!-- Max Win -->
-                <div class="text-center p-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700 neon-glow">
-                    <i class="fas fa-trophy text-5xl text-yellow-500 mb-4"></i>
-                    <div class="counter orbitron" data-target="{{ (usuario_json.victorias_consecutivas|int if usuario_json else 0)|default(47, true) }}">0</div>
-                    <div class="text-xl text-gray-400 mt-2">Victorias Consecutivas</div>
+                <div class="text-center enhanced-card p-10 rounded-3xl shadow-2xl shadow-yellow-500/30 fade-in-up delay-200">
+                    <i class="fas fa-trophy text-7xl text-yellow-500 mb-6 pulse-slow"></i>
+                    <div class="counter orbitron text-5xl" data-target="{{ (usuario_json.victorias_consecutivas|int if usuario_json else 0)|default(47, true) }}">0</div>
+                    <div class="text-xl text-gray-400 mt-4 font-semibold tracking-wide">Victorias Consecutivas</div>
                 </div>
             </div>
         </div>
@@ -541,6 +633,45 @@
             }
         }
         createParticles();
+
+        // Lottie Animations for Social Buttons
+        if (typeof lottie !== 'undefined') {
+            // Kick animation (green sparkle)
+            const kickElement = document.getElementById('lottie-kick');
+            if (kickElement) {
+                lottie.loadAnimation({
+                    container: kickElement,
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: 'https://assets10.lottiefiles.com/packages/lf20_4kx2q32n.json' // Sparkle animation
+                });
+            }
+
+            // Instagram animation (heart pulse)
+            const instagramElement = document.getElementById('lottie-instagram');
+            if (instagramElement) {
+                lottie.loadAnimation({
+                    container: instagramElement,
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: 'https://assets2.lottiefiles.com/packages/lf20_zfhokhrk.json' // Heart animation
+                });
+            }
+
+            // TikTok animation (music note)
+            const tiktokElement = document.getElementById('lottie-tiktok');
+            if (tiktokElement) {
+                lottie.loadAnimation({
+                    container: tiktokElement,
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: 'https://assets4.lottiefiles.com/packages/lf20_khzniaya.json' // Music note animation
+                });
+            }
+        }
 
         // Counter Animation
         function animateCounter(element) {
