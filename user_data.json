@@ -4,14 +4,15 @@
     "nombre": "YANGLEE",
     "foto_perfil": "/static/images/yanglee-logo.png",
     "canal": {
-      "plataforma": "Twitch",
-      "url": "https://twitch.tv/yanglee"
+      "plataforma": "Kick",
+      "url": "https://kick.com/yanglee"
     },
     "redes": {
-      "twitch": "https://twitch.tv/yanglee",
+      "kick": "https://kick.com/yanglee",
+      "instagram": "https://instagram.com/yanglee",
+      "tiktok": "https://tiktok.com/@yanglee",
       "youtube": "https://youtube.com/@yanglee",
       "twitter": "https://twitter.com/yanglee",
-      "instagram": "https://instagram.com/yanglee",
       "discord": "https://discord.gg/yanglee"
     },
     "promedio_viewers": 2500,
