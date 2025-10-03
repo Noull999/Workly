@@ -128,10 +128,21 @@ def perfil_dinamico(email):
         'username': usuario_data.get('nombre', '')
     })()
     
+    # Obtener clips del usuario desde la base de datos
+    clips = []
+    try:
+        from models import Clip
+        db_user = User.query.filter_by(email=email).first()
+        if db_user:
+            clips = Clip.query.filter_by(user_id=db_user.id).order_by(Clip.order_position, Clip.created_at).all()
+    except Exception as e:
+        print(f"Error al cargar clips: {e}")
+    
     # Pasar todos los datos del JSON al template
     return render_template('public/public_page.html', 
                          user=user_obj,
                          page=type('obj', (object,), page_data)(),
                          social_links=social_links,
                          sections=sections,
-                         usuario_json=usuario_data)
+                         usuario_json=usuario_data,
+                         clips=clips)
