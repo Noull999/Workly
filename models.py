@@ -732,3 +732,21 @@ class PublicPage(db.Model):
     
     def __repr__(self):
         return f'<PublicPage {self.title} - User {self.user_id}>'
+
+
+class Clip(db.Model):
+    """Clips de video asociados a usuarios (máximo 3 por usuario)"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    video_url = db.Column(db.String(500), nullable=False)
+    title = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    thumbnail_url = db.Column(db.String(500), nullable=True)
+    order_position = db.Column(db.Integer, default=0)  # Orden de visualización
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('clips', lazy=True, cascade='all, delete-orphan'))
+    
+    def __repr__(self):
+        return f'<Clip {self.title or "Sin título"} - User {self.user_id}>'

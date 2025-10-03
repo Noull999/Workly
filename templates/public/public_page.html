@@ -404,8 +404,13 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <i class="fas fa-check-circle text-orange-500"></i>
+                            <span>Casino</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-check-circle text-orange-500"></i>
                             <span>Interacción con chat</span>
                         </div>
+                        
                         <div class="flex items-center gap-3">
                             <i class="fas fa-check-circle text-orange-500"></i>
                             <span>Sorteos exclusivos</span>
@@ -429,7 +434,7 @@
                 <!-- Benefits -->
                 <div class="lg:col-span-1 enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-orange-500/20 fade-in-up delay-200 bg-gradient-to-br from-orange-900/30 to-transparent">
                     <i class="fas fa-gift text-4xl sm:text-5xl md:text-6xl text-orange-500 mb-4 sm:mb-6 pulse-slow"></i>
-                    <h3 class="text-2xl sm:text-3xl md:text-4xl font-extrabold orbitron mb-4 sm:mb-6 gradient-text tracking-wide">Beneficios VIP</h3>
+                    <h3 class="text-2xl sm:text-3xl md:text-4xl font-extrabold orbitron mb-4 sm:mb-6 gradient-text tracking-wide">Beneficios Codigo Patrocinador</h3>
                     <div class="bg-black/70 p-4 sm:p-6 md:p-8 rounded-2xl mb-4 sm:mb-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/30">
                         <div class="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 tracking-widest">CÓDIGO PROMOCIONAL</div>
                         <div class="text-2xl sm:text-3xl md:text-4xl font-mono font-extrabold text-orange-500 tracking-wider animate-pulse">{{ (usuario_json.codigo_promocional if usuario_json else '')|default('YANGLEE2024', true) }}</div>
@@ -437,15 +442,11 @@
                     <ul class="space-y-3 text-gray-300">
                         <li class="flex items-center gap-3">
                             <i class="fas fa-star text-yellow-500"></i>
-                            <span>10% descuento en store</span>
+                            <span>Si tu primera es 21 US se te devolveran</span>
                         </li>
                         <li class="flex items-center gap-3">
                             <i class="fas fa-crown text-yellow-500"></i>
-                            <span>Acceso a emotes exclusivos</span>
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-trophy text-yellow-500"></i>
-                            <span>Sorteos mensuales</span>
+                            <span>Sorteos todas las semanas</span>
                         </li>
                     </ul>
                 </div>
@@ -465,7 +466,7 @@
                 <div class="text-center enhanced-card p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-purple-500/30 fade-in-up">
                     <i class="fas fa-users text-5xl sm:text-6xl md:text-7xl text-purple-500 mb-4 sm:mb-6 pulse-slow"></i>
                     <div class="counter orbitron text-3xl sm:text-4xl md:text-5xl" data-target="{{ (usuario_json.promedio_viewers|int if usuario_json else 0)|default(2500, true) }}">0</div>
-                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Viewers Promedio</div>
+                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Total de seguidores </div>
                 </div>
 
                 <!-- Schedule -->
@@ -482,7 +483,7 @@
                 <div class="text-center enhanced-card p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-yellow-500/30 fade-in-up delay-200 sm:col-span-2 md:col-span-1">
                     <i class="fas fa-trophy text-5xl sm:text-6xl md:text-7xl text-yellow-500 mb-4 sm:mb-6 pulse-slow"></i>
                     <div class="counter orbitron text-3xl sm:text-4xl md:text-5xl" data-target="{{ (usuario_json.victorias_consecutivas|int if usuario_json else 0)|default(47, true) }}">0</div>
-                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Victorias Consecutivas</div>
+                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Viewers Diarios</div>
                 </div>
             </div>
         </div>
@@ -619,7 +620,7 @@
             <!-- Copyright -->
             <div class="text-center pt-8 border-t border-gray-800">
                 <p class="text-gray-500">
-                    &copy; 2024 {{ page.title or 'YANGLEE' }}. Todos los derechos reservados.
+                    &copy; 2025 {{ page.title or 'YANGLEE' }}. Todos los derechos reservados.
                 </p>
                 <p class="text-gray-600 text-sm mt-2">
                     Desarrollado con <span class="text-orange-500">♥</span> por Workly
