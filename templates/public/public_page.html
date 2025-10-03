@@ -445,7 +445,7 @@
                         <div class="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 tracking-widest">CÓDIGO PROMOCIONAL</div>
                         <div class="text-2xl sm:text-3xl md:text-4xl font-mono font-extrabold text-orange-500 tracking-wider animate-pulse">{{ (usuario_json.codigo_promocional if usuario_json else '')|default('YANGLEE2024', true) }}</div>
                     </div>
-                    <ul class="space-y-3 text-gray-300">
+                    <ul class="space-y-3 text-gray-300 mb-6">
                         <li class="flex items-center gap-3">
                             <i class="fas fa-star text-yellow-500"></i>
                             <span>Si tu primera es 21 US se te devolveran</span>
@@ -455,6 +455,14 @@
                             <span>Sorteos todas las semanas</span>
                         </li>
                     </ul>
+                    <!-- Botón Stake -->
+                    {% if usuario_json and usuario_json.casino %}
+                    <a href="{{ usuario_json.casino }}" target="_blank" 
+                       class="social-btn bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-400 hover:to-purple-600 text-white shadow-lg shadow-purple-500/40 w-full">
+                        <i class="fas fa-dice text-2xl sm:text-3xl"></i>
+                        <span>Jugar en Stake</span>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
