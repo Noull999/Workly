@@ -743,6 +743,8 @@ class Clip(db.Model):
     description = db.Column(db.Text, nullable=True)
     thumbnail_url = db.Column(db.String(500), nullable=True)
     order_position = db.Column(db.Integer, default=0)  # Orden de visualización
+    is_featured = db.Column(db.Boolean, default=False)  # Marcar como clip destacado
+    featured_thumbnail_url = db.Column(db.String(500), nullable=True)  # Imagen para clip destacado
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship
