@@ -91,6 +91,10 @@ Sistema de gestión empresarial modular "Workly" basado en web construido con Fl
   - **Modern Gaming Design**: Tailwind CSS + GSAP animations for professional gaming/streaming profiles
   - **Customizable Branding**: Per-user colors, metrics, schedules, and social media links from JSON
   - **File**: `user_data.json` contains array of users with email, name, photo, social links, viewer metrics, schedules
+  - **Featured Clips System**: Database-driven clip destacado with custom thumbnails (is_featured, featured_thumbnail_url fields in Clip model)
+  - **Contact Integration**: WhatsApp business contact button (more reliable than mailto links in iframe environments)
+  - **Casino/Sponsor Links**: Support for casino URLs in user JSON for sponsor/affiliate buttons
+  - **Visual Consistency**: Orange-purple gradient theme throughout profile pages (logo border, text gradients)
 
 ### Database Support
 - **PostgreSQL**: Primary database system with Flask-Migrate for schema management
