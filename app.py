@@ -237,6 +237,95 @@ def company_settings():
     
     return render_template('company_settings.html', form=form, company=company)
 
+# ===== CLIPS API ENDPOINTS =====
+from flask import request, jsonify
+
+@app.route('/api/clips/<int:user_id>', methods=['GET'])
+def get_user_clips(user_id):
+    """Listar todos los clips de un usuario"""
+    from models import User, Clip
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+    
+    clips = Clip.query.filter_by(user_id=user_id).order_by(Clip.order_position, Clip.created_at).all()
+    
+    return jsonify({
+        'user_id': user_id,
+        'user_email': user.email,
+        'total_clips': len(clips),
+        'clips': [{
+            'id': clip.id,
+            'video_url': clip.video_url,
+            'title': clip.title,
+            'description': clip.description,
+            'thumbnail_url': clip.thumbnail_url,
+            'order_position': clip.order_position,
+            'created_at': clip.created_at.isoformat()
+        } for clip in clips]
+    }), 200
+
+@app.route('/api/clips/<int:user_id>', methods=['POST'])
+@csrf.exempt  # Exentar de CSRF para API
+def add_user_clip(user_id):
+    """Agregar un clip a un usuario (máximo 3 clips)"""
+    from models import User, Clip
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+    
+    # Validar que no tenga más de 3 clips
+    current_clips_count = Clip.query.filter_by(user_id=user_id).count()
+    if current_clips_count >= 3:
+        return jsonify({'error': 'El usuario ya tiene el máximo de 3 clips'}), 400
+    
+    # Obtener datos del request
+    data = request.get_json()
+    if not data or 'video_url' not in data:
+        return jsonify({'error': 'Se requiere video_url'}), 400
+    
+    # Crear nuevo clip
+    clip = Clip(
+        user_id=user_id,
+        video_url=data['video_url'],
+        title=data.get('title'),
+        description=data.get('description'),
+        thumbnail_url=data.get('thumbnail_url'),
+        order_position=data.get('order_position', current_clips_count)
+    )
+    
+    db.session.add(clip)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Clip agregado exitosamente',
+        'clip': {
+            'id': clip.id,
+            'video_url': clip.video_url,
+            'title': clip.title,
+            'description': clip.description,
+            'thumbnail_url': clip.thumbnail_url,
+            'order_position': clip.order_position
+        }
+    }), 201
+
+@app.route('/api/clips/delete/<int:clip_id>', methods=['DELETE'])
+@csrf.exempt  # Exentar de CSRF para API
+def delete_clip(clip_id):
+    """Eliminar un clip"""
+    from models import Clip
+    
+    clip = Clip.query.get(clip_id)
+    if not clip:
+        return jsonify({'error': 'Clip no encontrado'}), 404
+    
+    db.session.delete(clip)
+    db.session.commit()
+    
+    return jsonify({'message': 'Clip eliminado exitosamente'}), 200
+
 # Register blueprints - moved to avoid circular imports
 def register_all_blueprints():
     """Register all blueprints after app initialization"""
