@@ -576,17 +576,19 @@
                     <span>Twitter</span>
                 </a>
                 {% endif %}
+                
+                <!-- Email Button -->
+                <a href="mailto:{{ user.email }}?subject=Consulta%20desde%20Workly" 
+                   class="social-btn bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white shadow-lg shadow-orange-500/40">
+                    <i class="fas fa-envelope text-2xl sm:text-3xl"></i>
+                    <span>Enviar Email</span>
+                </a>
             </div>
 
             <!-- Contact -->
             <div class="text-center max-w-2xl mx-auto mb-12">
                 <h3 class="text-3xl font-bold orbitron mb-4">¿Colaboraciones?</h3>
                 <p class="text-gray-400 mb-6">Contacto para patrocinios y colaboraciones profesionales</p>
-                <a href="mailto:{{ user.email }}?subject=Consulta%20desde%20Workly" 
-                   style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: #ff6600; color: white; border-radius: 50px; font-weight: bold; font-size: 18px; text-decoration: none; box-shadow: 0 4px 20px rgba(255,102,0,0.5); cursor: pointer;">
-                    <i class="fas fa-envelope"></i>
-                    Enviar Mensaje
-                </a>
             </div>
 
             <!-- Copyright -->
