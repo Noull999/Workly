@@ -130,11 +130,14 @@ def perfil_dinamico(email):
     
     # Obtener clips del usuario desde la base de datos
     clips = []
+    featured_clip = None
     try:
         from models import Clip
         db_user = User.query.filter_by(email=email).first()
         if db_user:
             clips = Clip.query.filter_by(user_id=db_user.id).order_by(Clip.order_position, Clip.created_at).all()
+            # Obtener clip destacado
+            featured_clip = Clip.query.filter_by(user_id=db_user.id, is_featured=True).first()
     except Exception as e:
         print(f"Error al cargar clips: {e}")
     
@@ -145,4 +148,5 @@ def perfil_dinamico(email):
                          social_links=social_links,
                          sections=sections,
                          usuario_json=usuario_data,
-                         clips=clips)
+                         clips=clips,
+                         featured_clip=featured_clip)
