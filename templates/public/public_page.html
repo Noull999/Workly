@@ -490,6 +490,7 @@
     </section>
 
     <!-- Featured Clips Section -->
+    {% if clips and clips|length > 0 %}
     <section class="py-20 px-4" data-animate="fade">
         <div class="container mx-auto">
             <h2 class="text-5xl font-bold orbitron text-center mb-16 gradient-text">
@@ -497,68 +498,35 @@
             </h2>
             
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Clip 1 -->
+                {% for clip in clips %}
                 <div class="clip-card bg-gray-900 rounded-2xl overflow-hidden">
                     <div class="relative aspect-video bg-gradient-to-br from-purple-900 to-gray-800">
-                        <img src="https://via.placeholder.com/400x225/1a1a1a/ff6600?text=Epic+Clip" alt="Clip" class="w-full h-full object-cover opacity-70">
+                        {% if clip.thumbnail_url %}
+                        <img src="{{ clip.thumbnail_url }}" alt="{{ clip.title or 'Clip' }}" class="w-full h-full object-cover opacity-70">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 to-gray-800">
+                            <i class="fas fa-video text-6xl text-purple-500 opacity-50"></i>
+                        </div>
+                        {% endif %}
                         <div class="clip-overlay">
-                            <button class="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center neon-glow">
+                            <a href="{{ clip.video_url }}" target="_blank" 
+                               class="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center neon-glow">
                                 <i class="fas fa-play text-3xl"></i>
-                            </button>
+                            </a>
                         </div>
                     </div>
                     <div class="p-6">
-                        <h4 class="text-2xl font-bold mb-2">ACE Perfecto</h4>
-                        <p class="text-gray-400">Una jugada épica que definió la partida</p>
-                        <div class="flex items-center gap-4 mt-4 text-sm text-gray-500">
-                            <span><i class="fas fa-eye"></i> 15.2K</span>
-                            <span><i class="fas fa-heart"></i> 3.8K</span>
-                        </div>
+                        <h4 class="text-2xl font-bold mb-2">{{ clip.title or 'Clip sin título' }}</h4>
+                        {% if clip.description %}
+                        <p class="text-gray-400">{{ clip.description }}</p>
+                        {% endif %}
                     </div>
                 </div>
-
-                <!-- Clip 2 -->
-                <div class="clip-card bg-gray-900 rounded-2xl overflow-hidden">
-                    <div class="relative aspect-video bg-gradient-to-br from-blue-900 to-gray-800">
-                        <img src="https://via.placeholder.com/400x225/1a1a1a/0099ff?text=Funny+Moment" alt="Clip" class="w-full h-full object-cover opacity-70">
-                        <div class="clip-overlay">
-                            <button class="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center neon-glow">
-                                <i class="fas fa-play text-3xl"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <h4 class="text-2xl font-bold mb-2">Momento Épico</h4>
-                        <p class="text-gray-400">Reacción en vivo inolvidable</p>
-                        <div class="flex items-center gap-4 mt-4 text-sm text-gray-500">
-                            <span><i class="fas fa-eye"></i> 22.5K</span>
-                            <span><i class="fas fa-heart"></i> 5.1K</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Clip 3 -->
-                <div class="clip-card bg-gray-900 rounded-2xl overflow-hidden">
-                    <div class="relative aspect-video bg-gradient-to-br from-pink-900 to-gray-800">
-                        <img src="https://via.placeholder.com/400x225/1a1a1a/ff0066?text=Pro+Play" alt="Clip" class="w-full h-full object-cover opacity-70">
-                        <div class="clip-overlay">
-                            <button class="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center neon-glow">
-                                <i class="fas fa-play text-3xl"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <h4 class="text-2xl font-bold mb-2">Clutch 1v5</h4>
-                        <p class="text-gray-400">Imposible convertido en realidad</p>
-                        <div class="flex items-center gap-4 mt-4 text-sm text-gray-500">
-                            <span><i class="fas fa-eye"></i> 31.7K</span>
-                            <span><i class="fas fa-heart"></i> 7.9K</span>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </section>
+    {% endif %}
 
     <!-- Footer -->
     <footer class="py-20 px-4 bg-black">
