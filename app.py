@@ -111,6 +111,10 @@ def dashboard():
             low_stock_items = company_query(InventoryItem).filter(InventoryItem.quantity <= 5).count()
             low_stock_products = company_query(InventoryItem).filter(InventoryItem.quantity <= 5).limit(5).all()
             
+            # Datos para gráfico de stock bajo (top 5)
+            low_stock_chart_labels = [item.name[:20] for item in low_stock_products]
+            low_stock_chart_data = [item.quantity for item in low_stock_products]
+            
             # Estadísticas de POS
             today = date.today()
             today_sales = company_query(Sale).filter(Sale.created_at >= datetime.combine(today, datetime.min.time())).count()
@@ -137,16 +141,35 @@ def dashboard():
             pending_tasks = company_query(Task).filter(Task.status.in_(['to_do', 'in_progress'])).count()
             my_tasks = company_query(Task).filter_by(assignee_id=current_user.id).filter(Task.status != 'done').limit(5).all()
             
+            # Datos para gráfico de tareas por estado
+            tasks_todo = company_query(Task).filter_by(status='to_do').count()
+            tasks_in_progress = company_query(Task).filter_by(status='in_progress').count()
+            tasks_done = company_query(Task).filter_by(status='done').count()
+            task_status_labels = ['Por Hacer', 'En Progreso', 'Completadas']
+            task_status_data = [tasks_todo, tasks_in_progress, tasks_done]
+            
             # Estadísticas de Notion
             total_pages = company_query(NotionPage).count()
             recent_pages = company_query(NotionPage).order_by(NotionPage.updated_at.desc()).limit(5).all()
             active_checklists = company_query(NotionChecklistItem).filter_by(is_completed=False).count()
             
             stats = {
-                'inventory': {'total_items': total_items, 'low_stock_items': low_stock_items, 'low_stock_products': low_stock_products},
+                'inventory': {
+                    'total_items': total_items, 
+                    'low_stock_items': low_stock_items, 
+                    'low_stock_products': low_stock_products,
+                    'low_stock_chart_labels': low_stock_chart_labels,
+                    'low_stock_chart_data': low_stock_chart_data
+                },
                 'pos': {'today_sales': today_sales, 'total_sales': total_sales, 'sales_by_day': sales_by_day, 'labels_days': labels_days},
                 'appointments': {'upcoming_appointments': upcoming_appointments},
-                'scrum': {'total_boards': total_boards, 'pending_tasks': pending_tasks, 'my_tasks': my_tasks},
+                'scrum': {
+                    'total_boards': total_boards, 
+                    'pending_tasks': pending_tasks, 
+                    'my_tasks': my_tasks,
+                    'task_status_labels': task_status_labels,
+                    'task_status_data': task_status_data
+                },
                 'notion': {'total_pages': total_pages, 'recent_pages': recent_pages, 'active_checklists': active_checklists},
                 'portfolio': {'page_views': 0, 'contact_requests': 0}  # Estos podrían calcularse si hay modelos para ello
             }

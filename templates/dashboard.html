@@ -203,6 +203,45 @@
     {% endif %}
     {% endif %}
 
+    <!-- Gráficos adicionales en dos columnas -->
+    <div class="row mb-4">
+        <!-- Gráfico de Stock Bajo -->
+        {% if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and company.module_inventory) %}
+        {% if stats.inventory and stats.inventory.low_stock_chart_labels and stats.inventory.low_stock_chart_labels|length > 0 %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Productos con Stock Bajo
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="lowStockChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Gráfico de Tareas por Estado -->
+        {% if (current_user.is_admin_global() and current_user.admin_pref_scrum) or (not current_user.is_admin_global() and company.module_scrum) %}
+        {% if stats.scrum and stats.scrum.task_status_data %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-tasks me-2"></i>Distribución de Tareas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="taskStatusChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+
     <!-- Contenido específico por módulos -->
     <div class="row">
         <!-- Panel de inventario -->
@@ -793,6 +832,122 @@ document.addEventListener('DOMContentLoaded', function() {
                         grid: {
                             color: 'rgba(255, 255, 255, 0.1)'
                         }
+                    }
+                }
+            }
+        });
+    }
+});
+{% endif %}
+{% endif %}
+
+// Gráfico de productos con stock bajo
+{% if (current_user.is_admin_global() and current_user.admin_pref_inventory) or (not current_user.is_admin_global() and company.module_inventory) %}
+{% if stats.inventory and stats.inventory.low_stock_chart_labels and stats.inventory.low_stock_chart_labels|length > 0 %}
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('lowStockChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ stats.inventory.low_stock_chart_labels | tojson }},
+                datasets: [{
+                    label: 'Cantidad en Stock',
+                    data: {{ stats.inventory.low_stock_chart_data | tojson }},
+                    backgroundColor: 'rgba(255, 107, 53, 0.7)',
+                    borderColor: '#FF6B35',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#FFFFFF'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 28, 28, 0.9)',
+                        titleColor: '#FF6B35',
+                        bodyColor: '#FFFFFF',
+                        borderColor: '#FF6B35',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#FFFFFF',
+                            stepSize: 1
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#FFFFFF'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+{% endif %}
+{% endif %}
+
+// Gráfico de distribución de tareas
+{% if (current_user.is_admin_global() and current_user.admin_pref_scrum) or (not current_user.is_admin_global() and company.module_scrum) %}
+{% if stats.scrum and stats.scrum.task_status_data %}
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('taskStatusChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ stats.scrum.task_status_labels | tojson }},
+                datasets: [{
+                    label: 'Tareas',
+                    data: {{ stats.scrum.task_status_data | tojson }},
+                    backgroundColor: [
+                        'rgba(255, 107, 53, 0.7)',
+                        'rgba(108, 99, 255, 0.7)',
+                        'rgba(40, 167, 69, 0.7)'
+                    ],
+                    borderColor: [
+                        '#FF6B35',
+                        '#6C63FF',
+                        '#28a745'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#FFFFFF',
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 28, 28, 0.9)',
+                        titleColor: '#FF6B35',
+                        bodyColor: '#FFFFFF',
+                        borderColor: '#6C63FF',
+                        borderWidth: 1
                     }
                 }
             }
