@@ -113,6 +113,14 @@ Sistema de gestión empresarial modular "Workly" basado en web construido con Fl
 - **Daily Reporting**: Automated daily reports with performance metrics and recommendations
 - **Real-time Updates**: Live connection status and offline queue management
 
+### Dashboard Analytics (October 2025)
+- **Chart.js Integration**: Added Chart.js library for data visualization
+- **Sales Trends Graph**: Line chart showing daily sales for the last 7 days with purple/orange theme
+- **Low Stock Alert Chart**: Bar chart displaying top 5 products with low inventory levels
+- **Task Distribution Chart**: Doughnut chart showing task breakdown by status (To Do, In Progress, Done)
+- **Dynamic Data**: Backend queries provide real-time data for all charts
+- **Responsive Design**: All charts adapt to screen size with proper color theming
+
 ### Deployment Infrastructure
 - **ProxyFix**: WSGI middleware for handling proxy headers
 - **Environment variables**: Configuration management for secrets and database URLs
