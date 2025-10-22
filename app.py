@@ -116,6 +116,19 @@ def dashboard():
             today_sales = company_query(Sale).filter(Sale.created_at >= datetime.combine(today, datetime.min.time())).count()
             total_sales = company_query(Sale).count()
             
+            # Datos para gráfico de ventas (últimos 7 días)
+            from datetime import timedelta
+            sales_by_day = []
+            labels_days = []
+            for i in range(6, -1, -1):
+                day = today - timedelta(days=i)
+                day_sales = company_query(Sale).filter(
+                    Sale.created_at >= datetime.combine(day, datetime.min.time()),
+                    Sale.created_at < datetime.combine(day + timedelta(days=1), datetime.min.time())
+                ).count()
+                sales_by_day.append(day_sales)
+                labels_days.append(day.strftime('%d/%m'))
+            
             # Estadísticas de Citas
             upcoming_appointments = company_query(Appointment).filter(Appointment.appointment_date >= datetime.now()).count()
             
@@ -131,7 +144,7 @@ def dashboard():
             
             stats = {
                 'inventory': {'total_items': total_items, 'low_stock_items': low_stock_items, 'low_stock_products': low_stock_products},
-                'pos': {'today_sales': today_sales, 'total_sales': total_sales},
+                'pos': {'today_sales': today_sales, 'total_sales': total_sales, 'sales_by_day': sales_by_day, 'labels_days': labels_days},
                 'appointments': {'upcoming_appointments': upcoming_appointments},
                 'scrum': {'total_boards': total_boards, 'pending_tasks': pending_tasks, 'my_tasks': my_tasks},
                 'notion': {'total_pages': total_pages, 'recent_pages': recent_pages, 'active_checklists': active_checklists},

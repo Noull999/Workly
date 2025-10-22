@@ -183,6 +183,26 @@
 
     </div>
 
+    <!-- Gráfico de Ventas -->
+    {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos) %}
+    {% if stats.pos and stats.pos.sales_by_day %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-chart-line me-2"></i>Ventas de los Últimos 7 Días
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
     <!-- Contenido específico por módulos -->
     <div class="row">
         <!-- Panel de inventario -->
@@ -711,6 +731,76 @@ function copyPublicUrl() {
         }
     }, 2000);
 }
+
+// Gráfico de ventas con Chart.js
+{% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos) %}
+{% if stats.pos and stats.pos.sales_by_day %}
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('salesChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ stats.pos.labels_days | tojson }},
+                datasets: [{
+                    label: 'Ventas por Día',
+                    data: {{ stats.pos.sales_by_day | tojson }},
+                    borderColor: '#6C63FF',
+                    backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#FF6B35',
+                    pointBorderColor: '#FF6B35',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#FFFFFF'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 28, 28, 0.9)',
+                        titleColor: '#FF6B35',
+                        bodyColor: '#FFFFFF',
+                        borderColor: '#6C63FF',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#FFFFFF',
+                            stepSize: 1
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#FFFFFF'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+{% endif %}
+{% endif %}
 </script>
 
 {% endblock %}
