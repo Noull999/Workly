@@ -28,28 +28,46 @@ def setup():
     
     return render_template('mercadopago/setup.html', company=company)
 
-@mercadopago_bp.route('/connect')
+@mercadopago_bp.route('/save_credentials', methods=['POST'])
 @login_required
-def connect():
-    """Iniciar flujo OAuth de Mercado Pago"""
+def save_credentials():
+    """Guardar credenciales de Mercado Pago manualmente"""
     if not current_user.is_admin_empresa() and not current_user.is_admin_global():
-        return jsonify({'error': 'No autorizado'}), 403
+        flash('No tienes permisos para realizar esta acción.', 'danger')
+        return redirect(url_for('dashboard'))
     
-    # Generar state aleatorio y seguro
-    oauth_state = secrets.token_urlsafe(32)
+    access_token = request.form.get('access_token', '').strip()
+    public_key = request.form.get('public_key', '').strip()
     
-    # Guardar state en sesión junto con company_id para validación posterior
-    session['mp_oauth_state'] = oauth_state
-    session['mp_oauth_company_id'] = current_user.company_id
-    session['mp_oauth_user_id'] = current_user.id
+    if not access_token or not public_key:
+        flash('Debes ingresar tanto el Access Token como el Public Key.', 'danger')
+        return redirect(url_for('mercadopago.setup'))
     
-    # Construir URL de autorización de Mercado Pago
-    client_id = os.environ.get('MP_CLIENT_ID')
-    redirect_uri = request.url_root.rstrip('/') + url_for('mercadopago.callback')
+    # Validar formato básico (deben empezar con TEST- o APP_USR-)
+    if not (access_token.startswith('TEST-') or access_token.startswith('APP_USR-')):
+        flash('El Access Token no tiene un formato válido. Debe empezar con TEST- o APP_USR-', 'danger')
+        return redirect(url_for('mercadopago.setup'))
     
-    auth_url = f"https://auth.mercadopago.cl/authorization?client_id={client_id}&response_type=code&platform_id=mp&redirect_uri={redirect_uri}&state={oauth_state}"
+    if not (public_key.startswith('TEST-') or public_key.startswith('APP_USR-')):
+        flash('El Public Key no tiene un formato válido. Debe empezar con TEST- o APP_USR-', 'danger')
+        return redirect(url_for('mercadopago.setup'))
     
-    return redirect(auth_url)
+    try:
+        # Guardar credenciales en la empresa
+        company = current_user.company
+        company.mp_access_token = access_token
+        company.mp_public_key = public_key
+        company.mp_onboarding_complete = True
+        
+        db.session.commit()
+        
+        flash('¡Credenciales de Mercado Pago guardadas exitosamente!', 'success')
+        return redirect(url_for('mercadopago.setup'))
+    
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al guardar las credenciales: {str(e)}', 'danger')
+        return redirect(url_for('mercadopago.setup'))
 
 def _clear_oauth_session():
     """Helper para limpiar datos de sesión OAuth de forma segura"""
