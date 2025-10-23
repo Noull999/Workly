@@ -17,14 +17,14 @@ def setup():
     """Página de configuración de Mercado Pago"""
     if not current_user.is_admin_empresa() and not current_user.is_admin_global():
         flash('No tienes permisos para acceder a esta página.', 'danger')
-        return redirect(url_for('admin.index'))
+        return redirect(url_for('dashboard'))
     
     company = current_user.company
     
     # Verificar si POS está activado
     if not company.module_pos:
         flash('El módulo POS debe estar activado para configurar Mercado Pago.', 'warning')
-        return redirect(url_for('admin.index'))
+        return redirect(url_for('dashboard'))
     
     return render_template('mercadopago/setup.html', company=company)
 
