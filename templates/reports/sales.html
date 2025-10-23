@@ -92,11 +92,35 @@
         </div>
     </div>
 
-    <!-- Top Productos -->
+    <!-- Gráficos Adicionales -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-trophy me-2"></i>Top 10 Productos Más Vendidos</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-week me-2"></i>Ventas por Día de Semana</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="weekdaySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Productos (Tabla) -->
     {% if top_products %}
     <div class="card mb-4">
         <div class="card-header">
-            <h5><i class="fas fa-trophy me-2"></i>Top 10 Productos Más Vendidos</h5>
+            <h5><i class="fas fa-list me-2"></i>Detalle de Productos Más Vendidos</h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -236,5 +260,88 @@ new Chart(paymentCtx, {
         }
     }
 });
+
+// Gráfico de productos top
+fetch('/reports/api/chart-data/sales_top_products?limit=10')
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('topProductsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Unidades Vendidas',
+                    data: data.data,
+                    backgroundColor: chartColors.purpleAlpha,
+                    borderColor: chartColors.purple,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { color: '#fff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#fff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                }
+            }
+        });
+    });
+
+// Gráfico de ventas por día de semana
+fetch('/reports/api/chart-data/sales_by_weekday')
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('weekdaySalesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Total Ventas',
+                    data: data.data,
+                    backgroundColor: chartColors.orangeAlpha,
+                    borderColor: chartColors.orange,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#fff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        ticks: { 
+                            color: '#fff',
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}

@@ -349,6 +349,105 @@ def integration_report():
                          company=company)
 
 
+@reports.route('/scrum')
+@login_required
+def scrum_report():
+    """Reporte detallado de Scrum y gestión de tareas"""
+    if not current_user.company.module_scrum:
+        flash('El módulo Scrum no está activo para tu empresa', 'warning')
+        return redirect(url_for('reports.dashboard'))
+    
+    boards = company_query(Board).filter_by(is_active=True).all()
+    total_tasks = db.session.query(Task).join(Column).join(Board).filter(
+        Board.company_id == current_user.company_id
+    ).count()
+    
+    tasks_by_status = db.session.query(
+        Task.status,
+        func.count(Task.id)
+    ).join(Column).join(Board).filter(
+        Board.company_id == current_user.company_id
+    ).group_by(Task.status).all()
+    
+    status_counts = {status: count for status, count in tasks_by_status}
+    
+    tasks_by_user = db.session.query(
+        User.username,
+        User.id,
+        func.count(Task.id).label('total_tasks'),
+        func.count(func.nullif(Task.status == 'done', False)).label('completed_tasks')
+    ).join(Task, Task.assignee_id == User.id)\
+     .join(Column).join(Board).filter(
+        Board.company_id == current_user.company_id
+    ).group_by(User.id, User.username).all()
+    
+    recent_tasks = db.session.query(Task).join(Column).join(Board).filter(
+        Board.company_id == current_user.company_id
+    ).order_by(Task.created_at.desc()).limit(10).all()
+    
+    blocked_tasks = db.session.query(Task).join(Column).join(Board).filter(
+        Board.company_id == current_user.company_id,
+        Task.status == 'blocked'
+    ).all()
+    
+    return render_template('reports/scrum.html',
+                         boards=boards,
+                         total_tasks=total_tasks,
+                         status_counts=status_counts,
+                         tasks_by_user=tasks_by_user,
+                         recent_tasks=recent_tasks,
+                         blocked_tasks=blocked_tasks)
+
+
+@reports.route('/notion')
+@login_required
+def notion_report():
+    """Reporte detallado de Notion y gestión de páginas"""
+    if not current_user.company.module_notion:
+        flash('El módulo Notion no está activo para tu empresa', 'warning')
+        return redirect(url_for('reports.dashboard'))
+    
+    from models import NotionChecklistItem
+    
+    total_pages = company_query(NotionPage).count()
+    
+    last_7_days = date.today() - timedelta(days=7)
+    last_30_days = date.today() - timedelta(days=30)
+    
+    recent_updates = company_query(NotionPage).filter(
+        NotionPage.updated_at >= datetime.combine(last_7_days, datetime.min.time())
+    ).count()
+    
+    pages_by_user = db.session.query(
+        User.username,
+        func.count(NotionPage.id).label('page_count')
+    ).join(NotionPage, NotionPage.created_by == User.id).filter(
+        NotionPage.company_id == current_user.company_id
+    ).group_by(User.username).all()
+    
+    most_active_pages = company_query(NotionPage).order_by(
+        NotionPage.updated_at.desc()
+    ).limit(10).all()
+    
+    inactive_pages = company_query(NotionPage).filter(
+        NotionPage.updated_at < datetime.combine(last_30_days, datetime.min.time())
+    ).all()
+    
+    total_checklists = company_query(NotionChecklistItem).count()
+    completed_checklists = company_query(NotionChecklistItem).filter_by(is_completed=True).count()
+    pending_checklists = total_checklists - completed_checklists
+    
+    return render_template('reports/notion.html',
+                         total_pages=total_pages,
+                         recent_updates=recent_updates,
+                         pages_by_user=pages_by_user,
+                         most_active_pages=most_active_pages,
+                         inactive_pages=inactive_pages,
+                         total_checklists=total_checklists,
+                         completed_checklists=completed_checklists,
+                         pending_checklists=pending_checklists)
+
+
 @reports.route('/export/<report_type>')
 @login_required
 def export_report(report_type):
@@ -480,6 +579,269 @@ def chart_data(chart_type):
         
         labels = [status_labels.get(s, s) for s, _ in status_data]
         data = [c for _, c in status_data]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'scrum_tasks_by_status':
+        if not current_user.company.module_scrum:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        tasks_by_status = db.session.query(
+            Task.status,
+            func.count(Task.id)
+        ).join(Column).join(Board).filter(
+            Board.company_id == current_user.company_id
+        ).group_by(Task.status).all()
+        
+        status_labels = {
+            'to_do': 'Por Hacer',
+            'in_progress': 'En Progreso',
+            'done': 'Completada',
+            'blocked': 'Bloqueada'
+        }
+        
+        labels = [status_labels.get(s, s) for s, _ in tasks_by_status]
+        data = [c for _, c in tasks_by_status]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'scrum_tasks_by_user':
+        if not current_user.company.module_scrum:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        tasks_by_user = db.session.query(
+            User.username,
+            func.count(Task.id)
+        ).join(Task, Task.assignee_id == User.id)\
+         .join(Column).join(Board).filter(
+            Board.company_id == current_user.company_id
+        ).group_by(User.username).order_by(func.count(Task.id).desc()).limit(10).all()
+        
+        labels = [u for u, _ in tasks_by_user]
+        data = [c for _, c in tasks_by_user]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'scrum_tasks_by_board':
+        if not current_user.company.module_scrum:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        tasks_by_board = db.session.query(
+            Board.title,
+            func.count(Task.id)
+        ).join(Column).join(Task).filter(
+            Board.company_id == current_user.company_id
+        ).group_by(Board.title).all()
+        
+        labels = [b for b, _ in tasks_by_board]
+        data = [c for _, c in tasks_by_board]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'notion_pages_activity':
+        if not current_user.company.module_notion:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        days = int(request.args.get('days', 7))
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days)
+        
+        daily_activity = db.session.query(
+            func.date(NotionPage.updated_at).label('date'),
+            func.count(NotionPage.id).label('count')
+        ).filter(
+            NotionPage.company_id == current_user.company_id,
+            func.date(NotionPage.updated_at) >= start_date,
+            func.date(NotionPage.updated_at) <= end_date
+        ).group_by(func.date(NotionPage.updated_at)).all()
+        
+        labels = [(start_date + timedelta(days=i)).strftime('%d/%m') for i in range(days + 1)]
+        data = [0] * (days + 1)
+        
+        for activity_date, count in daily_activity:
+            day_index = (activity_date - start_date).days
+            if 0 <= day_index <= days:
+                data[day_index] = count
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'notion_checklists':
+        if not current_user.company.module_notion:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        from models import NotionChecklistItem
+        
+        completed = company_query(NotionChecklistItem).filter_by(is_completed=True).count()
+        pending = company_query(NotionChecklistItem).filter_by(is_completed=False).count()
+        
+        return jsonify({
+            'labels': ['Completadas', 'Pendientes'],
+            'data': [completed, pending]
+        })
+    
+    elif chart_type == 'sales_by_payment_method':
+        if not current_user.company.module_pos:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        payment_stats = db.session.query(
+            PaymentDetail.payment_method,
+            func.sum(PaymentDetail.amount).label('total')
+        ).join(Sale).filter(
+            Sale.company_id == current_user.company_id
+        ).group_by(PaymentDetail.payment_method).all()
+        
+        method_labels = {
+            'efectivo': 'Efectivo',
+            'tarjeta': 'Tarjeta',
+            'transferencia': 'Transferencia',
+            'mixto': 'Mixto'
+        }
+        
+        labels = [method_labels.get(m, m) for m, _ in payment_stats]
+        data = [float(t) for _, t in payment_stats]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'sales_top_products':
+        if not current_user.company.module_pos:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        limit = int(request.args.get('limit', 10))
+        
+        top_products = db.session.query(
+            InventoryItem.name,
+            func.sum(SaleItem.quantity).label('total_quantity')
+        ).join(SaleItem).join(Sale).filter(
+            Sale.company_id == current_user.company_id
+        ).group_by(InventoryItem.name).order_by(
+            func.sum(SaleItem.quantity).desc()
+        ).limit(limit).all()
+        
+        labels = [p[:30] for p, _ in top_products]
+        data = [int(q) for _, q in top_products]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'sales_by_weekday':
+        if not current_user.company.module_pos:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        from sqlalchemy import extract
+        
+        weekday_sales = db.session.query(
+            extract('dow', Sale.created_at).label('weekday'),
+            func.count(Sale.id).label('count'),
+            func.sum(Sale.total_amount).label('total')
+        ).filter(
+            Sale.company_id == current_user.company_id
+        ).group_by(extract('dow', Sale.created_at)).all()
+        
+        weekday_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+        weekday_data = {int(w): float(t) for w, _, t in weekday_sales}
+        
+        labels = weekday_names
+        data = [weekday_data.get(i, 0) for i in range(7)]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'inventory_by_category':
+        if not current_user.company.module_inventory:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        category_stats = db.session.query(
+            Category.name,
+            func.sum(InventoryItem.quantity * InventoryItem.unit_price).label('value')
+        ).join(InventoryItem).filter(
+            InventoryItem.company_id == current_user.company_id
+        ).group_by(Category.name).all()
+        
+        labels = [c for c, _ in category_stats]
+        data = [float(v) if v else 0 for _, v in category_stats]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'inventory_by_warehouse':
+        if not current_user.company.module_inventory:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        warehouse_stats = db.session.query(
+            Warehouse.name,
+            func.count(InventoryItem.id).label('items')
+        ).join(InventoryItem).filter(
+            InventoryItem.company_id == current_user.company_id
+        ).group_by(Warehouse.name).all()
+        
+        labels = [w for w, _ in warehouse_stats]
+        data = [i for _, i in warehouse_stats]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'appointments_by_service':
+        if not current_user.company.module_appointments:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        service_stats = db.session.query(
+            Service.name,
+            func.count(Appointment.id).label('count')
+        ).join(Appointment).filter(
+            Appointment.company_id == current_user.company_id
+        ).group_by(Service.name).order_by(func.count(Appointment.id).desc()).limit(10).all()
+        
+        labels = [s for s, _ in service_stats]
+        data = [c for _, c in service_stats]
+        
+        return jsonify({
+            'labels': labels,
+            'data': data
+        })
+    
+    elif chart_type == 'appointments_by_hour':
+        if not current_user.company.module_appointments:
+            return jsonify({'error': 'Módulo no activo'}), 403
+        
+        from sqlalchemy import extract
+        
+        hour_stats = db.session.query(
+            extract('hour', Appointment.appointment_date).label('hour'),
+            func.count(Appointment.id).label('count')
+        ).filter(
+            Appointment.company_id == current_user.company_id
+        ).group_by(extract('hour', Appointment.appointment_date)).all()
+        
+        hour_data = {int(h): c for h, c in hour_stats}
+        
+        labels = [f'{h:02d}:00' for h in range(24)]
+        data = [hour_data.get(h, 0) for h in range(24)]
         
         return jsonify({
             'labels': labels,

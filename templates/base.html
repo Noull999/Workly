@@ -397,6 +397,16 @@
                                     <i class="fas fa-calendar-check me-1"></i>Reporte de Citas
                                 </a></li>
                                 {% endif %}
+                                {% if current_user.company.module_scrum %}
+                                <li><a class="dropdown-item" href="{{ url_for('reports.scrum_report') }}">
+                                    <i class="fas fa-tasks me-1"></i>Reporte de Scrum
+                                </a></li>
+                                {% endif %}
+                                {% if current_user.company.module_notion %}
+                                <li><a class="dropdown-item" href="{{ url_for('reports.notion_report') }}">
+                                    <i class="fas fa-file-alt me-1"></i>Reporte de Notion
+                                </a></li>
+                                {% endif %}
                                 {% if (current_user.company.module_pos and current_user.company.module_inventory) or (current_user.company.module_appointments and current_user.company.module_pos) %}
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('reports.integration_report') }}">
