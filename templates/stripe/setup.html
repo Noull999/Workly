@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de Stripe - Workly{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-credit-card me-2"></i>Configuración de Stripe Connect</h4>
+                </div>
+                <div class="card-body">
+                    {% if not company.stripe_account_id %}
+                    <!-- No hay cuenta conectada -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>Conecta tu cuenta de Stripe</h5>
+                        <p>Para aceptar pagos con tarjeta en tu sistema POS, necesitas conectar una cuenta de Stripe.</p>
+                        <p><strong>¿Qué es Stripe Connect?</strong></p>
+                        <ul>
+                            <li>Procesa pagos con tarjeta de forma segura</li>
+                            <li>Los fondos van directamente a tu cuenta bancaria</li>
+                            <li>Sin costo mensual si no hay actividad</li>
+                            <li>Solo pagas por transacciones procesadas (2.9% + $0.30 USD)</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('stripe.connect') }}">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-link me-2"></i>Conectar con Stripe
+                        </button>
+                    </form>
+                    
+                    <div class="mt-3">
+                        <p class="text-muted small">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Stripe manejará de forma segura la verificación de tu identidad y cuenta bancaria.
+                            Tus claves API de Stripe se mantienen privadas y seguras.
+                        </p>
+                    </div>
+                    
+                    {% else %}
+                    <!-- Cuenta conectada -->
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle me-2"></i>Cuenta de Stripe Conectada</h5>
+                        <p class="mb-0">Tu empresa está conectada a Stripe y lista para procesar pagos.</p>
+                    </div>
+                    
+                    {% if account %}
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-2">Estado del Onboarding</h6>
+                                    {% if company.stripe_onboarding_complete %}
+                                    <h4 class="text-success mb-0">
+                                        <i class="fas fa-check-circle me-2"></i>Completo
+                                    </h4>
+                                    {% else %}
+                                    <h4 class="text-warning mb-0">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Pendiente
+                                    </h4>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-2">Procesar Pagos</h6>
+                                    {% if company.stripe_charges_enabled %}
+                                    <h4 class="text-success mb-0">
+                                        <i class="fas fa-check-circle me-2"></i>Habilitado
+                                    </h4>
+                                    {% else %}
+                                    <h4 class="text-danger mb-0">
+                                        <i class="fas fa-times-circle me-2"></i>Deshabilitado
+                                    </h4>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-2">Transferencias</h6>
+                                    {% if company.stripe_payouts_enabled %}
+                                    <h4 class="text-success mb-0">
+                                        <i class="fas fa-check-circle me-2"></i>Habilitado
+                                    </h4>
+                                    {% else %}
+                                    <h4 class="text-danger mb-0">
+                                        <i class="fas fa-times-circle me-2"></i>Deshabilitado
+                                    </h4>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-2">Detalles Enviados</h6>
+                                    {% if company.stripe_details_submitted %}
+                                    <h4 class="text-success mb-0">
+                                        <i class="fas fa-check-circle me-2"></i>Sí
+                                    </h4>
+                                    {% else %}
+                                    <h4 class="text-warning mb-0">
+                                        <i class="fas fa-clock me-2"></i>No
+                                    </h4>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if not company.stripe_onboarding_complete %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Acción requerida:</strong> Completa el proceso de verificación en Stripe para empezar a aceptar pagos.
+                    </div>
+                    <form method="POST" action="{{ url_for('stripe.connect') }}" class="mb-3">
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="fas fa-edit me-2"></i>Completar Verificación
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('stripe.dashboard') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-tachometer-alt me-2"></i>Acceder al Dashboard de Stripe
+                        </a>
+                        
+                        <form method="POST" action="{{ url_for('stripe.disconnect') }}" class="mt-2" 
+                              onsubmit="return confirm('¿Estás seguro de que quieres desconectar tu cuenta de Stripe? Esto deshabilitará los pagos con tarjeta.');">
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-unlink me-2"></i>Desconectar Cuenta
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-light">
+                    <h6 class="mb-3">Información sobre Tarifas de Stripe</h6>
+                    <ul class="small mb-0">
+                        <li><strong>Tarifa por transacción:</strong> 2.9% + $0.30 USD por pago con tarjeta exitoso</li>
+                        <li><strong>Cuenta activa:</strong> $2 USD/mes solo si recibes transferencias ese mes</li>
+                        <li><strong>Sin actividad:</strong> $0 - No pagas nada si no procesas pagos</li>
+                        <li><strong>Transferencias:</strong> Los fondos llegan a tu cuenta bancaria en 2-7 días</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <a href="{{ url_for('pos.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al POS
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
