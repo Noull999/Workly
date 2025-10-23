@@ -374,7 +374,7 @@ def register_all_blueprints():
     from blueprints.notion import notion
     from blueprints.public import public
     from blueprints.reports import reports
-    from blueprints.stripe_connect import stripe_bp
+    from blueprints.mercadopago import mercadopago_bp
     
     app.register_blueprint(auth)
     app.register_blueprint(admin, url_prefix='/admin')
@@ -385,7 +385,7 @@ def register_all_blueprints():
     app.register_blueprint(notion, url_prefix='/notion')
     app.register_blueprint(public)
     app.register_blueprint(reports, url_prefix='/reports')
-    app.register_blueprint(stripe_bp)
+    app.register_blueprint(mercadopago_bp)
 
 # Call blueprint registration
 register_all_blueprints()

@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de Mercado Pago - Workly{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Configuración de Mercado Pago
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if company.mp_onboarding_complete %}
+                        <!-- Cuenta conectada -->
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Mercado Pago Conectado</strong>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-muted">ID de Usuario</h6>
+                                        <p class="mb-0">{{ company.mp_user_id or 'No disponible' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-muted">Estado</h6>
+                                        <p class="mb-0">
+                                            <span class="badge bg-success">Activo</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5>¿Qué puedes hacer ahora?</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Procesar pagos con tarjeta en el módulo POS
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Aceptar pagos en efectivo vía Mercado Pago
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Recibir transferencias bancarias
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Ver reportes de transacciones
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('pos.index') }}" class="btn btn-primary">
+                                <i class="fas fa-cash-register me-2"></i>
+                                Ir al POS
+                            </a>
+                            <form method="POST" action="{{ url_for('mercadopago.disconnect') }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de desconectar Mercado Pago? Ya no podrás procesar pagos.');">
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="fas fa-unlink me-2"></i>
+                                    Desconectar
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <!-- Cuenta no conectada -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Conecta tu cuenta de Mercado Pago</strong> para empezar a aceptar pagos con tarjeta, transferencias y más.
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5>Beneficios de usar Mercado Pago</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-primary h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-shield-alt text-primary me-2"></i>
+                                                    Pagos Seguros
+                                                </h6>
+                                                <p class="card-text small">
+                                                    Protección para compradores y vendedores con la confianza de Mercado Pago.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-primary h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-money-bill-wave text-primary me-2"></i>
+                                                    Múltiples Métodos de Pago
+                                                </h6>
+                                                <p class="card-text small">
+                                                    Acepta tarjetas, transferencias, efectivo y más opciones de pago.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-primary h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-mobile-alt text-primary me-2"></i>
+                                                    Fácil Integración
+                                                </h6>
+                                                <p class="card-text small">
+                                                    Conecta tu cuenta en segundos y empieza a cobrar inmediatamente.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-primary h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-chart-line text-primary me-2"></i>
+                                                    Reportes Detallados
+                                                </h6>
+                                                <p class="card-text small">
+                                                    Visualiza todas tus transacciones y gestiona tu negocio mejor.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5>Cómo funciona</h5>
+                            <ol class="list-group list-group-numbered">
+                                <li class="list-group-item">
+                                    Haz clic en "Conectar con Mercado Pago"
+                                </li>
+                                <li class="list-group-item">
+                                    Inicia sesión con tu cuenta de Mercado Pago (o créala gratis)
+                                </li>
+                                <li class="list-group-item">
+                                    Autoriza a Workly para procesar pagos
+                                </li>
+                                <li class="list-group-item">
+                                    ¡Listo! Ya puedes aceptar pagos en tu negocio
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('mercadopago.connect') }}" class="btn btn-lg btn-primary">
+                                <i class="fab fa-cc-mastercard me-2"></i>
+                                Conectar con Mercado Pago
+                            </a>
+                            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">
+                                Volver al Panel de Administración
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Preguntas Frecuentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    ¿Cuánto cuesta usar Mercado Pago?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Mercado Pago cobra una comisión por transacción que varía según el método de pago y el plan que elijas. No hay costos de integración ni mensualidades.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    ¿Es seguro conectar mi cuenta?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Sí, utilizamos OAuth 2.0, el estándar de la industria para autorizaciones seguras. Nunca tenemos acceso a tu contraseña de Mercado Pago.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    ¿Cuánto tardo en recibir mi dinero?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Los tiempos de acreditación dependen de tu cuenta de Mercado Pago y pueden variar entre inmediato y 14 días según tu historial de ventas.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

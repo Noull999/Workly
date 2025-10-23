@@ -36,12 +36,13 @@ class Company(db.Model):
     social_instagram = db.Column(db.String(200), nullable=True)
     social_linkedin = db.Column(db.String(200), nullable=True)
     
-    # Stripe Connect fields
-    stripe_account_id = db.Column(db.String(255), nullable=True)
-    stripe_onboarding_complete = db.Column(db.Boolean, default=False)
-    stripe_charges_enabled = db.Column(db.Boolean, default=False)
-    stripe_payouts_enabled = db.Column(db.Boolean, default=False)
-    stripe_details_submitted = db.Column(db.Boolean, default=False)
+    # Mercado Pago Connect fields (OAuth multi-tenant)
+    mp_access_token = db.Column(db.String(500), nullable=True)  # Encrypted token per company
+    mp_refresh_token = db.Column(db.String(500), nullable=True)
+    mp_public_key = db.Column(db.String(255), nullable=True)
+    mp_user_id = db.Column(db.String(255), nullable=True)  # Mercado Pago user ID
+    mp_onboarding_complete = db.Column(db.Boolean, default=False)
+    mp_token_expires_at = db.Column(db.DateTime, nullable=True)
     
     # Relationships
     users = db.relationship('User', backref='company', lazy=True, cascade='all, delete-orphan')
