@@ -373,6 +373,7 @@ def register_all_blueprints():
     from blueprints.scrum import scrum
     from blueprints.notion import notion
     from blueprints.public import public
+    from blueprints.reports import reports
     
     app.register_blueprint(auth)
     app.register_blueprint(admin, url_prefix='/admin')
@@ -382,6 +383,7 @@ def register_all_blueprints():
     app.register_blueprint(scrum, url_prefix='/scrum')
     app.register_blueprint(notion, url_prefix='/notion')
     app.register_blueprint(public)
+    app.register_blueprint(reports, url_prefix='/reports')
 
 # Call blueprint registration
 register_all_blueprints()
