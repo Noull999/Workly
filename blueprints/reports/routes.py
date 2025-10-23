@@ -28,7 +28,7 @@ def dashboard():
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     
-    stats = {
+    stats: dict = {
         'modules_active': sum([
             company.module_inventory,
             company.module_pos,
@@ -433,7 +433,7 @@ def chart_data(chart_type):
         ).group_by(func.date(Sale.created_at)).all()
         
         labels = [(start_date + timedelta(days=i)).strftime('%d/%m') for i in range(days + 1)]
-        data = [0] * (days + 1)
+        data: list[float] = [0.0] * (days + 1)
         
         for sale_date, total in daily_sales:
             day_index = (sale_date - start_date).days
