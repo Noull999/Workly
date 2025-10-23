@@ -373,12 +373,12 @@ class PaymentDetail(db.Model):
     """Detalles de pago - Soporte para múltiples métodos de pago por venta"""
     id = db.Column(db.Integer, primary_key=True)
     sale_id = db.Column(db.Integer, db.ForeignKey('sale.id'), nullable=False)
-    payment_method = db.Column(db.String(50), nullable=False)  # efectivo, tarjeta, transferencia, vale
+    payment_method = db.Column(db.String(50), nullable=False)  # efectivo, tarjeta, transferencia, vale, mercadopago
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     reference = db.Column(db.String(100), nullable=True)  # Número de voucher, referencia, etc.
     notes = db.Column(db.Text)
-    stripe_payment_intent_id = db.Column(db.String(255), nullable=True)  # ID del Payment Intent de Stripe
-    stripe_charge_id = db.Column(db.String(255), nullable=True)  # ID del Charge de Stripe
+    mp_payment_id = db.Column(db.String(255), nullable=True)  # ID del pago de Mercado Pago
+    mp_preference_id = db.Column(db.String(255), nullable=True)  # ID de la preferencia de Mercado Pago
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
