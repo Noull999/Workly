@@ -1,6 +1,6 @@
 import os
 import mercadopago
-from flask import render_template, redirect, url_for, request, jsonify, flash
+from flask import render_template, redirect, url_for, request, jsonify, flash, session
 from flask_login import login_required, current_user
 from app import db
 from models import Company, PaymentDetail
@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import hmac
 import hashlib
 import json
+import secrets
 
 @mercadopago_bp.route('/setup')
 @login_required
@@ -34,42 +35,71 @@ def connect():
     if not current_user.is_admin_empresa() and not current_user.is_admin_global():
         return jsonify({'error': 'No autorizado'}), 403
     
+    # Generar state aleatorio y seguro
+    oauth_state = secrets.token_urlsafe(32)
+    
+    # Guardar state en sesión junto con company_id para validación posterior
+    session['mp_oauth_state'] = oauth_state
+    session['mp_oauth_company_id'] = current_user.company_id
+    session['mp_oauth_user_id'] = current_user.id
+    
     # Construir URL de autorización de Mercado Pago
     client_id = os.environ.get('MP_CLIENT_ID')
     redirect_uri = request.url_root.rstrip('/') + url_for('mercadopago.callback')
-    state = str(current_user.company_id)  # Usamos company_id como state para seguridad
     
-    auth_url = f"https://auth.mercadopago.cl/authorization?client_id={client_id}&response_type=code&platform_id=mp&redirect_uri={redirect_uri}&state={state}"
+    auth_url = f"https://auth.mercadopago.cl/authorization?client_id={client_id}&response_type=code&platform_id=mp&redirect_uri={redirect_uri}&state={oauth_state}"
     
     return redirect(auth_url)
 
+def _clear_oauth_session():
+    """Helper para limpiar datos de sesión OAuth de forma segura"""
+    session.pop('mp_oauth_state', None)
+    session.pop('mp_oauth_company_id', None)
+    session.pop('mp_oauth_user_id', None)
+
 @mercadopago_bp.route('/callback')
+@login_required
 def callback():
-    """Callback OAuth de Mercado Pago"""
-    code = request.args.get('code')
-    state = request.args.get('state')
-    error = request.args.get('error')
-    
-    if error:
-        flash(f'Error al conectar con Mercado Pago: {error}', 'danger')
-        return redirect(url_for('mercadopago.setup'))
-    
-    if not code or not state:
-        flash('Parámetros inválidos en la respuesta de Mercado Pago.', 'danger')
-        return redirect(url_for('mercadopago.setup'))
-    
+    """Callback OAuth de Mercado Pago - SEGURO con validación de state"""
     try:
-        # Verificar que el state corresponde a una empresa válida
-        company_id = int(state)
-        company = Company.query.get(company_id)
+        code = request.args.get('code')
+        state = request.args.get('state')
+        error = request.args.get('error')
+        
+        if error:
+            flash(f'Error al conectar con Mercado Pago: {error}', 'danger')
+            return redirect(url_for('mercadopago.setup'))
+        
+        if not code or not state:
+            flash('Parámetros inválidos en la respuesta de Mercado Pago.', 'danger')
+            return redirect(url_for('mercadopago.setup'))
+        
+        # SEGURIDAD: Validar state contra el guardado en sesión
+        saved_state = session.get('mp_oauth_state')
+        saved_company_id = session.get('mp_oauth_company_id')
+        saved_user_id = session.get('mp_oauth_user_id')
+        
+        if not saved_state or state != saved_state:
+            flash('Estado de OAuth inválido. Por seguridad, intenta conectar nuevamente.', 'danger')
+            return redirect(url_for('mercadopago.setup'))
+        
+        # Verificar que el usuario actual coincide con quien inició el flujo
+        if current_user.id != saved_user_id:
+            flash('No autorizado. Debes ser el mismo usuario que inició la conexión.', 'danger')
+            return redirect(url_for('mercadopago.setup'))
+        
+        # Verificar que el usuario puede modificar la empresa
+        if current_user.company_id != saved_company_id:
+            flash('No autorizado para esta empresa.', 'danger')
+            return redirect(url_for('mercadopago.setup'))
+        
+        company = current_user.company
         
         if not company:
             flash('Empresa no encontrada.', 'danger')
             return redirect(url_for('mercadopago.setup'))
         
-        # Intercambiar código por access token
-        sdk = mercadopago.SDK(os.environ.get('MP_ACCESS_TOKEN'))
-        
+        # Preparar datos para intercambio de token (FORM-ENCODED, no JSON)
         token_data = {
             'client_id': os.environ.get('MP_CLIENT_ID'),
             'client_secret': os.environ.get('MP_CLIENT_SECRET'),
@@ -78,9 +108,13 @@ def callback():
             'redirect_uri': request.url_root.rstrip('/') + url_for('mercadopago.callback')
         }
         
-        # Realizar solicitud para obtener token
+        # Realizar solicitud para obtener token con Content-Type correcto
         import requests
-        response = requests.post('https://api.mercadopago.com/oauth/token', json=token_data)
+        response = requests.post(
+            'https://api.mercadopago.com/oauth/token',
+            data=token_data,  # usar 'data' en lugar de 'json' para form-encoded
+            headers={'Content-Type': 'application/x-www-form-urlencoded'}
+        )
         
         if response.status_code == 200:
             token_response = response.json()
@@ -100,10 +134,20 @@ def callback():
             
             flash('¡Mercado Pago conectado exitosamente!', 'success')
         else:
-            flash(f'Error al obtener token de Mercado Pago: {response.text}', 'danger')
+            error_msg = response.text
+            try:
+                error_json = response.json()
+                error_msg = error_json.get('message', error_msg)
+            except:
+                pass
+            flash(f'Error al obtener token de Mercado Pago: {error_msg}', 'danger')
     
     except Exception as e:
         flash(f'Error al procesar callback de Mercado Pago: {str(e)}', 'danger')
+    
+    finally:
+        # CRÍTICO: Limpiar sesión OAuth en TODOS los casos (éxito, error, excepción)
+        _clear_oauth_session()
     
     return redirect(url_for('mercadopago.setup'))
 

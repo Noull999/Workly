@@ -121,17 +121,65 @@ Sistema de gestión empresarial modular "Workly" basado en web construido con Fl
 - **Dynamic Data**: Backend queries provide real-time data for all charts
 - **Responsive Design**: All charts adapt to screen size with proper color theming
 
-### Stripe Connect Integration (October 2025)
-- **Multi-tenant Payment Processing**: Each company connects its own Stripe Express account
-- **Zero fees when inactive**: Only charged when processing transactions ($2/month when active)
-- **Secure Webhook Validation**: All webhook events validated with signature verification
-- **Payment Intent API**: Endpoint for creating payment intents with idempotency support
-- **Database Fields**: Company model tracks stripe_account_id, onboarding status, charges/payouts enabled
-- **PaymentDetail Enhancement**: Tracks stripe_payment_intent_id and stripe_charge_id for reconciliation
-- **Onboarding Flow**: Automated Account Link generation for Express account setup
-- **Dashboard Access**: Direct login links to Stripe Express dashboard for account management
-- **Event Handling**: Webhooks process account.updated, payment_intent.succeeded, charge.succeeded events
-- **Security**: STRIPE_WEBHOOK_SECRET required for production webhook validation
+### Mercado Pago Integration (October 2025)
+
+#### Architecture Overview
+Complete replacement of Stripe with Mercado Pago for Chilean market. Multi-tenant OAuth architecture allows each company to connect their own Mercado Pago account independently.
+
+#### Security Implementation
+- **Secure OAuth Flow**: Random state generation using `secrets.token_urlsafe(32)` stored in session
+- **State Validation**: Callback validates state, user ID, and company ID before token exchange
+- **Session Management**: Helper function `_clear_oauth_session()` executed in finally block to guarantee cleanup
+- **Authentication**: Callback requires `@login_required` decorator, prevents unauthorized access
+- **Company Isolation**: Multi-layer validation ensures users can only configure their own company
+
+#### OAuth Flow
+1. Admin initiates connection from `/mercadopago/setup` page
+2. System generates random state and stores in session with user/company IDs
+3. User redirected to Mercado Pago authorization URL with state parameter
+4. User authorizes application on Mercado Pago
+5. Callback validates state, user, and company before token exchange
+6. Token exchange uses form-encoded POST (application/x-www-form-urlencoded)
+7. Access token, refresh token, and public key saved to company record
+8. Session cleaned in all cases (success, error, exception)
+
+#### Database Schema
+Company model fields:
+- `mp_access_token` (VARCHAR 500): Encrypted per-company access token
+- `mp_refresh_token` (VARCHAR 500): For token renewal
+- `mp_public_key` (VARCHAR 255): Public key for frontend SDK
+- `mp_user_id` (VARCHAR 255): Mercado Pago user identifier
+- `mp_onboarding_complete` (BOOLEAN): Connection status flag
+- `mp_token_expires_at` (TIMESTAMP): Token expiration tracking
+
+#### API Integration
+- **Checkout API**: Create payment preferences for product sales
+- **Payment Status**: Query payment status by ID
+- **Webhook Handler**: Receive real-time payment notifications
+- **SDK**: MercadoPago Python SDK (mercadopago==2.3.0)
+
+#### Payment Methods Supported
+- Credit/debit cards (Visa, Mastercard, AmEx)
+- Bank transfers
+- Cash payments via network locations
+- Mercado Pago wallet balance
+
+#### Environment Secrets
+- `MP_PUBLIC_KEY`: Platform public key for testing
+- `MP_ACCESS_TOKEN`: Platform access token for testing
+- `MP_CLIENT_ID`: OAuth application ID
+- `MP_CLIENT_SECRET`: OAuth application secret
+
+#### Files Structure
+- `blueprints/mercadopago/routes.py`: OAuth, payments, webhooks endpoints
+- `blueprints/mercadopago/__init__.py`: Blueprint registration
+- `templates/mercadopago/setup.html`: Configuration UI in Spanish
+- Blueprint registered at `/mercadopago` prefix
+
+#### Test Mode
+- Sandbox credentials supported via TEST-prefixed tokens
+- Test cards available for development
+- Full OAuth flow testable in development environment
 
 ### Deployment Infrastructure
 - **ProxyFix**: WSGI middleware for handling proxy headers
