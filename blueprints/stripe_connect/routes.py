@@ -155,6 +155,48 @@ def disconnect():
     
     return redirect(url_for('stripe.setup'))
 
+@stripe_bp.route('/create-payment-intent', methods=['POST'])
+@login_required
+def create_payment_intent():
+    """Crear Payment Intent para procesar pago con tarjeta"""
+    if not current_user.company.module_pos:
+        return jsonify({'error': 'Módulo POS no activo'}), 403
+    
+    if not current_user.company.stripe_account_id or not current_user.company.stripe_charges_enabled:
+        return jsonify({'error': 'Cuenta de Stripe no configurada o no habilitada para procesar pagos'}), 403
+    
+    try:
+        data = request.get_json()
+        amount = data.get('amount')  # Amount in cents (e.g., 1000 = $10.00)
+        currency = data.get('currency', 'clp')  # Chilean peso by default
+        sale_number = data.get('sale_number')
+        
+        if not amount or amount <= 0:
+            return jsonify({'error': 'Monto inválido'}), 400
+        
+        # Crear Payment Intent en la cuenta conectada
+        payment_intent = stripe.PaymentIntent.create(
+            amount=int(amount),
+            currency=currency,
+            application_fee_amount=0,  # Sin comisión de plataforma por ahora
+            stripe_account=current_user.company.stripe_account_id,
+            metadata={
+                'sale_number': sale_number,
+                'company_id': str(current_user.company_id),
+                'user_id': str(current_user.id),
+            }
+        )
+        
+        return jsonify({
+            'clientSecret': payment_intent.client_secret,
+            'paymentIntentId': payment_intent.id
+        }), 200
+        
+    except stripe.error.StripeError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
 @stripe_bp.route('/webhook', methods=['POST'])
 def webhook():
     """Webhook para recibir eventos de Stripe"""

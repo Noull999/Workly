@@ -376,6 +376,8 @@ class PaymentDetail(db.Model):
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     reference = db.Column(db.String(100), nullable=True)  # Número de voucher, referencia, etc.
     notes = db.Column(db.Text)
+    stripe_payment_intent_id = db.Column(db.String(255), nullable=True)  # ID del Payment Intent de Stripe
+    stripe_charge_id = db.Column(db.String(255), nullable=True)  # ID del Charge de Stripe
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
