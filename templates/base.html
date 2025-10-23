@@ -372,6 +372,40 @@
                         </li>
                         {% endif %}
                         
+                        <!-- Reportes (acceso a todos los reportes) -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-chart-line me-1"></i>Reportes
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('reports.dashboard') }}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard de Reportes
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% if current_user.company.module_inventory %}
+                                <li><a class="dropdown-item" href="{{ url_for('reports.inventory_report') }}">
+                                    <i class="fas fa-boxes me-1"></i>Reporte de Inventario
+                                </a></li>
+                                {% endif %}
+                                {% if current_user.company.module_pos %}
+                                <li><a class="dropdown-item" href="{{ url_for('reports.sales_report') }}">
+                                    <i class="fas fa-shopping-cart me-1"></i>Reporte de Ventas
+                                </a></li>
+                                {% endif %}
+                                {% if current_user.company.module_appointments %}
+                                <li><a class="dropdown-item" href="{{ url_for('reports.appointments_report') }}">
+                                    <i class="fas fa-calendar-check me-1"></i>Reporte de Citas
+                                </a></li>
+                                {% endif %}
+                                {% if (current_user.company.module_pos and current_user.company.module_inventory) or (current_user.company.module_appointments and current_user.company.module_pos) %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('reports.integration_report') }}">
+                                    <i class="fas fa-link me-1"></i>Reporte de Integración
+                                </a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                        
                         {% if current_user.is_admin_global() or current_user.is_admin_empresa() %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
