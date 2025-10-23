@@ -121,6 +121,18 @@ Sistema de gestión empresarial modular "Workly" basado en web construido con Fl
 - **Dynamic Data**: Backend queries provide real-time data for all charts
 - **Responsive Design**: All charts adapt to screen size with proper color theming
 
+### Stripe Connect Integration (October 2025)
+- **Multi-tenant Payment Processing**: Each company connects its own Stripe Express account
+- **Zero fees when inactive**: Only charged when processing transactions ($2/month when active)
+- **Secure Webhook Validation**: All webhook events validated with signature verification
+- **Payment Intent API**: Endpoint for creating payment intents with idempotency support
+- **Database Fields**: Company model tracks stripe_account_id, onboarding status, charges/payouts enabled
+- **PaymentDetail Enhancement**: Tracks stripe_payment_intent_id and stripe_charge_id for reconciliation
+- **Onboarding Flow**: Automated Account Link generation for Express account setup
+- **Dashboard Access**: Direct login links to Stripe Express dashboard for account management
+- **Event Handling**: Webhooks process account.updated, payment_intent.succeeded, charge.succeeded events
+- **Security**: STRIPE_WEBHOOK_SECRET required for production webhook validation
+
 ### Deployment Infrastructure
 - **ProxyFix**: WSGI middleware for handling proxy headers
 - **Environment variables**: Configuration management for secrets and database URLs

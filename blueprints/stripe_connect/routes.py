@@ -170,22 +170,32 @@ def create_payment_intent():
         amount = data.get('amount')  # Amount in cents (e.g., 1000 = $10.00)
         currency = data.get('currency', 'clp')  # Chilean peso by default
         sale_number = data.get('sale_number')
+        idempotency_key = data.get('idempotency_key')  # Para evitar duplicados
         
         if not amount or amount <= 0:
             return jsonify({'error': 'Monto inválido'}), 400
         
         # Crear Payment Intent en la cuenta conectada
-        payment_intent = stripe.PaymentIntent.create(
-            amount=int(amount),
-            currency=currency,
-            application_fee_amount=0,  # Sin comisión de plataforma por ahora
-            stripe_account=current_user.company.stripe_account_id,
-            metadata={
+        create_params = {
+            'amount': int(amount),
+            'currency': currency,
+            'application_fee_amount': 0,  # Sin comisión de plataforma por ahora
+            'stripe_account': current_user.company.stripe_account_id,
+            'metadata': {
                 'sale_number': sale_number,
                 'company_id': str(current_user.company_id),
                 'user_id': str(current_user.id),
             }
-        )
+        }
+        
+        # Agregar idempotency key si se proporciona
+        if idempotency_key:
+            payment_intent = stripe.PaymentIntent.create(
+                **create_params,
+                idempotency_key=idempotency_key
+            )
+        else:
+            payment_intent = stripe.PaymentIntent.create(**create_params)
         
         return jsonify({
             'clientSecret': payment_intent.client_secret,
@@ -199,34 +209,37 @@ def create_payment_intent():
 
 @stripe_bp.route('/webhook', methods=['POST'])
 def webhook():
-    """Webhook para recibir eventos de Stripe"""
+    """Webhook para recibir eventos de Stripe con validación de firma"""
     payload = request.get_data()
     sig_header = request.headers.get('Stripe-Signature')
     
-    # En producción, debes configurar STRIPE_WEBHOOK_SECRET
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
     
+    # SEGURIDAD: Siempre validar firma del webhook
+    if not webhook_secret:
+        # En desarrollo, rechazar si no está configurado
+        return jsonify({'error': 'Webhook secret no configurado'}), 500
+    
     try:
-        if webhook_secret:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, webhook_secret
-            )
-        else:
-            # Modo desarrollo sin verificación (NO usar en producción)
-            event = stripe.Event.construct_from(
-                request.get_json(), stripe.api_key
-            )
+        # Validar firma y construir evento
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
     except ValueError as e:
+        # Payload inválido
         return jsonify({'error': 'Invalid payload'}), 400
     except stripe.error.SignatureVerificationError as e:
-        return jsonify({'error': 'Invalid signature'}), 400
+        # Firma inválida - posible intento de falsificación
+        return jsonify({'error': 'Invalid signature'}), 401
     
-    # Manejar eventos
-    if event['type'] == 'account.updated':
+    # Manejar eventos específicos
+    event_type = event.get('type')
+    
+    if event_type == 'account.updated':
+        # Actualizar estado de la cuenta conectada
         account = event['data']['object']
-        
-        # Buscar empresa por stripe_account_id
         company = Company.query.filter_by(stripe_account_id=account['id']).first()
+        
         if company:
             company.stripe_charges_enabled = account.get('charges_enabled', False)
             company.stripe_payouts_enabled = account.get('payouts_enabled', False)
@@ -238,15 +251,44 @@ def webhook():
             )
             db.session.commit()
     
-    elif event['type'] == 'payment_intent.succeeded':
+    elif event_type == 'payment_intent.succeeded':
+        # Pago exitoso - actualizar PaymentDetail si existe
         payment_intent = event['data']['object']
-        # Aquí puedes actualizar el estado de la venta si es necesario
-        # Los metadatos deben incluir sale_id para vincular
-        pass
+        pi_id = payment_intent.get('id')
+        
+        # Buscar PaymentDetail por stripe_payment_intent_id
+        from models import PaymentDetail
+        payment_detail = PaymentDetail.query.filter_by(stripe_payment_intent_id=pi_id).first()
+        
+        if payment_detail:
+            # Actualizar con el charge_id si está disponible
+            charges = payment_intent.get('charges', {}).get('data', [])
+            if charges:
+                payment_detail.stripe_charge_id = charges[0].get('id')
+                db.session.commit()
     
-    elif event['type'] == 'payment_intent.payment_failed':
+    elif event_type == 'charge.succeeded':
+        # Cargo exitoso en la cuenta conectada
+        charge = event['data']['object']
+        charge_id = charge.get('id')
+        
+        from models import PaymentDetail
+        payment_detail = PaymentDetail.query.filter_by(stripe_charge_id=charge_id).first()
+        
+        if not payment_detail:
+            # Buscar por payment_intent_id
+            pi_id = charge.get('payment_intent')
+            if pi_id:
+                payment_detail = PaymentDetail.query.filter_by(stripe_payment_intent_id=pi_id).first()
+                if payment_detail:
+                    payment_detail.stripe_charge_id = charge_id
+                    db.session.commit()
+    
+    elif event_type == 'payment_intent.payment_failed':
+        # Pago fallido - registrar en logs
         payment_intent = event['data']['object']
-        # Manejar pago fallido
-        pass
+        error_message = payment_intent.get('last_payment_error', {}).get('message', 'Unknown error')
+        # Aquí podrías actualizar el estado de la venta o enviar notificación
+        print(f"Payment failed for {payment_intent.get('id')}: {error_message}")
     
     return jsonify({'status': 'success'}), 200
