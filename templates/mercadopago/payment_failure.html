@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Pago Fallido - Workly{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3><i class="fas fa-times-circle"></i> Pago No Procesado</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle text-danger" style="font-size: 80px;"></i>
+                    </div>
+                    
+                    <h4 class="mb-3">Hubo un problema al procesar tu pago</h4>
+                    
+                    <div class="alert alert-danger">
+                        <strong>Número de Venta:</strong> {{ sale.sale_number }}
+                    </div>
+                    
+                    <p class="lead">
+                        El pago no pudo ser completado. Por favor, intenta nuevamente o usa otro método de pago.
+                    </p>
+                    
+                    <div class="mt-4">
+                        <strong>Posibles causas:</strong>
+                        <ul class="list-unstyled mt-2">
+                            <li>• Fondos insuficientes</li>
+                            <li>• Datos de tarjeta incorrectos</li>
+                            <li>• Transacción rechazada por el banco</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('pos.sales') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-arrow-left"></i> Volver al POS
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-home"></i> Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

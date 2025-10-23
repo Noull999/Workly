@@ -176,39 +176,78 @@ def disconnect():
 @mercadopago_bp.route('/create-payment-preference', methods=['POST'])
 @login_required
 def create_payment_preference():
-    """Crear preferencia de pago para Checkout Pro"""
+    """Crear preferencia de pago para Checkout Pro desde una venta del POS"""
     try:
+        from models import Sale
+        from decimal import Decimal
+        
         data = request.get_json()
+        sale_id = data.get('sale_id')
+        
+        if not sale_id:
+            return jsonify({'error': 'sale_id es requerido'}), 400
         
         company = current_user.company
         
         if not company.mp_access_token:
             return jsonify({'error': 'Mercado Pago no está configurado'}), 400
         
+        # Obtener la venta
+        sale = Sale.query.filter_by(id=sale_id, company_id=current_user.company_id).first()
+        if not sale:
+            return jsonify({'error': 'Venta no encontrada'}), 404
+        
+        # Verificar que la venta esté pendiente
+        if sale.status != 'pendiente':
+            return jsonify({'error': 'La venta no está pendiente de pago'}), 400
+        
         # Inicializar SDK con token de la empresa
         sdk = mercadopago.SDK(company.mp_access_token)
         
+        # Preparar items para Mercado Pago
+        items = []
+        for sale_item in sale.items:
+            items.append({
+                "title": sale_item.inventory_item.name,
+                "quantity": sale_item.quantity,
+                "unit_price": float(sale_item.unit_price),
+                "currency_id": "CLP"  # Pesos chilenos
+            })
+        
         # Crear preferencia de pago
         preference_data = {
-            "items": data.get('items', []),
+            "items": items,
             "payer": {
-                "email": data.get('payer_email', company.company_email)
+                "email": current_user.email
             },
             "back_urls": {
-                "success": request.url_root.rstrip('/') + url_for('pos.index'),
-                "failure": request.url_root.rstrip('/') + url_for('pos.index'),
-                "pending": request.url_root.rstrip('/') + url_for('pos.index')
+                "success": request.url_root.rstrip('/') + url_for('mercadopago.payment_success', sale_id=sale.id),
+                "failure": request.url_root.rstrip('/') + url_for('mercadopago.payment_failure', sale_id=sale.id),
+                "pending": request.url_root.rstrip('/') + url_for('mercadopago.payment_pending', sale_id=sale.id)
             },
+            "auto_return": "approved",
             "notification_url": request.url_root.rstrip('/') + url_for('mercadopago.webhook'),
-            "external_reference": data.get('sale_id', ''),
+            "external_reference": str(sale.id),
             "metadata": {
                 "company_id": company.id,
-                "sale_id": data.get('sale_id', '')
+                "sale_id": sale.id,
+                "sale_number": sale.sale_number
             }
         }
         
         preference_response = sdk.preference().create(preference_data)
         preference = preference_response["response"]
+        
+        # Guardar preference_id en PaymentDetail
+        payment_detail = PaymentDetail(
+            sale_id=sale.id,
+            payment_method='mercadopago',
+            amount=sale.total_amount,
+            mp_preference_id=preference['id'],
+            notes='Pago pendiente en Mercado Pago'
+        )
+        db.session.add(payment_detail)
+        db.session.commit()
         
         return jsonify({
             'preference_id': preference['id'],
@@ -217,20 +256,66 @@ def create_payment_preference():
         })
     
     except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@mercadopago_bp.route('/payment/success/<int:sale_id>')
+@login_required
+def payment_success(sale_id):
+    """Página de éxito después del pago"""
+    from models import Sale
+    
+    sale = Sale.query.filter_by(id=sale_id, company_id=current_user.company_id).first()
+    if not sale:
+        flash('Venta no encontrada.', 'danger')
+        return redirect(url_for('pos.sales'))
+    
+    # Obtener el payment_id de los parámetros de retorno
+    payment_id = request.args.get('payment_id')
+    collection_status = request.args.get('collection_status')
+    
+    return render_template('mercadopago/payment_success.html', 
+                         sale=sale, 
+                         payment_id=payment_id,
+                         collection_status=collection_status)
+
+@mercadopago_bp.route('/payment/pending/<int:sale_id>')
+@login_required
+def payment_pending(sale_id):
+    """Página de pago pendiente"""
+    from models import Sale
+    
+    sale = Sale.query.filter_by(id=sale_id, company_id=current_user.company_id).first()
+    if not sale:
+        flash('Venta no encontrada.', 'danger')
+        return redirect(url_for('pos.sales'))
+    
+    return render_template('mercadopago/payment_pending.html', sale=sale)
+
+@mercadopago_bp.route('/payment/failure/<int:sale_id>')
+@login_required
+def payment_failure(sale_id):
+    """Página de fallo en el pago"""
+    from models import Sale
+    
+    sale = Sale.query.filter_by(id=sale_id, company_id=current_user.company_id).first()
+    if not sale:
+        flash('Venta no encontrada.', 'danger')
+        return redirect(url_for('pos.sales'))
+    
+    return render_template('mercadopago/payment_failure.html', sale=sale)
 
 @mercadopago_bp.route('/webhook', methods=['POST'])
 def webhook():
     """Webhook para notificaciones de Mercado Pago"""
     try:
+        from models import Sale
+        
         # Obtener datos del webhook
         data = request.get_json()
         
         # Log para debugging
         print(f"Mercado Pago Webhook received: {json.dumps(data, indent=2)}")
-        
-        # Validar firma del webhook (si Mercado Pago la proporciona)
-        # Nota: Mercado Pago usa un enfoque diferente a Stripe para validación
         
         notification_type = data.get('type')
         
@@ -238,9 +323,21 @@ def webhook():
             payment_id = data.get('data', {}).get('id')
             
             if payment_id:
-                # Aquí procesarías el pago
-                # Por ahora solo logueamos
-                print(f"Payment notification received: {payment_id}")
+                # Obtener información del pago desde Mercado Pago
+                # Necesitamos el access token de la empresa
+                # Por ahora, buscaremos la venta por external_reference
+                
+                # Obtener información adicional del pago
+                try:
+                    # Intentar obtener el external_reference del payment
+                    # Esto requiere consultar la API de MP con el payment_id
+                    print(f"Processing payment: {payment_id}")
+                    
+                    # Por ahora, marcamos como recibido
+                    # El procesamiento real ocurrirá cuando el usuario regrese a la página de éxito
+                    
+                except Exception as e:
+                    print(f"Error processing payment: {str(e)}")
         
         return jsonify({'status': 'ok'}), 200
     

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Pago Exitoso - Workly{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h3><i class="fas fa-check-circle"></i> ¡Pago Exitoso!</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 80px;"></i>
+                    </div>
+                    
+                    <h4 class="mb-3">Tu pago ha sido procesado correctamente</h4>
+                    
+                    <div class="alert alert-success">
+                        <strong>Número de Venta:</strong> {{ sale.sale_number }}
+                    </div>
+                    
+                    {% if payment_id %}
+                    <div class="alert alert-info">
+                        <strong>ID de Pago:</strong> {{ payment_id }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <h5>Detalles de la Compra</h5>
+                        <table class="table table-bordered mt-3">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in sale.items %}
+                                <tr>
+                                    <td>{{ item.inventory_item.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ "{:,.0f}".format(item.unit_price) }}</td>
+                                    <td>${{ "{:,.0f}".format(item.total_price) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th colspan="3" class="text-end">Total:</th>
+                                    <th>${{ "{:,.0f}".format(sale.total_amount) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('pos.sales') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-arrow-left"></i> Volver al POS
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-home"></i> Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
