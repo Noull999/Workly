@@ -36,6 +36,13 @@ class Company(db.Model):
     social_instagram = db.Column(db.String(200), nullable=True)
     social_linkedin = db.Column(db.String(200), nullable=True)
     
+    # Stripe Connect fields
+    stripe_account_id = db.Column(db.String(255), nullable=True)
+    stripe_onboarding_complete = db.Column(db.Boolean, default=False)
+    stripe_charges_enabled = db.Column(db.Boolean, default=False)
+    stripe_payouts_enabled = db.Column(db.Boolean, default=False)
+    stripe_details_submitted = db.Column(db.Boolean, default=False)
+    
     # Relationships
     users = db.relationship('User', backref='company', lazy=True, cascade='all, delete-orphan')
     warehouses = db.relationship('Warehouse', backref='company', lazy=True, cascade='all, delete-orphan')
