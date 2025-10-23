@@ -366,6 +366,18 @@ wheels = [
 ]
 
 [[package]]
+name = "mercadopago"
+version = "2.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7d/f6/d50dfcf959ba35de795e54f39ee1814b364ad5772fde1a058276275adf4f/mercadopago-2.3.0.tar.gz", hash = "sha256:8537e9de5d987b545841b05bb35675553b22e661b96ffc4fb178ffba846ff2d7", size = 24015, upload-time = "2025-03-26T12:37:22.225Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6a/be/f23a9ace6327ecd246cbc2068b72c21ffde743e00f4985668617e30730b7/mercadopago-2.3.0-py3-none-any.whl", hash = "sha256:2502cb005ab90343d60e577107b422daeff27511f85c45a7bf0784ac2083f2c7", size = 35713, upload-time = "2025-03-26T12:37:20.827Z" },
+]
+
+[[package]]
 name = "packaging"
 version = "25.0"
 source = { registry = "https://pypi.org/simple" }
@@ -429,9 +441,9 @@ dependencies = [
     { name = "flask-sqlalchemy" },
     { name = "flask-wtf" },
     { name = "gunicorn" },
+    { name = "mercadopago" },
     { name = "psycopg2-binary" },
     { name = "sqlalchemy" },
-    { name = "stripe" },
     { name = "werkzeug" },
     { name = "wtforms" },
 ]
@@ -445,9 +457,9 @@ requires-dist = [
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
     { name = "flask-wtf", specifier = ">=1.2.2" },
     { name = "gunicorn", specifier = ">=23.0.0" },
+    { name = "mercadopago", specifier = ">=2.3.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "sqlalchemy", specifier = ">=2.0.43" },
-    { name = "stripe", specifier = ">=13.0.1" },
     { name = "werkzeug", specifier = ">=3.1.3" },
     { name = "wtforms", specifier = ">=3.2.1" },
 ]
@@ -502,19 +514,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b6/e4/bd78b01919c524f190b4905d47e7630bf4130b9f48fd971ae1c6225b6f6a/sqlalchemy-2.0.43-cp313-cp313-win32.whl", hash = "sha256:7f1ac7828857fcedb0361b48b9ac4821469f7694089d15550bbcf9ab22564a1d", size = 2096718, upload-time = "2025-08-11T15:55:05.349Z" },
     { url = "https://files.pythonhosted.org/packages/ac/a5/ca2f07a2a201f9497de1928f787926613db6307992fe5cda97624eb07c2f/sqlalchemy-2.0.43-cp313-cp313-win_amd64.whl", hash = "sha256:971ba928fcde01869361f504fcff3b7143b47d30de188b11c6357c0505824197", size = 2123200, upload-time = "2025-08-11T15:55:07.932Z" },
     { url = "https://files.pythonhosted.org/packages/b8/d9/13bdde6521f322861fab67473cec4b1cc8999f3871953531cf61945fad92/sqlalchemy-2.0.43-py3-none-any.whl", hash = "sha256:1681c21dd2ccee222c2fe0bef671d1aef7c504087c9c4e800371cfcc8ac966fc", size = 1924759, upload-time = "2025-08-11T15:39:53.024Z" },
-]
-
-[[package]]
-name = "stripe"
-version = "13.0.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d8/36/edac714e44a1a0048e74cc659b6070b42dd7027473e8f9f06a727b3860b6/stripe-13.0.1.tar.gz", hash = "sha256:5869739430ff73bd9cd81275abfb79fd4089e97e9fd98d306a015f5defd39a0d", size = 1263853, upload-time = "2025-10-03T19:37:17.335Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3a/ac/a911f3c850420ab42447f5c049f570e55f34e0aa0b2e6a1d1a059a5656c4/stripe-13.0.1-py3-none-any.whl", hash = "sha256:7804cee14580ab37bbc1e5f6562e49dea0686ab3cb34384eb9386387ed8ebd0c", size = 1849008, upload-time = "2025-10-03T19:37:14.953Z" },
 ]
 
 [[package]]
