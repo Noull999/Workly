@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Integración - Workly{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-link me-2"></i>Reporte de Integración entre Módulos</h2>
+        <a href="{{ url_for('reports.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Análisis Cross-Módulo:</strong> Este reporte analiza la integración y relación entre los diferentes módulos activos de tu empresa.
+    </div>
+
+    <!-- Análisis Ventas e Inventario -->
+    {% if report_data.sales_inventory %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Análisis: Ventas vs Inventario</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Productos más vendidos con su estado de stock actual (últimos 30 días)</p>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Producto</th>
+                            <th class="text-center">Stock Actual</th>
+                            <th class="text-center">Stock Mínimo</th>
+                            <th class="text-end">Unidades Vendidas</th>
+                            <th class="text-end">Ingresos</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in report_data.sales_inventory %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><strong>{{ item.name }}</strong></td>
+                            <td class="text-center">
+                                <span class="badge bg-{% if item.current_stock <= item.minimum_stock %}danger{% elif item.current_stock <= item.minimum_stock * 2 %}warning{% else %}success{% endif %}">
+                                    {{ item.current_stock }}
+                                </span>
+                            </td>
+                            <td class="text-center">{{ item.minimum_stock }}</td>
+                            <td class="text-end">{{ item.sold_units }}</td>
+                            <td class="text-end text-success">${{ "%.2f"|format(item.revenue) }}</td>
+                            <td class="text-center">
+                                {% if item.current_stock <= item.minimum_stock %}
+                                <span class="badge bg-danger">Reabastecer</span>
+                                {% elif item.current_stock <= item.minimum_stock * 2 %}
+                                <span class="badge bg-warning">Revisar</span>
+                                {% else %}
+                                <span class="badge bg-success">OK</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if report_data.restock_needed %}
+            <div class="alert alert-warning mt-3">
+                <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Acción Requerida</h6>
+                <p class="mb-0">
+                    <strong>{{ report_data.restock_needed|length }} productos vendidos</strong> necesitan reabastecimiento urgente debido a stock bajo o crítico.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Análisis Servicios (Citas y POS) -->
+    {% if report_data.services_performance %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Rendimiento de Servicios</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Análisis de citas completadas por servicio</p>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Servicio</th>
+                            <th class="text-center">Citas Completadas</th>
+                            <th class="text-center">Popularidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service_name, appointments_count in report_data.services_performance %}
+                        <tr>
+                            <td><strong>{{ service_name }}</strong></td>
+                            <td class="text-center">{{ appointments_count }}</td>
+                            <td class="text-center">
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ (appointments_count / (report_data.services_performance|sum(attribute=1)) * 100) if report_data.services_performance else 0 }}%">
+                                        {{ "%.0f"|format((appointments_count / (report_data.services_performance|sum(attribute=1)) * 100) if report_data.services_performance else 0) }}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recomendaciones -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Recomendaciones del Sistema</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                {% if report_data.restock_needed %}
+                <li class="mb-2">
+                    <i class="fas fa-exclamation-circle text-danger me-2"></i>
+                    <strong>Reabastecimiento Crítico:</strong> {{ report_data.restock_needed|length }} productos populares necesitan reabastecimiento urgente.
+                </li>
+                {% endif %}
+                
+                {% if report_data.sales_inventory %}
+                <li class="mb-2">
+                    <i class="fas fa-chart-line text-success me-2"></i>
+                    <strong>Optimización de Inventario:</strong> Considera aumentar el stock de los productos más vendidos para evitar pérdidas de venta.
+                </li>
+                {% endif %}
+                
+                {% if report_data.services_performance %}
+                <li class="mb-2">
+                    <i class="fas fa-star text-warning me-2"></i>
+                    <strong>Promoción de Servicios:</strong> Enfoca marketing en los servicios más solicitados para maximizar la rentabilidad.
+                </li>
+                {% endif %}
+                
+                {% if not report_data.sales_inventory and not report_data.services_performance %}
+                <li class="mb-2">
+                    <i class="fas fa-info-circle text-info me-2"></i>
+                    <strong>Información:</strong> Activa más módulos para obtener análisis más completos y recomendaciones personalizadas.
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

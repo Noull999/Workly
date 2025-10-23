@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard de Reportes - Workly{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-line me-2"></i>Dashboard de Reportes</h2>
+        <div class="btn-group">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-1"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Resumen General -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <i class="fas fa-puzzle-piece fa-2x mb-2"></i>
+                    <h3>{{ stats.modules_active }}</h3>
+                    <p class="mb-0">Módulos Activos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h3>{{ stats.users_count }}</h3>
+                    <p class="mb-0">Usuarios</p>
+                </div>
+            </div>
+        </div>
+        {% if company.module_inventory %}
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <i class="fas fa-boxes fa-2x mb-2"></i>
+                    <h3>{{ stats.inventory.total_items }}</h3>
+                    <p class="mb-0">Artículos en Inventario</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if company.module_pos %}
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <i class="fas fa-cash-register fa-2x mb-2"></i>
+                    <h3>${{ "%.0f"|format(stats.pos.today_sales) }}</h3>
+                    <p class="mb-0">Ventas Hoy</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        {% if company.module_pos %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Tendencia de Ventas (7 días)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if company.module_inventory %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Estado del Inventario</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="inventoryStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Métricas por Módulo -->
+    <div class="row">
+        {% if company.module_inventory %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-warehouse me-2"></i>Inventario</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <h4 class="text-primary">{{ stats.inventory.total_items }}</h4>
+                            <small>Total Artículos</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-success">{{ stats.inventory.total_quantity }}</h4>
+                            <small>Cantidad Total</small>
+                        </div>
+                        <div class="col-12">
+                            <h4 class="text-warning">{{ stats.inventory.low_stock }}</h4>
+                            <small>Artículos con Stock Bajo</small>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('reports.inventory_report') }}" class="btn btn-primary btn-sm w-100 mt-3">
+                        Ver Reporte Detallado
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if company.module_pos %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-shopping-cart me-2"></i>Punto de Venta</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4 mb-3">
+                            <h6>Hoy</h6>
+                            <h4 class="text-success">${{ "%.0f"|format(stats.pos.today_sales) }}</h4>
+                            <small>{{ stats.pos.today_count }} ventas</small>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <h6>Esta Semana</h6>
+                            <h4 class="text-info">${{ "%.0f"|format(stats.pos.week_sales) }}</h4>
+                            <small>{{ stats.pos.week_count }} ventas</small>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <h6>Este Mes</h6>
+                            <h4 class="text-primary">${{ "%.0f"|format(stats.pos.month_sales) }}</h4>
+                            <small>{{ stats.pos.month_count }} ventas</small>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('reports.sales_report') }}" class="btn btn-primary btn-sm w-100 mt-3">
+                        Ver Reporte Detallado
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if company.module_appointments %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-check me-2"></i>Citas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <h4 class="text-primary">{{ stats.appointments.today_count }}</h4>
+                            <small>Citas Hoy</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-warning">{{ stats.appointments.pending_count }}</h4>
+                            <small>Pendientes</small>
+                        </div>
+                        <div class="col-12">
+                            <h4 class="text-success">{{ stats.appointments.services_active }}</h4>
+                            <small>Servicios Activos</small>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('reports.appointments_report') }}" class="btn btn-primary btn-sm w-100 mt-3">
+                        Ver Reporte Detallado
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if company.module_scrum %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tasks me-2"></i>Scrum</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4 mb-3">
+                            <h4 class="text-primary">{{ stats.scrum.boards_count }}</h4>
+                            <small>Tableros</small>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <h4 class="text-info">{{ stats.scrum.tasks_total }}</h4>
+                            <small>Tareas Totales</small>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <h4 class="text-warning">{{ stats.scrum.tasks_in_progress }}</h4>
+                            <small>En Progreso</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if company.module_notion %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-alt me-2"></i>Notion Workspace</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <h4 class="text-primary">{{ stats.notion.pages_count }}</h4>
+                            <small>Páginas Totales</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-success">{{ stats.notion.recent_updates }}</h4>
+                            <small>Actualizadas (7 días)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Reportes Especiales -->
+    {% if (company.module_pos and company.module_inventory) or (company.module_appointments and company.module_pos) %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-link me-2"></i>Reportes de Integración</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Analiza la relación entre diferentes módulos de tu empresa</p>
+                    <a href="{{ url_for('reports.integration_report') }}" class="btn btn-primary">
+                        <i class="fas fa-chart-bar me-1"></i>Ver Reporte de Integración
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Configuración de colores
+const chartColors = {
+    purple: 'rgb(147, 51, 234)',
+    orange: 'rgb(251, 146, 60)',
+    purpleAlpha: 'rgba(147, 51, 234, 0.5)',
+    orangeAlpha: 'rgba(251, 146, 60, 0.5)'
+};
+
+{% if company.module_pos %}
+// Gráfico de tendencia de ventas
+fetch('/reports/api/chart-data/sales_trend?days=7')
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('salesTrendChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Ventas Diarias',
+                    data: data.data,
+                    borderColor: chartColors.orange,
+                    backgroundColor: chartColors.orangeAlpha,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: '#fff' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#fff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#fff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                }
+            }
+        });
+    });
+{% endif %}
+
+{% if company.module_inventory %}
+// Gráfico de estado de inventario
+fetch('/reports/api/chart-data/inventory_status')
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('inventoryStatusChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.data,
+                    backgroundColor: [chartColors.purple, chartColors.orange]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: '#fff' }
+                    }
+                }
+            }
+        });
+    });
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Citas - Workly{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-check me-2"></i>Reporte de Citas</h2>
+        <a href="{{ url_for('reports.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('reports.appointments_report') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Inicio</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Fin</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}" required>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i>Aplicar Filtros
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h3>{{ appointments|length }}</h3>
+                    <p class="mb-0">Total Citas</p>
+                </div>
+            </div>
+        </div>
+        {% for status, count in status_breakdown %}
+        <div class="col-md-3">
+            <div class="card text-center {% if status == 'completada' %}bg-success{% elif status == 'confirmada' %}bg-info{% elif status == 'pendiente' %}bg-warning{% else %}bg-secondary{% endif %} text-white">
+                <div class="card-body">
+                    <h3>{{ count }}</h3>
+                    <p class="mb-0">{{ status|capitalize }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Citas por Día</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyAppointmentsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Servicios Más Solicitados</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="servicesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle de Citas -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-list me-2"></i>Detalle de Citas ({{ appointments|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>Fecha/Hora</th>
+                            <th>Cliente</th>
+                            <th>Servicio</th>
+                            <th>Estado</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>{{ appointment.appointment_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>
+                                <strong>{{ appointment.customer_name }}</strong><br>
+                                <small class="text-muted">{{ appointment.customer_email }}</small>
+                            </td>
+                            <td>{{ appointment.service.name }}</td>
+                            <td>
+                                <span class="badge bg-{% if appointment.status == 'completada' %}success{% elif appointment.status == 'confirmada' %}info{% elif appointment.status == 'pendiente' %}warning{% else %}secondary{% endif %}">
+                                    {{ appointment.status }}
+                                </span>
+                            </td>
+                            <td>{{ appointment.notes[:50] if appointment.notes else '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted">No hay citas en el período seleccionado</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const chartColors = {
+    purple: 'rgb(147, 51, 234)',
+    orange: 'rgb(251, 146, 60)',
+    purpleAlpha: 'rgba(147, 51, 234, 0.5)',
+    orangeAlpha: 'rgba(251, 146, 60, 0.5)'
+};
+
+// Gráfico de citas diarias
+const dailyData = {
+    labels: [{% for date, count in daily_appointments %}'{{ date.strftime('%d/%m') }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+        label: 'Citas por Día',
+        data: [{% for date, count in daily_appointments %}{{ count }}{% if not loop.last %},{% endif %}{% endfor %}],
+        backgroundColor: chartColors.purpleAlpha,
+        borderColor: chartColors.purple,
+        borderWidth: 2
+    }]
+};
+
+const dailyCtx = document.getElementById('dailyAppointmentsChart').getContext('2d');
+new Chart(dailyCtx, {
+    type: 'bar',
+    data: dailyData,
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { labels: { color: '#fff' } }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: '#fff', stepSize: 1 },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            },
+            x: {
+                ticks: { color: '#fff' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            }
+        }
+    }
+});
+
+// Gráfico de servicios
+const servicesData = {
+    labels: [{% for name, count in service_stats %}'{{ name }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+        data: [{% for name, count in service_stats %}{{ count }}{% if not loop.last %},{% endif %}{% endfor %}],
+        backgroundColor: [chartColors.purple, chartColors.orange, 'rgb(34, 197, 94)', 'rgb(59, 130, 246)', 'rgb(251, 191, 36)']
+    }]
+};
+
+const servicesCtx = document.getElementById('servicesChart').getContext('2d');
+new Chart(servicesCtx, {
+    type: 'doughnut',
+    data: servicesData,
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { labels: { color: '#fff' } }
+        }
+    }
+});
+</script>
+{% endblock %}

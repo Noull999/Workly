@@ -12,7 +12,7 @@ from app import db
 from models import (
     Company, User, InventoryItem, Category, Warehouse, Sale, SaleItem,
     Service, Appointment, CashSession, CashExpense, PaymentDetail,
-    Board, BoardColumn, Task, NotionPage
+    Board, Column, Task, NotionPage
 )
 from blueprints.decorators import admin_required
 from utils import company_query
@@ -92,12 +92,12 @@ def dashboard():
     if company.module_scrum:
         stats['scrum'] = {
             'boards_count': company_query(Board).count(),
-            'tasks_total': db.session.query(Task).join(BoardColumn).join(Board).filter(
+            'tasks_total': db.session.query(Task).join(Column).join(Board).filter(
                 Board.company_id == current_user.company_id
             ).count(),
-            'tasks_in_progress': db.session.query(Task).join(BoardColumn).join(Board).filter(
+            'tasks_in_progress': db.session.query(Task).join(Column).join(Board).filter(
                 Board.company_id == current_user.company_id,
-                BoardColumn.name == 'En Progreso'
+                Column.name == 'En Progreso'
             ).count()
         }
     

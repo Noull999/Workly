@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Inventario - Workly{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-boxes me-2"></i>Reporte de Inventario</h2>
+        <div class="btn-group">
+            <a href="{{ url_for('reports.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Volver
+            </a>
+            <a href="{{ url_for('reports.export_report', report_type='inventory') }}" class="btn btn-success">
+                <i class="fas fa-file-csv me-1"></i>Exportar CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <i class="fas fa-boxes fa-2x mb-2"></i>
+                    <h3>{{ total_items }}</h3>
+                    <p class="mb-0">Total de Artículos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <i class="fas fa-layer-group fa-2x mb-2"></i>
+                    <h3>{{ items|sum(attribute='quantity') if items else 0 }}</h3>
+                    <p class="mb-0">Cantidad Total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <h3>{{ low_stock_items|length }}</h3>
+                    <p class="mb-0">Stock Bajo</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <i class="fas fa-tags fa-2x mb-2"></i>
+                    <h3>{{ category_stats|length }}</h3>
+                    <p class="mb-0">Categorías</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas de Stock Bajo -->
+    {% if low_stock_items %}
+    <div class="alert alert-warning mb-4">
+        <h5 class="alert-heading">
+            <i class="fas fa-exclamation-triangle me-2"></i>Alerta de Stock Bajo ({{ low_stock_items|length }} artículos)
+        </h5>
+        <p>Los siguientes artículos necesitan reposición:</p>
+        <div class="row">
+            {% for item in low_stock_items %}
+            <div class="col-md-6 col-lg-4 mb-2">
+                <div class="d-flex justify-content-between">
+                    <span><strong>{{ item.name }}</strong></span>
+                    <span class="text-danger">{{ item.quantity }}/{{ item.minimum_stock }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Inventario por Categoría -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Inventario por Categoría</h5>
+                </div>
+                <div class="card-body">
+                    {% if category_stats or uncategorized_count > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th class="text-center">Artículos</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th class="text-center">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category_name, item_count, total_quantity in category_stats %}
+                                <tr>
+                                    <td><span class="badge bg-secondary">{{ category_name }}</span></td>
+                                    <td class="text-center">{{ item_count }}</td>
+                                    <td class="text-end">{{ total_quantity or 0 }}</td>
+                                    <td class="text-center">
+                                        <small>{{ "%.1f"|format((item_count / total_items * 100) if total_items > 0 else 0) }}%</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if uncategorized_count > 0 %}
+                                <tr>
+                                    <td><span class="text-muted">Sin Categoría</span></td>
+                                    <td class="text-center">{{ uncategorized_count }}</td>
+                                    <td class="text-end">{{ uncategorized_quantity }}</td>
+                                    <td class="text-center">
+                                        <small>{{ "%.1f"|format((uncategorized_count / total_items * 100) if total_items > 0 else 0) }}%</small>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No hay datos disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventario por Almacén -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-warehouse me-2"></i>Inventario por Almacén</h5>
+                </div>
+                <div class="card-body">
+                    {% if warehouse_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Almacén</th>
+                                    <th class="text-center">Artículos</th>
+                                    <th class="text-end">Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for warehouse_name, item_count, total_quantity in warehouse_stats %}
+                                <tr>
+                                    <td><strong>{{ warehouse_name }}</strong></td>
+                                    <td class="text-center">{{ item_count }}</td>
+                                    <td class="text-end">{{ total_quantity or 0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No hay almacenes configurados</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos Más Vendidos (si POS está activo) -->
+    {% if movement_stats %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-fire me-2"></i>Top 10 Productos Más Vendidos (Últimos 30 días)</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Producto</th>
+                            <th class="text-end">Unidades Vendidas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product_name, units_sold in movement_stats %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><strong>{{ product_name }}</strong></td>
+                            <td class="text-end text-success">{{ units_sold }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

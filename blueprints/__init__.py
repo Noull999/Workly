@@ -14,6 +14,7 @@ def register_blueprints(app):
     from .scrum import scrum
     from .notion import notion
     from .public import public
+    from .reports import reports
     
     # Register blueprints with their URL prefixes
     app.register_blueprint(auth)
@@ -24,3 +25,4 @@ def register_blueprints(app):
     app.register_blueprint(scrum, url_prefix='/scrum')
     app.register_blueprint(notion, url_prefix='/notion')
     app.register_blueprint(public, url_prefix='/public')
+    app.register_blueprint(reports, url_prefix='/reports')
