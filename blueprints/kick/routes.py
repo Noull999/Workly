@@ -69,17 +69,17 @@ def callback():
         
         if not state or state != session.get('kick_oauth_state'):
             flash('Error de validación OAuth. Intenta de nuevo.', 'danger')
-            return redirect(url_for('dashboard.index'))
+            return redirect(url_for('dashboard'))
         
         if not code:
             flash('Error en la autorización de Kick.', 'danger')
-            return redirect(url_for('dashboard.index'))
+            return redirect(url_for('dashboard'))
         
         # Recuperar code_verifier de la sesión para PKCE
         code_verifier = session.get('kick_code_verifier')
         if not code_verifier:
             flash('Error: sesión OAuth inválida.', 'danger')
-            return redirect(url_for('dashboard.index'))
+            return redirect(url_for('dashboard'))
         
         token_data = {
             'grant_type': 'authorization_code',
@@ -98,7 +98,7 @@ def callback():
         
         if token_response.status_code != 200:
             flash('Error al obtener el token de acceso de Kick.', 'danger')
-            return redirect(url_for('dashboard.index'))
+            return redirect(url_for('dashboard'))
         
         token_info = token_response.json()
         access_token = token_info.get('access_token')
@@ -111,7 +111,7 @@ def callback():
         
         if user_response.status_code != 200:
             flash('Error al obtener información del usuario de Kick.', 'danger')
-            return redirect(url_for('dashboard.index'))
+            return redirect(url_for('dashboard'))
         
         kick_user_data = user_response.json()
         
@@ -137,12 +137,12 @@ def callback():
         
         flash(f'¡Conectado exitosamente como {kick_user.username}!', 'success')
         
-        return_to = session.pop('kick_return_to', url_for('dashboard.index'))
+        return_to = session.pop('kick_return_to', url_for('dashboard'))
         return redirect(return_to)
         
     except Exception as e:
         flash(f'Error en el proceso de autenticación: {str(e)}', 'danger')
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('dashboard'))
     finally:
         session.pop('kick_oauth_state', None)
         session.pop('kick_code_verifier', None)
@@ -154,7 +154,7 @@ def logout():
     session.pop('kick_username', None)
     flash('Sesión de Kick cerrada.', 'info')
     
-    return_to = request.args.get('return_to', url_for('dashboard.index'))
+    return_to = request.args.get('return_to', url_for('dashboard'))
     return redirect(return_to)
 
 @kick_bp.route('/user-points/<channel_username>')
