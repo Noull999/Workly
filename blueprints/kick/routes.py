@@ -4,6 +4,8 @@ from . import kick_bp
 import os
 import secrets
 import requests
+import hashlib
+import base64
 from urllib.parse import urlencode
 
 KICK_CLIENT_ID = os.environ.get('KICK_CLIENT_ID')
@@ -21,11 +23,26 @@ def get_redirect_uri():
             KICK_REDIRECT_URI = "http://localhost:5000/kick/callback"
     return KICK_REDIRECT_URI
 
+def generate_code_verifier():
+    """Genera un code_verifier aleatorio para PKCE (43-128 caracteres)"""
+    return secrets.token_urlsafe(64)
+
+def generate_code_challenge(code_verifier):
+    """Genera un code_challenge a partir del code_verifier usando SHA256"""
+    digest = hashlib.sha256(code_verifier.encode('utf-8')).digest()
+    challenge = base64.urlsafe_b64encode(digest).decode('utf-8').rstrip('=')
+    return challenge
+
 @kick_bp.route('/login')
 def login():
-    """Inicia el flujo OAuth de Kick"""
+    """Inicia el flujo OAuth de Kick con PKCE"""
     state = secrets.token_urlsafe(32)
     session['kick_oauth_state'] = state
+    
+    # Generar PKCE
+    code_verifier = generate_code_verifier()
+    code_challenge = generate_code_challenge(code_verifier)
+    session['kick_code_verifier'] = code_verifier
     
     if 'return_to' in request.args:
         session['kick_return_to'] = request.args.get('return_to')
@@ -35,7 +52,9 @@ def login():
         'redirect_uri': get_redirect_uri(),
         'response_type': 'code',
         'state': state,
-        'scope': 'user:read channel:read'
+        'scope': 'user:read channel:read',
+        'code_challenge': code_challenge,
+        'code_challenge_method': 'S256'
     }
     
     auth_url = f"https://id.kick.com/oauth/authorize?{urlencode(params)}"
@@ -56,12 +75,19 @@ def callback():
             flash('Error en la autorización de Kick.', 'danger')
             return redirect(url_for('dashboard.index'))
         
+        # Recuperar code_verifier de la sesión para PKCE
+        code_verifier = session.get('kick_code_verifier')
+        if not code_verifier:
+            flash('Error: sesión OAuth inválida.', 'danger')
+            return redirect(url_for('dashboard.index'))
+        
         token_data = {
             'grant_type': 'authorization_code',
             'client_id': KICK_CLIENT_ID,
             'client_secret': KICK_CLIENT_SECRET,
             'redirect_uri': get_redirect_uri(),
-            'code': code
+            'code': code,
+            'code_verifier': code_verifier
         }
         
         token_response = requests.post(
@@ -119,6 +145,7 @@ def callback():
         return redirect(url_for('dashboard.index'))
     finally:
         session.pop('kick_oauth_state', None)
+        session.pop('kick_code_verifier', None)
 
 @kick_bp.route('/logout')
 def logout():
