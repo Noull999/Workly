@@ -194,6 +194,7 @@ def activate_test_credentials():
     # Configurar credenciales de prueba en la empresa
     company.mp_access_token = test_access_token
     company.mp_public_key = test_public_key
+    company.mp_refresh_token = None  # No hay refresh token en modo de prueba
     company.mp_onboarding_complete = True
     company.mp_user_id = 'TEST_USER'
     company.mp_token_expires_at = datetime.utcnow() + timedelta(days=365)  # Válido por 1 año
