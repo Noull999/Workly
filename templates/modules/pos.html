@@ -145,6 +145,10 @@
                             </button>
                         </div>
                         
+                        <button type="button" class="btn btn-primary w-100 mb-2" onclick="payWithMercadoPago()" id="mercadoPagoButton" disabled>
+                            <i class="fab fa-cc-mastercard me-1"></i>Pagar con Mercado Pago
+                        </button>
+                        
                         <button type="button" class="btn btn-outline-secondary w-100" onclick="clearCart()">
                             <i class="fas fa-trash me-1"></i>Limpiar Carrito
                         </button>
@@ -234,6 +238,7 @@ function updateCartDisplay() {
         cartItems.innerHTML = '<div class="text-center text-muted py-4" id="emptyCart"><i class="fas fa-shopping-cart fa-2x mb-2"></i><p>Carrito vacío</p><small>Haz clic en los productos para agregarlos</small></div>';
         saleButton.disabled = true;
         document.getElementById('multiPayButton').disabled = true;
+        document.getElementById('mercadoPagoButton').disabled = true;
     } else {
         let html = '';
         cart.forEach(item => {
@@ -259,6 +264,7 @@ function updateCartDisplay() {
         cartItems.innerHTML = html;
         saleButton.disabled = false;
         document.getElementById('multiPayButton').disabled = false;
+        document.getElementById('mercadoPagoButton').disabled = false;
     }
     
     updateTotals();
@@ -591,6 +597,71 @@ document.getElementById('searchProducts').addEventListener('input', function(e) 
         }
     });
 });
+
+// Función para pagar con Mercado Pago
+async function payWithMercadoPago() {
+    if (cart.length === 0) {
+        alert('El carrito está vacío');
+        return;
+    }
+    
+    if (!confirm('¿Procesar pago con Mercado Pago?')) {
+        return;
+    }
+    
+    const button = document.getElementById('mercadoPagoButton');
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+    
+    try {
+        // 1. Crear venta pendiente
+        const saleResponse = await fetch('/pos/create-pending-sale', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name="csrf_token"]').value
+            },
+            body: JSON.stringify({
+                cart_items: cart,
+                notes: document.querySelector('[name="notes"]').value
+            })
+        });
+        
+        const saleData = await saleResponse.json();
+        
+        if (!saleData.success) {
+            throw new Error(saleData.error || 'Error al crear la venta');
+        }
+        
+        // 2. Crear preferencia de pago en Mercado Pago
+        const preferenceResponse = await fetch('/mercadopago/create-payment-preference', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name="csrf_token"]').value
+            },
+            body: JSON.stringify({
+                sale_id: saleData.sale_id
+            })
+        });
+        
+        const preferenceData = await preferenceResponse.json();
+        
+        if (preferenceData.error) {
+            throw new Error(preferenceData.error);
+        }
+        
+        // 3. Redirigir al checkout de Mercado Pago
+        // Usar sandbox_init_point si estamos en modo de prueba
+        const checkoutUrl = preferenceData.sandbox_init_point || preferenceData.init_point;
+        window.location.href = checkoutUrl;
+        
+    } catch (error) {
+        alert('Error: ' + error.message);
+        button.disabled = false;
+        button.innerHTML = '<i class="fab fa-cc-mastercard me-1"></i>Pagar con Mercado Pago';
+    }
+}
 
 // Event listener para el input de código de barras
 document.addEventListener('DOMContentLoaded', function() {

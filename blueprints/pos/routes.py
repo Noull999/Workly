@@ -281,3 +281,74 @@ def cash_expenses():
                          form=form, 
                          expenses=expenses, 
                          session=current_session)
+
+@pos.route('/create-pending-sale', methods=['POST'])
+@login_required
+@module_required('pos')
+def create_pending_sale():
+    """Crear una venta pendiente para pago con Mercado Pago"""
+    try:
+        data = request.get_json()
+        cart_items = data.get('cart_items', [])
+        notes = data.get('notes', '')
+        
+        if not cart_items:
+            return jsonify({'error': 'El carrito está vacío'}), 400
+        
+        # Verificar sesión de caja
+        today = date.today()
+        current_session = CashSession.query.filter_by(
+            company_id=current_user.company_id,
+            session_date=today,
+            status='open'
+        ).first()
+        
+        # Crear venta pendiente (sin descontar inventario aún)
+        sale = Sale(  # type: ignore
+            sale_number=Sale.generate_sale_number(current_user.company_id),
+            company_id=current_user.company_id,
+            user_id=current_user.id,
+            cash_session_id=current_session.id if current_session else None,
+            status='pendiente',  # Status pendiente hasta que se confirme el pago
+            notes=notes
+        )
+        
+        total_amount = Decimal('0')
+        
+        # Agregar items a la venta sin descontar inventario
+        for cart_item in cart_items:
+            inventory_item = company_query(InventoryItem).filter_by(id=cart_item['id']).first()
+            if inventory_item and inventory_item.quantity >= cart_item['quantity']:
+                # SEGURIDAD: Usar precio del servidor, no del cliente
+                server_unit_price = inventory_item.price or Decimal('0')
+                server_total_price = server_unit_price * Decimal(str(cart_item['quantity']))
+                
+                # Crear item de venta con precios del servidor
+                sale_item = SaleItem(  # type: ignore
+                    quantity=cart_item['quantity'],
+                    unit_price=server_unit_price,
+                    total_price=server_total_price,
+                    inventory_item_id=inventory_item.id
+                )
+                sale.items.append(sale_item)
+                total_amount += sale_item.total_price
+            else:
+                return jsonify({'error': f'Stock insuficiente para {inventory_item.name if inventory_item else "producto"}'}), 400
+        
+        # Calcular impuestos y total
+        sale.tax_amount = total_amount * Decimal('0.19')
+        sale.total_amount = total_amount + sale.tax_amount
+        
+        db.session.add(sale)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'sale_id': sale.id,
+            'sale_number': sale.sale_number,
+            'total_amount': float(sale.total_amount)
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
