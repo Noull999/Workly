@@ -73,7 +73,7 @@ def perfil_dinamico(email):
     """Página pública dinámica basada en JSON para cualquier usuario"""
     import os
     from urllib.parse import unquote_plus
-    from flask import session
+    from flask import session, request
     
     # Decodificar email si viene URL-encoded
     email = unquote_plus(email)
@@ -199,4 +199,5 @@ def perfil_dinamico(email):
                          sorteos_activos=sorteos_activos,
                          sorteos_habilitados=sorteos_habilitados,
                          kick_user_authenticated=kick_user_authenticated,
-                         kick_username_authenticated=kick_username_authenticated)
+                         kick_username_authenticated=kick_username_authenticated,
+                         request=request)
