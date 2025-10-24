@@ -173,6 +173,36 @@ def disconnect():
     flash('Cuenta de Mercado Pago desconectada.', 'info')
     return redirect(url_for('mercadopago.setup'))
 
+@mercadopago_bp.route('/activate-test-credentials', methods=['POST'])
+@login_required
+def activate_test_credentials():
+    """Activar credenciales de prueba sin OAuth - Para desarrollo y testing"""
+    if not current_user.is_admin_empresa() and not current_user.is_admin_global():
+        flash('No tienes permisos para realizar esta acción.', 'danger')
+        return redirect(url_for('mercadopago.setup'))
+    
+    # Obtener credenciales de prueba de variables de entorno
+    test_access_token = os.environ.get('MP_ACCESS_TOKEN')
+    test_public_key = os.environ.get('MP_PUBLIC_KEY')
+    
+    if not test_access_token or not test_public_key:
+        flash('Las credenciales de prueba no están configuradas en el sistema.', 'danger')
+        return redirect(url_for('mercadopago.setup'))
+    
+    company = current_user.company
+    
+    # Configurar credenciales de prueba en la empresa
+    company.mp_access_token = test_access_token
+    company.mp_public_key = test_public_key
+    company.mp_onboarding_complete = True
+    company.mp_user_id = 'TEST_USER'
+    company.mp_token_expires_at = datetime.utcnow() + timedelta(days=365)  # Válido por 1 año
+    
+    db.session.commit()
+    
+    flash('¡Credenciales de prueba activadas! Ahora puedes procesar pagos en modo de prueba.', 'success')
+    return redirect(url_for('mercadopago.setup'))
+
 @mercadopago_bp.route('/create-payment-preference', methods=['POST'])
 @login_required
 def create_payment_preference():
