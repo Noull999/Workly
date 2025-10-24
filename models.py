@@ -762,3 +762,97 @@ class Clip(db.Model):
     
     def __repr__(self):
         return f'<Clip {self.title or "Sin título"} - User {self.user_id}>'
+
+
+# ===== KICK INTEGRATION MODELS =====
+
+class KickUser(db.Model):
+    """Usuarios que se han autenticado con Kick OAuth"""
+    id = db.Column(db.Integer, primary_key=True)
+    kick_id = db.Column(db.String(100), unique=True, nullable=False)  # ID de usuario en Kick
+    username = db.Column(db.String(100), nullable=False)  # Username de Kick
+    email = db.Column(db.String(120), nullable=True)  # Email de Kick (si está disponible)
+    access_token = db.Column(db.String(500), nullable=False)  # Token OAuth
+    refresh_token = db.Column(db.String(500), nullable=True)  # Refresh token
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    raffle_entries = db.relationship('RaffleEntry', backref='kick_user', lazy=True, cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<KickUser {self.username} (ID: {self.kick_id})>'
+
+
+class Raffle(db.Model):
+    """Sorteos creados por streamers usando puntos de Kick"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Información del sorteo
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    prize = db.Column(db.String(300), nullable=False)  # Premio del sorteo
+    
+    # Configuración de puntos
+    entry_cost = db.Column(db.Integer, nullable=False, default=100)  # Costo en puntos de Kick
+    max_entries = db.Column(db.Integer, nullable=True)  # Máximo de participantes (null = ilimitado)
+    
+    # Usuario/Streamer que crea el sorteo (referencia al sistema Workly)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    kick_channel_username = db.Column(db.String(100), nullable=False)  # Username del canal de Kick
+    
+    # Estado del sorteo
+    status = db.Column(db.String(20), default='active')  # active, completed, cancelled
+    winner_kick_user_id = db.Column(db.Integer, db.ForeignKey('kick_user.id'), nullable=True)  # Ganador
+    
+    # Timestamps
+    start_date = db.Column(db.DateTime, default=datetime.utcnow)
+    end_date = db.Column(db.DateTime, nullable=True)  # Fecha de cierre (null = abierto)
+    completed_at = db.Column(db.DateTime, nullable=True)  # Cuando se seleccionó ganador
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    creator = db.relationship('User', backref='raffles_created')
+    winner = db.relationship('KickUser', backref='raffles_won', foreign_keys=[winner_kick_user_id])
+    entries = db.relationship('RaffleEntry', backref='raffle', lazy=True, cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<Raffle {self.title} - {self.status}>'
+    
+    @property
+    def entry_count(self):
+        """Número actual de participantes"""
+        return len(self.entries)
+    
+    @property
+    def is_active(self):
+        """Verifica si el sorteo está activo y abierto"""
+        if self.status != 'active':
+            return False
+        if self.end_date and datetime.utcnow() > self.end_date:
+            return False
+        if self.max_entries and self.entry_count >= self.max_entries:
+            return False
+        return True
+
+
+class RaffleEntry(db.Model):
+    """Participaciones de usuarios en sorteos"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Referencias
+    raffle_id = db.Column(db.Integer, db.ForeignKey('raffle.id'), nullable=False)
+    kick_user_id = db.Column(db.Integer, db.ForeignKey('kick_user.id'), nullable=False)
+    
+    # Información de la participación
+    points_spent = db.Column(db.Integer, nullable=False)  # Puntos gastados al participar
+    entry_number = db.Column(db.Integer, nullable=False)  # Número de entrada (para sorteo)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Unique constraint: un usuario solo puede participar una vez por sorteo
+    __table_args__ = (
+        db.UniqueConstraint('raffle_id', 'kick_user_id', name='unique_raffle_entry_per_user'),
+    )
+    
+    def __repr__(self):
+        return f'<RaffleEntry #{self.entry_number} - Raffle {self.raffle_id} by KickUser {self.kick_user_id}>'

@@ -355,3 +355,14 @@ class ModuleLinkForm(FlaskForm):
     ], validators=[DataRequired()])
     description = StringField('Descripción', validators=[Length(max=200)])
     submit = SubmitField('Crear Enlace')
+
+
+class RaffleForm(FlaskForm):
+    """Formulario para crear sorteos con puntos de Kick"""
+    title = StringField('Título del Sorteo', validators=[DataRequired(), Length(max=200)])
+    description = TextAreaField('Descripción', validators=[Optional(), Length(max=500)])
+    prize = StringField('Premio', validators=[DataRequired(), Length(max=300)])
+    entry_cost = IntegerField('Costo de Entrada (Puntos de Kick)', validators=[DataRequired(), NumberRange(min=1)])
+    max_entries = IntegerField('Máximo de Participantes (Opcional)', validators=[Optional(), NumberRange(min=1)])
+    end_date = DateTimeLocalField('Fecha de Cierre (Opcional)', validators=[Optional()], format='%Y-%m-%dT%H:%M')
+    submit = SubmitField('Crear Sorteo')

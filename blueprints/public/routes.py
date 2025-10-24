@@ -73,6 +73,7 @@ def perfil_dinamico(email):
     """Página pública dinámica basada en JSON para cualquier usuario"""
     import os
     from urllib.parse import unquote_plus
+    from flask import session
     
     # Decodificar email si viene URL-encoded
     email = unquote_plus(email)
@@ -141,6 +142,50 @@ def perfil_dinamico(email):
     except Exception as e:
         print(f"Error al cargar clips: {e}")
     
+    # ===== INTEGRACIÓN CON KICK API =====
+    kick_data = None
+    kick_stream_status = None
+    kick_channel_info = None
+    
+    kick_username = usuario_data.get('kick_username')
+    if kick_username:
+        try:
+            from helpers.kick_api import get_stream_status, get_channel_info
+            kick_stream_status = get_stream_status(kick_username)
+            kick_channel_info = get_channel_info(kick_username)
+            
+            kick_data = {
+                'username': kick_username,
+                'stream': kick_stream_status,
+                'channel': kick_channel_info
+            }
+        except Exception as e:
+            print(f"Error al cargar datos de Kick: {e}")
+    
+    # ===== SISTEMA DE SORTEOS =====
+    sorteos_activos = []
+    sorteos_habilitados = usuario_data.get('sorteos_habilitados', False)
+    
+    if sorteos_habilitados and kick_username:
+        try:
+            from models import Raffle
+            # Obtener usuario de Workly por email para los sorteos
+            db_user = User.query.filter_by(email=email).first()
+            if db_user:
+                # Sorteos activos del streamer
+                sorteos_activos = Raffle.query.filter_by(
+                    user_id=db_user.id,
+                    status='active'
+                ).filter(
+                    (Raffle.end_date == None) | (Raffle.end_date > datetime.now())
+                ).all()
+        except Exception as e:
+            print(f"Error al cargar sorteos: {e}")
+    
+    # Verificar si el usuario está autenticado con Kick
+    kick_user_authenticated = 'kick_user_id' in session
+    kick_username_authenticated = session.get('kick_username')
+    
     # Pasar todos los datos del JSON al template
     return render_template('public/public_page.html', 
                          user=user_obj,
@@ -149,4 +194,9 @@ def perfil_dinamico(email):
                          sections=sections,
                          usuario_json=usuario_data,
                          clips=clips,
-                         featured_clip=featured_clip)
+                         featured_clip=featured_clip,
+                         kick_data=kick_data,
+                         sorteos_activos=sorteos_activos,
+                         sorteos_habilitados=sorteos_habilitados,
+                         kick_user_authenticated=kick_user_authenticated,
+                         kick_username_authenticated=kick_username_authenticated)

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Sorteos - Kick{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3">
+                <i class="fas fa-trophy me-2"></i>Gestión de Sorteos
+                <span class="h4 text-muted">- Kick</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Botón de crear nuevo sorteo -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{{ url_for('kick.create_raffle') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Crear Nuevo Sorteo
+            </a>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Tabla de sorteos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-list me-2"></i>Mis Sorteos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if raffles %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Premio</th>
+                                    <th>Costo de Entrada</th>
+                                    <th>Participantes</th>
+                                    <th>Estado</th>
+                                    <th>Ganador</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for raffle in raffles %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ raffle.title }}</strong>
+                                        {% if raffle.description %}
+                                        <br><small class="text-muted">{{ raffle.description[:60] }}{% if raffle.description|length > 60 %}...{% endif %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ raffle.prize }}</td>
+                                    <td>
+                                        <i class="fas fa-coins text-warning me-1"></i>{{ raffle.entry_cost }} puntos
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ raffle.entry_count }}{% if raffle.max_entries %}/{{ raffle.max_entries }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if raffle.status == 'active' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Activo
+                                        </span>
+                                        {% elif raffle.status == 'completed' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-flag-checkered me-1"></i>Completado
+                                        </span>
+                                        {% elif raffle.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-ban me-1"></i>Cancelado
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if raffle.status == 'completed' and raffle.winner %}
+                                        <div class="text-success">
+                                            <i class="fas fa-crown me-1"></i>
+                                            <strong>{{ raffle.winner.username }}</strong>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if raffle.status == 'active' %}
+                                        <form method="POST" action="{{ url_for('kick.draw_winner', raffle_id=raffle.id) }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas seleccionar un ganador? Esta acción no se puede deshacer.');">
+                                            <button type="submit" class="btn btn-success btn-sm" {% if raffle.entry_count == 0 %}disabled title="No hay participantes"{% endif %}>
+                                                <i class="fas fa-random me-1"></i>Sortear Ganador
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('kick.cancel_raffle', raffle_id=raffle.id) }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas cancelar este sorteo?');">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-times me-1"></i>Cancelar
+                                            </button>
+                                        </form>
+                                        {% elif raffle.status == 'completed' %}
+                                        <span class="text-muted">
+                                            <i class="fas fa-check me-1"></i>Finalizado
+                                        </span>
+                                        {% elif raffle.status == 'cancelled' %}
+                                        <span class="text-muted">
+                                            <i class="fas fa-ban me-1"></i>Cancelado
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No tienes sorteos creados aún.</p>
+                        <a href="{{ url_for('kick.create_raffle') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Crear tu Primer Sorteo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    {% if raffles %}
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-list-ol fa-2x text-primary mb-2"></i>
+                    <h5>{{ raffles|length }}</h5>
+                    <p class="text-muted mb-0">Total de Sorteos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-fire fa-2x text-success mb-2"></i>
+                    <h5>{{ raffles|selectattr('status', 'equalto', 'active')|list|length }}</h5>
+                    <p class="text-muted mb-0">Sorteos Activos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-trophy fa-2x text-info mb-2"></i>
+                    <h5>{{ raffles|selectattr('status', 'equalto', 'completed')|list|length }}</h5>
+                    <p class="text-muted mb-0">Sorteos Completados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
