@@ -36,6 +36,9 @@ def generate_code_challenge(code_verifier):
 @kick_bp.route('/login')
 def login():
     """Inicia el flujo OAuth de Kick con PKCE"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     state = secrets.token_urlsafe(32)
     session['kick_oauth_state'] = state
     
@@ -43,6 +46,10 @@ def login():
     code_verifier = generate_code_verifier()
     code_challenge = generate_code_challenge(code_verifier)
     session['kick_code_verifier'] = code_verifier
+    
+    logger.debug(f"[KICK LOGIN] State generado: {state[:10]}...")
+    logger.debug(f"[KICK LOGIN] Code verifier guardado en sesión: {code_verifier[:10]}...")
+    logger.debug(f"[KICK LOGIN] Code challenge: {code_challenge[:10]}...")
     
     if 'return_to' in request.args:
         session['kick_return_to'] = request.args.get('return_to')
@@ -58,26 +65,38 @@ def login():
     }
     
     auth_url = f"https://id.kick.com/oauth/authorize?{urlencode(params)}"
+    logger.debug(f"[KICK LOGIN] Redirigiendo a: {auth_url[:80]}...")
     return redirect(auth_url)
 
 @kick_bp.route('/callback')
 def callback():
     """Callback OAuth de Kick"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         state = request.args.get('state')
         code = request.args.get('code')
         
+        logger.debug(f"[KICK CALLBACK] State recibido: {state[:10] if state else 'None'}...")
+        logger.debug(f"[KICK CALLBACK] State en sesión: {session.get('kick_oauth_state', 'None')[:10] if session.get('kick_oauth_state') else 'None'}...")
+        logger.debug(f"[KICK CALLBACK] Code recibido: {code[:10] if code else 'None'}...")
+        logger.debug(f"[KICK CALLBACK] Code verifier en sesión: {session.get('kick_code_verifier', 'None')[:10] if session.get('kick_code_verifier') else 'None'}...")
+        
         if not state or state != session.get('kick_oauth_state'):
+            logger.error(f"[KICK CALLBACK] Error de validación: state no coincide")
             flash('Error de validación OAuth. Intenta de nuevo.', 'danger')
             return redirect(url_for('dashboard'))
         
         if not code:
+            logger.error(f"[KICK CALLBACK] Error: no se recibió código de autorización")
             flash('Error en la autorización de Kick.', 'danger')
             return redirect(url_for('dashboard'))
         
         # Recuperar code_verifier de la sesión para PKCE
         code_verifier = session.get('kick_code_verifier')
         if not code_verifier:
+            logger.error(f"[KICK CALLBACK] Error: code_verifier no encontrado en sesión")
             flash('Error: sesión OAuth inválida.', 'danger')
             return redirect(url_for('dashboard'))
         
@@ -90,19 +109,26 @@ def callback():
             'code_verifier': code_verifier
         }
         
+        logger.debug(f"[KICK CALLBACK] Intercambiando código por token...")
+        
         token_response = requests.post(
             'https://id.kick.com/oauth/token',
             data=token_data,
             headers={'Content-Type': 'application/x-www-form-urlencoded'}
         )
         
+        logger.debug(f"[KICK CALLBACK] Token response status: {token_response.status_code}")
+        
         if token_response.status_code != 200:
+            logger.error(f"[KICK CALLBACK] Error al obtener token: {token_response.text}")
             flash('Error al obtener el token de acceso de Kick.', 'danger')
             return redirect(url_for('dashboard'))
         
         token_info = token_response.json()
         access_token = token_info.get('access_token')
         refresh_token = token_info.get('refresh_token')
+        
+        logger.debug(f"[KICK CALLBACK] Token obtenido exitosamente")
         
         user_response = requests.get(
             'https://kick.com/api/v2/user',

@@ -24,6 +24,11 @@ if not app.secret_key:
     raise RuntimeError("SESSION_SECRET environment variable must be set for security")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+# Configuración de cookies de sesión para OAuth
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = True  # Requiere HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+
 # Configure the database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///inventory.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
