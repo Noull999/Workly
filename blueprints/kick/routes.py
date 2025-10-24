@@ -38,7 +38,7 @@ def login():
         'scope': 'user:read channel:read'
     }
     
-    auth_url = f"https://kick.com/oauth2/authorize?{urlencode(params)}"
+    auth_url = f"https://id.kick.com/oauth/authorize?{urlencode(params)}"
     return redirect(auth_url)
 
 @kick_bp.route('/callback')
@@ -65,7 +65,7 @@ def callback():
         }
         
         token_response = requests.post(
-            'https://kick.com/api/v1/oauth2/token',
+            'https://id.kick.com/oauth/token',
             data=token_data,
             headers={'Content-Type': 'application/x-www-form-urlencoded'}
         )
@@ -79,7 +79,7 @@ def callback():
         refresh_token = token_info.get('refresh_token')
         
         user_response = requests.get(
-            'https://kick.com/api/v1/user',
+            'https://kick.com/api/v2/user',
             headers={'Authorization': f'Bearer {access_token}'}
         )
         

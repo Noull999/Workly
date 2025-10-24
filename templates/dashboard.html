@@ -142,6 +142,26 @@
         </div>
         {% endif %}
 
+        <!-- Sorteos de Kick (para yangprroo@gmail.com) -->
+        {% if current_user.email == 'yangprroo@gmail.com' %}
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2 stat-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('kick.admin_raffles') }}'">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Sorteos Kick</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Gestionar Sorteos</div>
+                            <small class="text-muted">Crear y administrar sorteos con puntos de Kick</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-gift fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Páginas Públicas (si están activas) -->
         {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio)) or ((current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments)) or (current_user.email == 'yangprroo@gmail.com') %}
         <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
