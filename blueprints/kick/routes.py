@@ -75,6 +75,15 @@ def callback():
     logger = logging.getLogger(__name__)
     
     try:
+        # Verificar si Kick envió un error
+        error = request.args.get('error')
+        error_description = request.args.get('error_description', '')
+        
+        if error:
+            logger.error(f"[KICK CALLBACK] Kick rechazó la autorización: {error} - {error_description}")
+            flash(f'Autorización de Kick cancelada o rechazada.', 'warning')
+            return redirect(url_for('public.yanglee_page'))
+        
         state = request.args.get('state')
         code = request.args.get('code')
         
@@ -86,19 +95,19 @@ def callback():
         if not state or state != session.get('kick_oauth_state'):
             logger.error(f"[KICK CALLBACK] Error de validación: state no coincide")
             flash('Error de validación OAuth. Intenta de nuevo.', 'danger')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('public.yanglee_page'))
         
         if not code:
             logger.error(f"[KICK CALLBACK] Error: no se recibió código de autorización")
             flash('Error en la autorización de Kick.', 'danger')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('public.yanglee_page'))
         
         # Recuperar code_verifier de la sesión para PKCE
         code_verifier = session.get('kick_code_verifier')
         if not code_verifier:
             logger.error(f"[KICK CALLBACK] Error: code_verifier no encontrado en sesión")
             flash('Error: sesión OAuth inválida.', 'danger')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('public.yanglee_page'))
         
         token_data = {
             'grant_type': 'authorization_code',
@@ -122,7 +131,7 @@ def callback():
         if token_response.status_code != 200:
             logger.error(f"[KICK CALLBACK] Error al obtener token: {token_response.text}")
             flash('Error al obtener el token de acceso de Kick.', 'danger')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('public.yanglee_page'))
         
         token_info = token_response.json()
         access_token = token_info.get('access_token')
@@ -137,7 +146,7 @@ def callback():
         
         if user_response.status_code != 200:
             flash('Error al obtener información del usuario de Kick.', 'danger')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('public.yanglee_page'))
         
         kick_user_data = user_response.json()
         
@@ -163,12 +172,12 @@ def callback():
         
         flash(f'¡Conectado exitosamente como {kick_user.username}!', 'success')
         
-        return_to = session.pop('kick_return_to', url_for('dashboard'))
+        return_to = session.pop('kick_return_to', url_for('public.yanglee_page'))
         return redirect(return_to)
         
     except Exception as e:
         flash(f'Error en el proceso de autenticación: {str(e)}', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('public.yanglee_page'))
     finally:
         session.pop('kick_oauth_state', None)
         session.pop('kick_code_verifier', None)

@@ -25,8 +25,8 @@ if not app.secret_key:
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configuración de cookies de sesión para OAuth
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = True  # Requiere HTTPS
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Necesario para OAuth cross-site
+app.config['SESSION_COOKIE_SECURE'] = True  # Requiere HTTPS (obligatorio con SameSite=None)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # Configure the database
