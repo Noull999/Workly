@@ -47,16 +47,19 @@ def login():
     code_challenge = generate_code_challenge(code_verifier)
     session['kick_code_verifier'] = code_verifier
     
+    redirect_uri = get_redirect_uri()
+    
     logger.debug(f"[KICK LOGIN] State generado: {state[:10]}...")
     logger.debug(f"[KICK LOGIN] Code verifier guardado en sesión: {code_verifier[:10]}...")
     logger.debug(f"[KICK LOGIN] Code challenge: {code_challenge[:10]}...")
+    logger.debug(f"[KICK LOGIN] Redirect URI: {redirect_uri}")
     
     if 'return_to' in request.args:
         session['kick_return_to'] = request.args.get('return_to')
     
     params = {
         'client_id': KICK_CLIENT_ID,
-        'redirect_uri': get_redirect_uri(),
+        'redirect_uri': redirect_uri,
         'response_type': 'code',
         'state': state,
         'scope': 'user:read channel:read',
