@@ -25,9 +25,10 @@ if not app.secret_key:
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configuración de cookies de sesión para OAuth
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Necesario para OAuth cross-site
-app.config['SESSION_COOKIE_SECURE'] = True  # Requiere HTTPS (obligatorio con SameSite=None)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Lax permite redirecciones GET de OAuth
+app.config['SESSION_COOKIE_SECURE'] = True  # Requiere HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutos
 
 # Configure the database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///inventory.db")

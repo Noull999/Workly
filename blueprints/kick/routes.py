@@ -39,6 +39,9 @@ def login():
     import logging
     logger = logging.getLogger(__name__)
     
+    # Hacer la sesión permanente para que persista durante OAuth
+    session.permanent = True
+    
     state = secrets.token_urlsafe(32)
     session['kick_oauth_state'] = state
     
@@ -46,6 +49,7 @@ def login():
     code_verifier = generate_code_verifier()
     code_challenge = generate_code_challenge(code_verifier)
     session['kick_code_verifier'] = code_verifier
+    session.modified = True  # Forzar que Flask guarde la sesión
     
     redirect_uri = get_redirect_uri()
     
