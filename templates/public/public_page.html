@@ -292,6 +292,21 @@
     <div class="animated-bg"></div>
     <div class="particles" id="particles"></div>
 
+    <!-- Kick User Header -->
+    {% if session.get('kick_username') %}
+    <div class="fixed top-0 right-0 z-50 m-4">
+        <div class="bg-gradient-to-r from-purple-900/90 to-orange-900/90 backdrop-blur-md px-6 py-3 rounded-full border border-orange-500/50 shadow-lg">
+            <div class="flex items-center gap-3">
+                <i class="fab fa-kickstarter text-orange-500 text-xl"></i>
+                <span class="text-white font-bold">{{ session.get('kick_username') }}</span>
+                <a href="{{ url_for('kick_bp.logout', return_to=request.path) }}" class="text-orange-400 hover:text-orange-300 transition-colors ml-2">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Hero Section -->
     <section class="min-h-screen flex items-center justify-center px-4 py-20">
         <div class="container mx-auto">
