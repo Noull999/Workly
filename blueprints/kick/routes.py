@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, flash, request, session, jsonify
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, login_user
 from . import kick_bp
 import os
 import secrets
@@ -16,7 +16,11 @@ def get_redirect_uri():
     """Genera la URL de redirección dinámica basada en el dominio actual"""
     global KICK_REDIRECT_URI
     if KICK_REDIRECT_URI is None:
-        if 'REPLIT_DEV_DOMAIN' in os.environ:
+        # Priorizar variable de entorno KICK_REDIRECT_URI
+        env_redirect = os.getenv("KICK_REDIRECT_URI")
+        if env_redirect:
+            KICK_REDIRECT_URI = env_redirect
+        elif 'REPLIT_DEV_DOMAIN' in os.environ:
             domain = os.environ['REPLIT_DEV_DOMAIN']
             KICK_REDIRECT_URI = f"https://{domain}/kick/callback"
         else:
@@ -137,7 +141,8 @@ def callback():
         
         if token_response.status_code != 200:
             logger.error(f"[KICK CALLBACK] Error al obtener token: {token_response.text}")
-            flash('Error al obtener el token de acceso de Kick.', 'danger')
+            error_msg = token_response.json().get('error_description', 'No se pudo obtener token') if token_response.headers.get('content-type', '').startswith('application/json') else 'No se pudo obtener token'
+            flash(f'Error OAuth: {error_msg}', 'danger')
             return redirect(url_for('public.yanglee_page'))
         
         token_info = token_response.json()
@@ -147,7 +152,7 @@ def callback():
         logger.debug(f"[KICK CALLBACK] Token obtenido exitosamente")
         
         user_response = requests.get(
-            'https://kick.com/api/v2/user',
+            'https://kick.com/api/v1/user',
             headers={'Authorization': f'Bearer {access_token}'}
         )
         
@@ -174,7 +179,8 @@ def callback():
         db.session.add(kick_user)
         db.session.commit()
         
-        session['kick_user_id'] = kick_user.id
+        # Autenticar al usuario con Flask-Login
+        login_user(kick_user)
         session['kick_username'] = kick_user.username
         
         flash(f'¡Conectado exitosamente como {kick_user.username}!', 'success')
@@ -224,6 +230,8 @@ def user_points(channel_username):
                 'points': loyalty_data.get('points', 0),
                 'username': kick_user.username
             })
+        elif response.status_code == 401:
+            return jsonify({'error': 'Token expirado. Conecta de nuevo tu cuenta de Kick.'}), 401
         else:
             return jsonify({'error': 'No se pudieron obtener los puntos'}), response.status_code
             
