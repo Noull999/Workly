@@ -198,7 +198,8 @@ def callback():
 @kick_bp.route('/logout')
 def logout():
     """Cierra sesión de Kick"""
-    session.pop('kick_user_id', None)
+    from flask_login import logout_user
+    logout_user()
     session.pop('kick_username', None)
     flash('Sesión de Kick cerrada.', 'info')
     
@@ -208,15 +209,21 @@ def logout():
 @kick_bp.route('/user-points/<channel_username>')
 def user_points(channel_username):
     """Obtiene los puntos de lealtad del usuario autenticado en un canal específico"""
-    if 'kick_user_id' not in session:
+    from models import KickUser
+    
+    # Verificar que el usuario esté autenticado y sea un KickUser
+    if not current_user.is_authenticated:
         return jsonify({'error': 'No autenticado'}), 401
     
     try:
-        from models import KickUser
-        kick_user = KickUser.query.get(session['kick_user_id'])
+        # Verificar que current_user sea un KickUser
+        if not isinstance(current_user._get_current_object(), KickUser):
+            return jsonify({'error': 'Debes autenticarte con Kick'}), 401
         
-        if not kick_user:
-            return jsonify({'error': 'Usuario no encontrado'}), 404
+        kick_user = current_user._get_current_object()
+        
+        if not kick_user or not kick_user.access_token:
+            return jsonify({'error': 'Usuario no encontrado o token inválido'}), 404
         
         headers = {'Authorization': f'Bearer {kick_user.access_token}'}
         response = requests.get(
@@ -241,17 +248,23 @@ def user_points(channel_username):
 @kick_bp.route('/raffle/<int:raffle_id>/enter', methods=['POST'])
 def enter_raffle(raffle_id):
     """Participar en un sorteo usando puntos de Kick"""
-    if 'kick_user_id' not in session:
+    from models import Raffle, RaffleEntry, KickUser
+    from app import db
+    
+    # Verificar que el usuario esté autenticado y sea un KickUser
+    if not current_user.is_authenticated:
         flash('Debes iniciar sesión con Kick para participar en sorteos.', 'warning')
         return redirect(request.referrer or url_for('public.yanglee_page'))
     
+    if not isinstance(current_user._get_current_object(), KickUser):
+        flash('Debes autenticarte con Kick para participar en sorteos.', 'warning')
+        return redirect(request.referrer or url_for('public.yanglee_page'))
+    
     try:
-        from models import Raffle, RaffleEntry, KickUser
-        from app import db
+        kick_user = current_user._get_current_object()
         
-        kick_user = KickUser.query.get(session['kick_user_id'])
-        if not kick_user:
-            flash('Usuario de Kick no encontrado.', 'danger')
+        if not kick_user or not kick_user.access_token:
+            flash('Usuario de Kick no encontrado o token inválido.', 'danger')
             return redirect(request.referrer or url_for('public.yanglee_page'))
         
         raffle = Raffle.query.get_or_404(raffle_id)
