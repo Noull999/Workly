@@ -1,0 +1,61 @@
+Estoy trabajando con Flask y tengo un blueprint llamado `kick_bp` que maneja la autenticación OAuth con Kick.com. 
+Necesito que revises y modifiques el archivo para aplicar las siguientes mejoras de seguridad y funcionamiento:
+
+1. **Inicio de sesión correcto:** 
+   - Después de crear o actualizar el objeto `kick_user`, añade la llamada `login_user(kick_user)` antes del `flash()` de éxito, 
+     para que Flask-Login autentique al usuario correctamente.
+
+2. **Endpoint de usuario correcto:**
+   - Cambia la URL `'https://kick.com/api/v2/user'` por `'https://kick.com/api/v1/user'` al momento de obtener la información del usuario.
+
+3. **Configuración de `redirect_uri`:**
+   - Asegúrate de que la función `get_redirect_uri()` priorice la variable de entorno `KICK_REDIRECT_URI`.
+   - Si no está definida, use `REPLIT_DEV_DOMAIN` o por defecto `http://localhost:5000/kick/callback`.
+   Ejemplo de implementación:
+     ```python
+     def get_redirect_uri():
+         env_redirect = os.getenv("KICK_REDIRECT_URI")
+         if env_redirect:
+             return env_redirect
+         if 'REPLIT_DEV_DOMAIN' in os.environ:
+             domain = os.environ['REPLIT_DEV_DOMAIN']
+             return f"https://{domain}/kick/callback"
+         return "http://localhost:5000/kick/callback"
+     ```
+
+4. **Manejo de errores del token más claro:**
+   - Si la respuesta de Kick al solicitar el token (`token_response.status_code != 200`), 
+     muestra un mensaje descriptivo al usuario:
+     ```python
+     flash(f'Error OAuth: {token_response.json().get("error_description", "No se pudo obtener token")}', 'danger')
+     ```
+
+5. **Depuración y limpieza de sesión:**
+   - Elimina la línea `session['kick_user_id'] = kick_user.id` ya que Flask-Login maneja la sesión automáticamente.
+   - Mantén solo `login_user(kick_user)` y `session['kick_username']` si la necesitas.
+
+6. **Prevención de errores por token expirado:**
+   - En la ruta `/user-points/<channel_username>`, si la respuesta devuelve `401`, 
+     devuelve un JSON con error de token expirado:
+     ```python
+     if response.status_code == 401:
+         return jsonify({'error': 'Token expirado. Conecta de nuevo tu cuenta de Kick.'}), 401
+     ```
+
+7. Verifica que `KICK_REDIRECT_URI` esté configurado en las variables de entorno de Replit:
+KICK_REDIRECT_URI=https://worklycl.replit.app/kick/callback
+
+arduino
+Copiar código
+
+Haz estos ajustes sin cambiar las rutas, la estructura ni las funciones existentes. 
+Solo corrige las partes mencionadas, conservando todos los comentarios y flashes actuales.
+💡 Resultado esperado:
+
+El usuario de Kick iniciará sesión correctamente.
+
+Se eliminarán los errores silenciosos.
+
+El flujo OAuth quedará funcional tanto en desarrollo como en producción.
+
+Los mensajes de error serán más claros y el código más estable.
