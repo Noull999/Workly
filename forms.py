@@ -126,7 +126,7 @@ class ModuleSettingsForm(FlaskForm):
     module_inventory = BooleanField('Módulo de Inventario')
     module_pos = BooleanField('Módulo POS (Punto de Venta)')
     module_appointments = BooleanField('Módulo de Citas y Reservas')
-    module_portfolio = BooleanField('Módulo de Página de Presentación')
+    module_portfolio = BooleanField('Módulo de Streamers')
     module_scrum = BooleanField('Módulo Scrum Lite')
     module_notion = BooleanField('Módulo Notion (Wiki Colaborativo)')
 

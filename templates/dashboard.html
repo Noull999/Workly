@@ -162,19 +162,19 @@
         </div>
         {% endif %}
 
-        <!-- Páginas Públicas (si están activas) -->
+        <!-- Streamers (si están activas) -->
         {% if ((current_user.is_admin_global() and current_user.admin_pref_portfolio) or (not current_user.is_admin_global() and company.module_portfolio)) or ((current_user.is_admin_global() and current_user.admin_pref_appointments) or (not current_user.is_admin_global() and company.module_appointments)) or (current_user.email == 'yangprroo@gmail.com') %}
         <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
             <div class="card border-left-warning shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Páginas Públicas</div>
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Streamers</div>
                             <div class="h6 mb-0 font-weight-bold text-gray-800">
                                 {% if current_user.email == 'yangprroo@gmail.com' %}
                                     Mi Página Personal
                                 {% else %}
-                                    {% if company.module_portfolio %}Portfolio{% endif %}
+                                    {% if company.module_portfolio %}Streamers{% endif %}
                                     {% if company.module_appointments %}{{ " + Reservas" if company.module_portfolio else "Reservas" }}{% endif %}
                                 {% endif %}
                             </div>
@@ -559,7 +559,7 @@
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-warning">
-                        <i class="fas fa-globe me-2"></i>Páginas Públicas
+                        <i class="fas fa-globe me-2"></i>Streamers
                     </h6>
                 </div>
                 <div class="card-body">
@@ -689,12 +689,12 @@
                         </div>
                         {% endif %}
 
-                        <!-- Portfolio -->
+                        <!-- Streamers -->
                         {% if company.module_portfolio %}
                         <div class="col-md-2 col-6 mb-3">
                             <a href="{{ url_for('public.portfolio', company_code=company.code if company else 'demo') }}" class="btn btn-outline-warning w-100">
                                 <i class="fas fa-globe fa-2x d-block mb-2"></i>
-                                Portfolio
+                                Streamers
                             </a>
                         </div>
                         {% endif %}
