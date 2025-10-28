@@ -160,6 +160,24 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Gestión de Clips (para yangprroo@gmail.com) -->
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card border-left-info shadow h-100 py-2 stat-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('public.admin_clips') }}'">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Mejores Momentos</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Gestionar Clips</div>
+                            <small class="text-muted">Agregar y editar clips de video para tu página</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-video fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endif %}
 
         <!-- Streamers (si están activas) -->
