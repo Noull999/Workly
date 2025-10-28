@@ -511,7 +511,7 @@
                         
                         <!-- Kick Login Button (Small) -->
                         {% if sorteos_habilitados and not kick_user_authenticated %}
-                        <a href="{{ url_for('kick_bp.login', return_to=request.path) }}" 
+                        <a href="{{ url_for('kick.login', return_to=request.path) }}" 
                            class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white rounded-full font-bold text-sm shadow-lg shadow-green-500/40 transition-all transform hover:scale-105">
                             <i class="fab fa-kickstarter"></i>
                             <span>Login Kick</span>
@@ -771,7 +771,7 @@
                             <p class="text-center text-gray-400 text-sm mb-3">
                                 <i class="fas fa-info-circle"></i> Inicia sesión con Kick para participar
                             </p>
-                            <a href="{{ url_for('kick_bp.login', return_to=request.path) }}" 
+                            <a href="{{ url_for('kick.login', return_to=request.path) }}" 
                                class="social-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg shadow-green-500/40 w-full text-center">
                                 <i class="fab fa-kickstarter text-2xl"></i>
                                 <span>Ingresar con Kick</span>
