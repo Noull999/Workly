@@ -385,6 +385,142 @@
         </div>
     </section>
 
+    <!-- Wager Race Section -->
+    {% if wager_race and wager_race.current %}
+    <section class="py-20 px-4 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent" data-animate="fade">
+        <div class="container mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-16 fade-in-up">
+                <h2 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold orbitron gradient-text tracking-wider mb-4">
+                    <i class="fas fa-trophy text-yellow-500"></i> WAGER RACE
+                </h2>
+                <p class="text-xl sm:text-2xl text-gray-300 font-semibold">Competencia Mensual - Top Jugadores Stake</p>
+                <p class="text-sm text-gray-400 mt-2">Actualizado cada 5 minutos</p>
+            </div>
+
+            <!-- Podio Top 3 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto fade-in-up delay-100">
+                {% for player in wager_race.current[:3] %}
+                <div class="enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 
+                    {% if player.rank == 1 %}shadow-2xl shadow-yellow-500/40 border-2 border-yellow-500 order-1 md:order-2{% endif %}
+                    {% if player.rank == 2 %}shadow-xl shadow-gray-400/30 border-2 border-gray-400 order-2 md:order-1{% endif %}
+                    {% if player.rank == 3 %}shadow-xl shadow-orange-600/30 border-2 border-orange-600 order-3 md:order-3{% endif %}">
+                    
+                    <!-- Medal -->
+                    <div class="mb-4">
+                        {% if player.rank == 1 %}
+                        <div class="text-7xl">🥇</div>
+                        {% elif player.rank == 2 %}
+                        <div class="text-6xl">🥈</div>
+                        {% else %}
+                        <div class="text-6xl">🥉</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Rank Badge -->
+                    <div class="text-5xl font-extrabold orbitron mb-3
+                        {% if player.rank == 1 %}text-yellow-400{% endif %}
+                        {% if player.rank == 2 %}text-gray-300{% endif %}
+                        {% if player.rank == 3 %}text-orange-500{% endif %}">
+                        #{{ player.rank }}
+                    </div>
+                    
+                    <!-- Username -->
+                    <div class="text-2xl font-bold text-white mb-4 break-words">{{ player.username }}</div>
+                    
+                    <!-- Wagered Amount -->
+                    <div class="bg-black/50 rounded-xl p-4 border
+                        {% if player.rank == 1 %}border-yellow-500/50{% endif %}
+                        {% if player.rank == 2 %}border-gray-400/50{% endif %}
+                        {% if player.rank == 3 %}border-orange-600/50{% endif %}">
+                        <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                        <div class="text-2xl font-mono font-extrabold
+                            {% if player.rank == 1 %}text-yellow-400{% endif %}
+                            {% if player.rank == 2 %}text-gray-300{% endif %}
+                            {% if player.rank == 3 %}text-orange-500{% endif %}">
+                            ${{ "{:,.2f}".format(player.wagered) }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Top 10 Leaderboard -->
+            <div class="enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-purple-500/30 max-w-6xl mx-auto fade-in-up delay-200">
+                <h3 class="text-2xl sm:text-3xl font-extrabold orbitron text-center mb-8 gradient-text flex items-center justify-center gap-3">
+                    <i class="fas fa-list-ol"></i>
+                    Top 10 Completo
+                </h3>
+                
+                <!-- Desktop Table -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b-2 border-purple-500/50">
+                                <th class="px-4 py-3 text-left text-orange-500 font-bold orbitron">Rank</th>
+                                <th class="px-4 py-3 text-left text-orange-500 font-bold orbitron">Jugador</th>
+                                <th class="px-4 py-3 text-right text-orange-500 font-bold orbitron">Monto Apostado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wagerRaceTableBody">
+                            {% for player in wager_race.current[:10] %}
+                            <tr class="border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row" data-username="{{ player.username }}">
+                                <td class="px-4 py-4">
+                                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold orbitron
+                                        {% if player.rank <= 3 %}bg-gradient-to-r from-purple-500 to-orange-500 text-white{% else %}bg-gray-700 text-gray-300{% endif %}">
+                                        {{ player.rank }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 font-semibold text-white text-lg">{{ player.username }}</td>
+                                <td class="px-4 py-4 text-right">
+                                    <span class="text-2xl font-mono font-bold text-purple-400">${{ "{:,.2f}".format(player.wagered) }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Mobile Cards -->
+                <div class="md:hidden space-y-4" id="wagerRaceMobileList">
+                    {% for player in wager_race.current[:10] %}
+                    <div class="bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row" data-username="{{ player.username }}">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron
+                                {% if player.rank <= 3 %}bg-gradient-to-r from-purple-500 to-orange-500 text-white{% else %}bg-gray-700 text-gray-300{% endif %}">
+                                {{ player.rank }}
+                            </span>
+                            <span class="font-bold text-lg text-white">{{ player.username }}</span>
+                        </div>
+                        <div class="bg-black/50 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                            <div class="text-xl font-mono font-bold text-purple-400">${{ "{:,.2f}".format(player.wagered) }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Search and View All -->
+                <div class="mt-8 flex flex-col sm:flex-row gap-4 items-center justify-center">
+                    <!-- Search Box -->
+                    <div class="relative w-full sm:w-auto">
+                        <input type="text" id="wagerRaceSearch" placeholder="Buscar jugador..." 
+                            class="bg-gray-800/80 border-2 border-purple-500/50 rounded-full px-6 py-3 pl-12 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 w-full sm:w-80">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500"></i>
+                    </div>
+                    
+                    <!-- View All Button -->
+                    <button id="viewAllBtn" 
+                        class="social-btn bg-gradient-to-r from-purple-500 to-orange-500 hover:from-purple-400 hover:to-orange-400 text-white shadow-lg shadow-purple-500/40">
+                        <i class="fas fa-trophy"></i>
+                        <span id="viewAllText">Ver Top 100 Completo</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- Central Section: Content, Clip, Benefits -->
     <section class="py-20 px-4" data-animate="fade">
         <div class="container mx-auto">
@@ -886,6 +1022,180 @@
             stagger: 0.2,
             ease: 'power2.out'
         });
+
+        // ===== WAGER RACE FUNCTIONALITY =====
+        {% if wager_race and wager_race.current %}
+        const wagerRaceData = {{ wager_race.current|tojson }};
+        let showingTop100 = false;
+
+        // Search functionality
+        const searchInput = document.getElementById('wagerRaceSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('.wager-race-row');
+                
+                rows.forEach(row => {
+                    const username = row.dataset.username.toLowerCase();
+                    if (username.includes(searchTerm)) {
+                        row.style.display = '';
+                        // Highlight matched row
+                        if (searchTerm && searchTerm.length > 0) {
+                            row.classList.add('bg-purple-900/40');
+                        } else {
+                            row.classList.remove('bg-purple-900/40');
+                        }
+                    } else {
+                        row.style.display = 'none';
+                        row.classList.remove('bg-purple-900/40');
+                    }
+                });
+
+                // If searching and not showing, show all results
+                if (searchTerm && !showingTop100) {
+                    loadTop100();
+                }
+            });
+        }
+
+        // View All / View Top 10 toggle
+        const viewAllBtn = document.getElementById('viewAllBtn');
+        const viewAllText = document.getElementById('viewAllText');
+        if (viewAllBtn) {
+            viewAllBtn.addEventListener('click', function() {
+                if (!showingTop100) {
+                    loadTop100();
+                } else {
+                    loadTop10();
+                }
+            });
+        }
+
+        function loadTop100() {
+            showingTop100 = true;
+            const tableBody = document.getElementById('wagerRaceTableBody');
+            const mobileList = document.getElementById('wagerRaceMobileList');
+            
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                wagerRaceData.forEach(player => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row';
+                    row.dataset.username = player.username;
+                    
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-4">
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold orbitron ${rankClass}">
+                                ${player.rank}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 font-semibold text-white text-lg">${player.username}</td>
+                        <td class="px-4 py-4 text-right">
+                            <span class="text-2xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            if (mobileList) {
+                mobileList.innerHTML = '';
+                wagerRaceData.forEach(player => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row';
+                    card.dataset.username = player.username;
+                    
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron ${rankClass}">
+                                ${player.rank}
+                            </span>
+                            <span class="font-bold text-lg text-white">${player.username}</span>
+                        </div>
+                        <div class="bg-black/50 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                            <div class="text-xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    mobileList.appendChild(card);
+                });
+            }
+            
+            if (viewAllText) {
+                viewAllText.textContent = 'Ver Top 10';
+            }
+        }
+
+        function loadTop10() {
+            showingTop100 = false;
+            const tableBody = document.getElementById('wagerRaceTableBody');
+            const mobileList = document.getElementById('wagerRaceMobileList');
+            
+            const top10 = wagerRaceData.slice(0, 10);
+            
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                top10.forEach(player => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row';
+                    row.dataset.username = player.username;
+                    
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-4">
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold orbitron ${rankClass}">
+                                ${player.rank}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 font-semibold text-white text-lg">${player.username}</td>
+                        <td class="px-4 py-4 text-right">
+                            <span class="text-2xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            if (mobileList) {
+                mobileList.innerHTML = '';
+                top10.forEach(player => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row';
+                    card.dataset.username = player.username;
+                    
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron ${rankClass}">
+                                ${player.rank}
+                            </span>
+                            <span class="font-bold text-lg text-white">${player.username}</span>
+                        </div>
+                        <div class="bg-black/50 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                            <div class="text-xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    mobileList.appendChild(card);
+                });
+            }
+            
+            if (viewAllText) {
+                viewAllText.textContent = 'Ver Top 100 Completo';
+            }
+            
+            // Clear search
+            if (searchInput) {
+                searchInput.value = '';
+            }
+        }
+        {% endif %}
     </script>
 </body>
 </html>

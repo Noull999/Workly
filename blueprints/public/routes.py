@@ -1,10 +1,86 @@
 from flask import render_template, redirect, url_for, flash, request
-from datetime import datetime
+from datetime import datetime, timedelta
 from . import public
 from models import Company, Service, Appointment, User, PublicPage
 from forms import PublicAppointmentForm
 from app import db
 import json
+import requests
+import csv
+from io import StringIO
+
+# Cache simple para wager race (5 minutos)
+_wager_race_cache = {
+    'data': None,
+    'timestamp': None
+}
+
+STAKE_CSV_URL = "https://app.trevor.io/share/view/6d12c9ec-8941-43a8-ba73-15cafbe6bb30/1d/YANGLEELOL_Affiliate_Stake_com_Wager_Race_Statistics_Auto_Update_Current_Past_Month.csv?seed=32"
+CACHE_DURATION = timedelta(minutes=5)
+
+def get_wager_race_data():
+    """Obtiene y parsea los datos del CSV de Stake Wager Race con cache"""
+    global _wager_race_cache
+    
+    # Verificar cache
+    now = datetime.now()
+    if _wager_race_cache['data'] and _wager_race_cache['timestamp']:
+        if now - _wager_race_cache['timestamp'] < CACHE_DURATION:
+            return _wager_race_cache['data']
+    
+    try:
+        # Fetch CSV
+        response = requests.get(STAKE_CSV_URL, timeout=10)
+        response.raise_for_status()
+        
+        # Parsear CSV
+        csv_data = StringIO(response.text)
+        reader = csv.DictReader(csv_data)
+        
+        # Separar períodos actual y anterior
+        current_period = []
+        previous_period = []
+        
+        for row in reader:
+            try:
+                entry = {
+                    'username': row.get('user_name', '').strip(),
+                    'wagered': float(row.get('wagered', 0)),
+                    'rank': int(row.get('rank', 0)),
+                    'start_date': row.get('start_date_utc', ''),
+                    'end_date': row.get('end_date_utc', '')
+                }
+                
+                # Determinar período (actual vs anterior)
+                # El CSV tiene dos bloques: Top 100 actual, luego Top anterior
+                if entry['start_date'].startswith('2025-10'):
+                    current_period.append(entry)
+                elif entry['start_date'].startswith('2025-09'):
+                    previous_period.append(entry)
+            except (ValueError, KeyError) as e:
+                print(f"Error procesando fila del CSV: {e}")
+                continue
+        
+        # Ordenar por rank
+        current_period.sort(key=lambda x: x['rank'])
+        previous_period.sort(key=lambda x: x['rank'])
+        
+        result = {
+            'current': current_period,
+            'previous': previous_period,
+            'updated_at': now
+        }
+        
+        # Actualizar cache
+        _wager_race_cache['data'] = result
+        _wager_race_cache['timestamp'] = now
+        
+        return result
+        
+    except Exception as e:
+        print(f"Error obteniendo datos de Wager Race: {e}")
+        # Retornar cache antiguo si existe, sino None
+        return _wager_race_cache.get('data')
 
 @public.route('/empresa/<company_code>')
 def portfolio(company_code):
@@ -186,6 +262,11 @@ def perfil_dinamico(email):
     kick_user_authenticated = 'kick_user_id' in session
     kick_username_authenticated = session.get('kick_username')
     
+    # ===== WAGER RACE DE STAKE =====
+    wager_race_data = None
+    if usuario_data.get('stake_wager_race_enabled', True):
+        wager_race_data = get_wager_race_data()
+    
     # Pasar todos los datos del JSON al template
     return render_template('public/public_page.html', 
                          user=user_obj,
@@ -200,4 +281,5 @@ def perfil_dinamico(email):
                          sorteos_habilitados=sorteos_habilitados,
                          kick_user_authenticated=kick_user_authenticated,
                          kick_username_authenticated=kick_username_authenticated,
+                         wager_race=wager_race_data,
                          request=request)
