@@ -283,3 +283,127 @@ def perfil_dinamico(email):
                          kick_username_authenticated=kick_username_authenticated,
                          wager_race=wager_race_data,
                          request=request)
+
+
+# ===== PANEL ADMIN DE CLIPS =====
+
+@public.route('/admin/clips')
+def admin_clips():
+    """Panel de administración de clips de video"""
+    from flask_login import login_required, current_user
+    from models import Clip
+    
+    # Aplicar login_required manualmente
+    if not current_user.is_authenticated:
+        flash('Debes iniciar sesión para acceder a esta página.', 'danger')
+        return redirect(url_for('login'))
+    
+    # Obtener todos los clips del usuario actual
+    clips = Clip.query.filter_by(user_id=current_user.id).order_by(Clip.order_position, Clip.created_at.desc()).all()
+    
+    return render_template('public/admin_clips.html', clips=clips)
+
+
+@public.route('/admin/clips/create', methods=['GET', 'POST'])
+def create_clip():
+    """Crear un nuevo clip de video"""
+    from flask_login import login_required, current_user
+    from forms import ClipForm
+    from models import Clip
+    
+    # Aplicar login_required manualmente
+    if not current_user.is_authenticated:
+        flash('Debes iniciar sesión para acceder a esta página.', 'danger')
+        return redirect(url_for('login'))
+    
+    form = ClipForm()
+    
+    if form.validate_on_submit():
+        # Verificar límite de 3 clips por usuario (opcional)
+        clip_count = Clip.query.filter_by(user_id=current_user.id).count()
+        
+        clip = Clip(
+            user_id=current_user.id,
+            video_url=form.video_url.data,
+            title=form.title.data,
+            description=form.description.data,
+            thumbnail_url=form.thumbnail_url.data,
+            featured_thumbnail_url=form.featured_thumbnail_url.data,
+            is_featured=form.is_featured.data,
+            order_position=form.order_position.data if form.order_position.data else 0
+        )
+        
+        db.session.add(clip)
+        db.session.commit()
+        
+        flash(f'Clip "{clip.title or "sin título"}" creado exitosamente.', 'success')
+        return redirect(url_for('public.admin_clips'))
+    
+    return render_template('public/create_clip.html', form=form)
+
+
+@public.route('/admin/clips/<int:clip_id>/edit', methods=['GET', 'POST'])
+def edit_clip(clip_id):
+    """Editar un clip existente"""
+    from flask_login import login_required, current_user
+    from forms import ClipForm
+    from models import Clip
+    
+    # Aplicar login_required manualmente
+    if not current_user.is_authenticated:
+        flash('Debes iniciar sesión para acceder a esta página.', 'danger')
+        return redirect(url_for('login'))
+    
+    clip = Clip.query.get_or_404(clip_id)
+    
+    # Verificar que el clip pertenece al usuario
+    if clip.user_id != current_user.id:
+        flash('No tienes permiso para editar este clip.', 'danger')
+        return redirect(url_for('public.admin_clips'))
+    
+    form = ClipForm(obj=clip)
+    
+    if form.validate_on_submit():
+        clip.video_url = form.video_url.data
+        clip.title = form.title.data
+        clip.description = form.description.data
+        clip.thumbnail_url = form.thumbnail_url.data
+        clip.featured_thumbnail_url = form.featured_thumbnail_url.data
+        clip.is_featured = form.is_featured.data
+        clip.order_position = form.order_position.data if form.order_position.data else 0
+        
+        db.session.commit()
+        
+        flash(f'Clip "{clip.title or "sin título"}" actualizado exitosamente.', 'success')
+        return redirect(url_for('public.admin_clips'))
+    
+    return render_template('public/edit_clip.html', form=form, clip=clip)
+
+
+@public.route('/admin/clips/<int:clip_id>/delete', methods=['POST'])
+def delete_clip(clip_id):
+    """Eliminar un clip permanentemente"""
+    from flask_login import login_required, current_user
+    from models import Clip
+    
+    # Aplicar login_required manualmente
+    if not current_user.is_authenticated:
+        flash('Debes iniciar sesión para acceder a esta página.', 'danger')
+        return redirect(url_for('login'))
+    
+    clip = Clip.query.get_or_404(clip_id)
+    
+    # Verificar que el clip pertenece al usuario
+    if clip.user_id != current_user.id:
+        flash('No tienes permiso para eliminar este clip.', 'danger')
+        return redirect(url_for('public.admin_clips'))
+    
+    # Guardar título para el mensaje
+    titulo = clip.title or "sin título"
+    
+    # Eliminar clip
+    db.session.delete(clip)
+    db.session.commit()
+    
+    flash(f'Clip "{titulo}" eliminado permanentemente.', 'success')
+    return redirect(url_for('public.admin_clips'))

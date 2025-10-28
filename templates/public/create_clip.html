@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Agregar Clip - Workly{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3">
+                <i class="fas fa-plus-circle me-2"></i>Agregar Nuevo Clip
+                <span class="h4 text-muted">- Video</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Formulario de creación -->
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-edit me-2"></i>Información del Clip
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('public.create_clip') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- URL del video -->
+                        <div class="mb-3">
+                            {{ form.video_url.label(class="form-label") }}
+                            <span class="text-danger">*</span>
+                            {{ form.video_url(class="form-control", placeholder="https://kick.com/yanglee/clips/xxx") }}
+                            {% if form.video_url.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.video_url.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">URL del video de Kick, YouTube, Twitch, etc.</small>
+                        </div>
+
+                        <!-- Título -->
+                        <div class="mb-3">
+                            {{ form.title.label(class="form-label") }}
+                            {{ form.title(class="form-control", placeholder="Ej: MEGA WIN 🔥") }}
+                            {% if form.title.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.title.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="3", placeholder="Describe el contenido del clip...") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- URL de miniatura -->
+                        <div class="mb-3">
+                            {{ form.thumbnail_url.label(class="form-label") }}
+                            {{ form.thumbnail_url(class="form-control", placeholder="https://ejemplo.com/imagen.jpg") }}
+                            {% if form.thumbnail_url.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.thumbnail_url.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">URL de la imagen de miniatura (thumbnail).</small>
+                        </div>
+
+                        <!-- URL de miniatura destacada -->
+                        <div class="mb-3">
+                            {{ form.featured_thumbnail_url.label(class="form-label") }}
+                            {{ form.featured_thumbnail_url(class="form-control", placeholder="https://ejemplo.com/imagen-destacada.jpg") }}
+                            {% if form.featured_thumbnail_url.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.featured_thumbnail_url.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Imagen cuando este clip esté marcado como destacado.</small>
+                        </div>
+
+                        <!-- Marcar como destacado -->
+                        <div class="mb-3 form-check">
+                            {{ form.is_featured(class="form-check-input") }}
+                            {{ form.is_featured.label(class="form-check-label") }}
+                            <small class="form-text text-muted d-block">El clip destacado aparecerá en un lugar especial de tu página.</small>
+                        </div>
+
+                        <!-- Posición de orden -->
+                        <div class="mb-3">
+                            {{ form.order_position.label(class="form-label") }}
+                            {{ form.order_position(class="form-control", placeholder="0", min="0") }}
+                            {% if form.order_position.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.order_position.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Los clips se ordenarán de menor a mayor número.</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('public.admin_clips') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-2"></i>Guardar Clip
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

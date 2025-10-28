@@ -366,3 +366,15 @@ class RaffleForm(FlaskForm):
     max_entries = IntegerField('Máximo de Participantes (Opcional)', validators=[Optional(), NumberRange(min=1)])
     end_date = DateTimeLocalField('Fecha de Cierre (Opcional)', validators=[Optional()], format='%Y-%m-%dT%H:%M')
     submit = SubmitField('Crear Sorteo')
+
+
+class ClipForm(FlaskForm):
+    """Formulario para gestionar clips de video"""
+    video_url = StringField('URL del Video', validators=[DataRequired(), Length(max=500)])
+    title = StringField('Título', validators=[Optional(), Length(max=200)])
+    description = TextAreaField('Descripción', validators=[Optional(), Length(max=500)])
+    thumbnail_url = StringField('URL de Miniatura', validators=[Optional(), Length(max=500)])
+    featured_thumbnail_url = StringField('URL de Miniatura Destacada', validators=[Optional(), Length(max=500)])
+    is_featured = BooleanField('Marcar como Destacado')
+    order_position = IntegerField('Posición de Orden', validators=[Optional(), NumberRange(min=0)], default=0)
+    submit = SubmitField('Guardar Clip')
