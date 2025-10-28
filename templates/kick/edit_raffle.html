@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Sorteo - Kick{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3">
+                <i class="fas fa-edit me-2"></i>Editar Sorteo
+                <span class="h4 text-muted">- Kick</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Formulario de edición -->
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-edit me-2"></i>Información del Sorteo
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('kick.edit_raffle', raffle_id=raffle.id) }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Título del sorteo -->
+                        <div class="mb-3">
+                            {{ form.title.label(class="form-label") }}
+                            <span class="text-danger">*</span>
+                            {{ form.title(class="form-control", placeholder="Ej: Sorteo de Skin Legendaria") }}
+                            {% if form.title.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.title.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="3", placeholder="Describe los detalles del sorteo...") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Opcional: Proporciona más detalles sobre el sorteo.</small>
+                        </div>
+
+                        <!-- Premio -->
+                        <div class="mb-3">
+                            {{ form.prize.label(class="form-label") }}
+                            <span class="text-danger">*</span>
+                            {{ form.prize(class="form-control", placeholder="Ej: Skin Valorant + 50 USD") }}
+                            {% if form.prize.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.prize.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Costo de entrada -->
+                        <div class="mb-3">
+                            {{ form.entry_cost.label(class="form-label") }}
+                            <span class="text-danger">*</span>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-coins text-warning"></i>
+                                </span>
+                                {{ form.entry_cost(class="form-control", placeholder="100", min="1") }}
+                            </div>
+                            {% if form.entry_cost.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.entry_cost.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Puntos de Kick requeridos para participar.</small>
+                        </div>
+
+                        <!-- Máximo de participantes -->
+                        <div class="mb-3">
+                            {{ form.max_entries.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-users"></i>
+                                </span>
+                                {{ form.max_entries(class="form-control", placeholder="Dejar vacío para ilimitado", min="1") }}
+                            </div>
+                            {% if form.max_entries.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.max_entries.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Opcional: Límite de participantes permitidos.</small>
+                        </div>
+
+                        <!-- Fecha de cierre -->
+                        <div class="mb-3">
+                            {{ form.end_date.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </span>
+                                {{ form.end_date(class="form-control") }}
+                            </div>
+                            {% if form.end_date.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.end_date.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Opcional: Fecha y hora en que el sorteo dejará de aceptar participantes.</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('kick.admin_raffles') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-warning py-2">
+                    <h6 class="m-0 font-weight-bold text-dark">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Nota Importante
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">
+                        Los cambios se aplicarán inmediatamente. Si ya hay participantes inscritos, 
+                        ten cuidado al modificar el costo de entrada o las fechas límite.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

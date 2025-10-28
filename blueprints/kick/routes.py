@@ -448,3 +448,91 @@ def cancel_raffle(raffle_id):
     
     flash(f'Sorteo "{raffle.title}" cancelado.', 'info')
     return redirect(url_for('kick.admin_raffles'))
+
+@kick_bp.route('/admin/raffles/<int:raffle_id>/delete', methods=['POST'])
+@login_required
+def delete_raffle(raffle_id):
+    """Eliminar permanentemente un sorteo"""
+    from flask_login import current_user
+    from models import Raffle
+    from app import db
+    
+    raffle = Raffle.query.get_or_404(raffle_id)
+    
+    # Verificar que el sorteo pertenece al usuario
+    if raffle.user_id != current_user.id:
+        flash('No tienes permiso para gestionar este sorteo.', 'danger')
+        return redirect(url_for('kick.admin_raffles'))
+    
+    # Guardar título para el mensaje
+    titulo = raffle.title
+    
+    # Eliminar sorteo y sus entradas (CASCADE debería manejar esto)
+    db.session.delete(raffle)
+    db.session.commit()
+    
+    flash(f'Sorteo "{titulo}" eliminado permanentemente.', 'success')
+    return redirect(url_for('kick.admin_raffles'))
+
+@kick_bp.route('/admin/raffles/<int:raffle_id>/finalize', methods=['POST'])
+@login_required
+def finalize_raffle(raffle_id):
+    """Finalizar un sorteo sin seleccionar ganador"""
+    from flask_login import current_user
+    from models import Raffle
+    from app import db
+    from datetime import datetime
+    
+    raffle = Raffle.query.get_or_404(raffle_id)
+    
+    # Verificar que el sorteo pertenece al usuario
+    if raffle.user_id != current_user.id:
+        flash('No tienes permiso para gestionar este sorteo.', 'danger')
+        return redirect(url_for('kick.admin_raffles'))
+    
+    # Verificar que el sorteo está activo
+    if raffle.status != 'active':
+        flash('Este sorteo ya no está activo.', 'warning')
+        return redirect(url_for('kick.admin_raffles'))
+    
+    # Finalizar sorteo sin ganador
+    raffle.status = 'completed'
+    raffle.completed_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    flash(f'Sorteo "{raffle.title}" finalizado sin ganador.', 'info')
+    return redirect(url_for('kick.admin_raffles'))
+
+@kick_bp.route('/admin/raffles/<int:raffle_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_raffle(raffle_id):
+    """Editar un sorteo existente"""
+    from flask_login import current_user
+    from forms import RaffleForm
+    from models import Raffle
+    from app import db
+    
+    raffle = Raffle.query.get_or_404(raffle_id)
+    
+    # Verificar que el sorteo pertenece al usuario
+    if raffle.user_id != current_user.id:
+        flash('No tienes permiso para gestionar este sorteo.', 'danger')
+        return redirect(url_for('kick.admin_raffles'))
+    
+    form = RaffleForm(obj=raffle)
+    
+    if form.validate_on_submit():
+        raffle.title = form.title.data
+        raffle.description = form.description.data
+        raffle.prize = form.prize.data
+        raffle.entry_cost = form.entry_cost.data
+        raffle.max_entries = form.max_entries.data if form.max_entries.data else None
+        raffle.end_date = form.end_date.data if form.end_date.data else None
+        
+        db.session.commit()
+        
+        flash(f'Sorteo "{raffle.title}" actualizado exitosamente.', 'success')
+        return redirect(url_for('kick.admin_raffles'))
+    
+    return render_template('kick/edit_raffle.html', form=form, raffle=raffle)
