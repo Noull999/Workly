@@ -1,0 +1,70 @@
+Estoy usando Flask en Replit y tengo un blueprint llamado `kick_bp` con las rutas `/login` y `/callback` para manejar el OAuth con Kick.com. 
+El problema es que, al autorizar en Kick, el usuario vuelve a mi sitio (callback) pero no queda logueado ni se mantiene la sesión. 
+Quiero que corrijas el flujo de autenticación agregando soporte para sesiones persistentes en Replit y evitando que se pierda el `code_verifier` entre la redirección de OAuth.
+
+Haz los siguientes cambios en el archivo del blueprint `kick_bp` (donde están las rutas `/login` y `/callback`):
+
+1. **Agrega un almacenamiento temporal en memoria** (para PKCE y state) al inicio del archivo:
+   ```python
+   _temp_oauth_cache = {}
+   from time import time
+En la función /login:
+
+Genera state, code_verifier, y code_challenge como antes, pero en lugar de guardarlos en session, guárdalos en _temp_oauth_cache:
+
+python
+Copiar código
+state = secrets.token_urlsafe(32)
+code_verifier = generate_code_verifier()
+code_challenge = generate_code_challenge(code_verifier)
+_temp_oauth_cache[state] = {"verifier": code_verifier, "timestamp": time()}
+Conserva la redirección y los parámetros del OAuth como ya están.
+
+En la función /callback:
+
+Recupera el code_verifier desde _temp_oauth_cache usando el state recibido:
+
+python
+Copiar código
+code_verifier = None
+if state in _temp_oauth_cache:
+    code_verifier = _temp_oauth_cache[state]["verifier"]
+    _temp_oauth_cache.pop(state, None)
+Si no se encuentra, muestra un flash "Error: sesión OAuth expirada o inválida." y redirige al home.
+
+Luego usa ese code_verifier para obtener el token de Kick.
+
+Asegura que Flask mantenga la sesión:
+
+En el archivo principal app.py, agrega estas configuraciones:
+
+python
+Copiar código
+app.config['SECRET_KEY'] = os.getenv("SESSION_SECRET", "dev_secret_key")
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_PERMANENT'] = True
+En los Secrets de Replit, agrega:
+
+ini
+Copiar código
+SESSION_SECRET = [usa secrets.token_hex(32) generado en Python]
+Verifica que KICK_REDIRECT_URI esté correctamente definido:
+
+En los Secrets de Replit:
+
+ini
+Copiar código
+KICK_REDIRECT_URI = https://worklycl.replit.app/kick/callback
+En la función get_redirect_uri(), haz que priorice esa variable de entorno.
+
+Opcional (depuración):
+
+Al inicio de /callback, imprime los argumentos recibidos para confirmar el callback:
+
+python
+Copiar código
+print("[KICK DEBUG] Args:", dict(request.args))
+No cambies las rutas, ni los nombres de las funciones, ni la estructura de los blueprints.
+Solo agrega el sistema de _temp_oauth_cache para persistir el PKCE y configura Flask para mantener la sesión entre redirecciones en Replit.
+Esto debe lograr que, al autorizar en Kick, el usuario quede logueado correctamente al volver al sitio.
