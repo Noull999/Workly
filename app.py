@@ -28,6 +28,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Lax permite redirecciones GET de OAuth
 app.config['SESSION_COOKIE_SECURE'] = True  # Requiere HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_PERMANENT'] = True  # Sesiones permanentes para OAuth
 app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutos
 
 # Configure the database
