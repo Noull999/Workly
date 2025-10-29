@@ -85,6 +85,22 @@ def callback():
     import logging
     logger = logging.getLogger(__name__)
     
+    # LOGGING CRÍTICO: Esto debe aparecer SIEMPRE
+    print("=" * 80)
+    print("[KICK CALLBACK] ¡¡¡CALLBACK EJECUTADO!!!")
+    print(f"[KICK CALLBACK] REQUEST URL: {request.url}")
+    print(f"[KICK CALLBACK] REQUEST ARGS: {dict(request.args)}")
+    print(f"[KICK CALLBACK] REQUEST METHOD: {request.method}")
+    print(f"[KICK CALLBACK] SESSION KEYS: {list(session.keys())}")
+    print("=" * 80)
+    
+    logger.info("="*80)
+    logger.info("[KICK CALLBACK] ¡¡¡CALLBACK EJECUTADO!!!")
+    logger.info(f"[KICK CALLBACK] REQUEST URL: {request.url}")
+    logger.info(f"[KICK CALLBACK] REQUEST ARGS: {dict(request.args)}")
+    logger.info(f"[KICK CALLBACK] SESSION KEYS: {list(session.keys())}")
+    logger.info("="*80)
+    
     try:
         # Verificar si Kick envió un error
         error = request.args.get('error')
