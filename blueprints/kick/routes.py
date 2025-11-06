@@ -149,6 +149,15 @@ def callback():
             flash('Error: sesión OAuth expirada o inválida. Intenta de nuevo.', 'danger')
             return redirect(url_for('public.yanglee_page'))
         
+        # DEBUG: Información crítica antes de intercambiar por token
+        print("=" * 80)
+        print("=== DEBUG CALLBACK ===")
+        print(f"Code: {code}")
+        print(f"Redirect URI: {get_redirect_uri()}")
+        print(f"Verifier: {code_verifier}")
+        print(f"State: {state}")
+        print("=" * 80)
+        
         token_data = {
             'grant_type': 'authorization_code',
             'client_id': KICK_CLIENT_ID,
@@ -165,6 +174,12 @@ def callback():
             data=token_data,
             headers={'Content-Type': 'application/x-www-form-urlencoded'}
         )
+        
+        # DEBUG: Respuesta del servidor de tokens
+        print("=" * 80)
+        print(f"Token status: {token_response.status_code}")
+        print(f"Token text: {token_response.text}")
+        print("=" * 80)
         
         logger.debug(f"[KICK CALLBACK] Token response status: {token_response.status_code}")
         
