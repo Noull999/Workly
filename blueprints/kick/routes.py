@@ -477,7 +477,7 @@ def draw_winner(raffle_id):
         return redirect(url_for('kick.admin_raffles'))
     
     # Verificar que el sorteo está activo
-    if raffle.status != 'active':
+    if not raffle.is_active:
         flash('Este sorteo ya no está activo.', 'warning')
         return redirect(url_for('kick.admin_raffles'))
     
@@ -491,13 +491,12 @@ def draw_winner(raffle_id):
     winner_entry = random.choice(entries)
     
     # Actualizar sorteo
-    raffle.winner_kick_user_id = winner_entry.kick_user_id
-    raffle.status = 'completed'
-    raffle.completed_at = datetime.utcnow()
+    raffle.winner_viewer_id = winner_entry.viewer_id
+    raffle.is_active = False
     
     db.session.commit()
     
-    flash(f'¡Ganador seleccionado! 🎉 Usuario: {winner_entry.kick_user.username} (Entrada #{winner_entry.entry_number})', 'success')
+    flash(f'¡Ganador seleccionado! 🎉 Usuario: {winner_entry.viewer.username_kick} (Entrada #{winner_entry.entry_number})', 'success')
     return redirect(url_for('kick.admin_raffles'))
 
 @kick_bp.route('/admin/raffles/<int:raffle_id>/cancel', methods=['POST'])
@@ -515,7 +514,7 @@ def cancel_raffle(raffle_id):
         flash('No tienes permiso para gestionar este sorteo.', 'danger')
         return redirect(url_for('kick.admin_raffles'))
     
-    raffle.status = 'cancelled'
+    raffle.is_active = False
     db.session.commit()
     
     flash(f'Sorteo "{raffle.title}" cancelado.', 'info')
@@ -563,13 +562,12 @@ def finalize_raffle(raffle_id):
         return redirect(url_for('kick.admin_raffles'))
     
     # Verificar que el sorteo está activo
-    if raffle.status != 'active':
+    if not raffle.is_active:
         flash('Este sorteo ya no está activo.', 'warning')
         return redirect(url_for('kick.admin_raffles'))
     
     # Finalizar sorteo sin ganador
-    raffle.status = 'completed'
-    raffle.completed_at = datetime.utcnow()
+    raffle.is_active = False
     
     db.session.commit()
     
