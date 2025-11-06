@@ -251,9 +251,7 @@ def perfil_dinamico(email):
                 # Sorteos activos del streamer
                 sorteos_activos = Raffle.query.filter_by(
                     user_id=db_user.id,
-                    status='active'
-                ).filter(
-                    (Raffle.end_date == None) | (Raffle.end_date > datetime.now())
+                    is_active=True
                 ).all()
         except Exception as e:
             print(f"Error al cargar sorteos: {e}")

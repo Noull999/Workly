@@ -447,8 +447,7 @@ def create_raffle():
             entry_cost=form.entry_cost.data,
             max_entries=form.max_entries.data if form.max_entries.data else None,
             user_id=current_user.id,
-            kick_channel_username=kick_username,
-            end_date=form.end_date.data if form.end_date.data else None
+            kick_channel_username=kick_username
         )
         
         db.session.add(raffle)
@@ -598,7 +597,6 @@ def edit_raffle(raffle_id):
         raffle.prize = form.prize.data
         raffle.entry_cost = form.entry_cost.data
         raffle.max_entries = form.max_entries.data if form.max_entries.data else None
-        raffle.end_date = form.end_date.data if form.end_date.data else None
         
         db.session.commit()
         
