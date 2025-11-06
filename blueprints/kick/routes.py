@@ -6,6 +6,7 @@ import secrets
 import requests
 import hashlib
 import base64
+import json
 from urllib.parse import urlencode
 from time import time
 
@@ -50,36 +51,44 @@ def login():
     # Hacer la sesión permanente para que persista durante OAuth
     session.permanent = True
     
-    state = secrets.token_urlsafe(32)
+    # Generar CSRF token
+    csrf_token = secrets.token_urlsafe(32)
     
     # Generar PKCE
     code_verifier = generate_code_verifier()
     code_challenge = generate_code_challenge(code_verifier)
     
-    # GUARDAR EN CACHE EN MEMORIA en vez de session (soluciona problema de Replit)
-    _temp_oauth_cache[state] = {
+    # Obtener return_to de request.args, request.referrer, o default
+    return_to = request.args.get('return_to') or request.referrer or url_for('public.yanglee_page')
+    
+    # Codificar state con {csrf, return_to} en JSON+base64
+    state_data = {
+        "csrf": csrf_token,
+        "return_to": return_to
+    }
+    state_encoded = base64.urlsafe_b64encode(json.dumps(state_data).encode()).decode()
+    
+    # GUARDAR EN CACHE EN MEMORIA con el csrf_token como clave
+    _temp_oauth_cache[csrf_token] = {
         "verifier": code_verifier,
         "timestamp": time()
     }
     
     redirect_uri = get_redirect_uri()
     
-    logger.debug(f"[KICK LOGIN] State generado: {state[:10]}...")
+    logger.debug(f"[KICK LOGIN] CSRF token generado: {csrf_token[:10]}...")
+    logger.debug(f"[KICK LOGIN] Return to: {return_to}")
+    logger.debug(f"[KICK LOGIN] State encoded: {state_encoded[:30]}...")
     logger.debug(f"[KICK LOGIN] Code verifier guardado en CACHE: {code_verifier[:10]}...")
     logger.debug(f"[KICK LOGIN] Code challenge: {code_challenge[:10]}...")
     logger.debug(f"[KICK LOGIN] Redirect URI: {redirect_uri}")
     logger.debug(f"[KICK LOGIN] Cache size: {len(_temp_oauth_cache)} entries")
     
-    if 'return_to' in request.args:
-        session['kick_return_to'] = request.args.get('return_to')
-    
-    print("[DEBUG LOGIN] return_to guardado:", session.get('kick_return_to'))
-    
     params = {
         'client_id': KICK_CLIENT_ID,
         'redirect_uri': redirect_uri,
         'response_type': 'code',
-        'state': state,
+        'state': state_encoded,
         'scope': 'user:read channel:read',
         'code_challenge': code_challenge,
         'code_challenge_method': 'S256'
@@ -121,14 +130,14 @@ def callback():
             flash(f'Autorización de Kick cancelada o rechazada.', 'warning')
             return redirect(url_for('public.yanglee_page'))
         
-        state = request.args.get('state')
+        state_encoded = request.args.get('state')
         code = request.args.get('code')
         
-        logger.debug(f"[KICK CALLBACK] State recibido: {state[:10] if state else 'None'}...")
+        logger.debug(f"[KICK CALLBACK] State encoded recibido: {state_encoded[:30] if state_encoded else 'None'}...")
         logger.debug(f"[KICK CALLBACK] Code recibido: {code[:10] if code else 'None'}...")
         logger.debug(f"[KICK CALLBACK] Cache size: {len(_temp_oauth_cache)} entries")
         
-        if not state:
+        if not state_encoded:
             logger.error(f"[KICK CALLBACK] Error: no se recibió state")
             flash('Error de validación OAuth. Intenta de nuevo.', 'danger')
             return redirect(url_for('public.yanglee_page'))
@@ -138,15 +147,30 @@ def callback():
             flash('Error en la autorización de Kick.', 'danger')
             return redirect(url_for('public.yanglee_page'))
         
-        # Recuperar code_verifier del CACHE EN MEMORIA en vez de sesión
+        # Decodificar state de base64 + JSON
+        try:
+            # Calcular padding correcto para base64
+            padding = -len(state_encoded) % 4
+            state_decoded = json.loads(base64.urlsafe_b64decode(state_encoded + "=" * padding).decode())
+            csrf_token = state_decoded.get("csrf")
+            return_to = state_decoded.get("return_to", url_for('public.yanglee_page'))
+            logger.debug(f"[KICK CALLBACK] State decodificado exitosamente")
+            logger.debug(f"[KICK CALLBACK] CSRF token: {csrf_token[:10]}...")
+            logger.debug(f"[KICK CALLBACK] Return to: {return_to}")
+        except Exception as e:
+            logger.error(f"[KICK CALLBACK] Error decodificando state: {str(e)}")
+            flash('Error de validación OAuth. Intenta de nuevo.', 'danger')
+            return redirect(url_for('public.yanglee_page'))
+        
+        # Recuperar code_verifier del CACHE usando csrf_token
         code_verifier = None
-        if state in _temp_oauth_cache:
-            code_verifier = _temp_oauth_cache[state]["verifier"]
+        if csrf_token and csrf_token in _temp_oauth_cache:
+            code_verifier = _temp_oauth_cache[csrf_token]["verifier"]
             logger.debug(f"[KICK CALLBACK] Code verifier recuperado de CACHE: {code_verifier[:10]}...")
             # Limpiar el cache después de usar (one-time use)
-            _temp_oauth_cache.pop(state, None)
+            _temp_oauth_cache.pop(csrf_token, None)
         else:
-            logger.error(f"[KICK CALLBACK] Error: state no encontrado en cache")
+            logger.error(f"[KICK CALLBACK] Error: CSRF token no encontrado en cache")
             logger.error(f"[KICK CALLBACK] Cache size: {len(_temp_oauth_cache)} entries")
             flash('Error: sesión OAuth expirada o inválida. Intenta de nuevo.', 'danger')
             return redirect(url_for('public.yanglee_page'))
@@ -157,7 +181,8 @@ def callback():
         print(f"Code: {code}")
         print(f"Redirect URI: {get_redirect_uri()}")
         print(f"Verifier: {code_verifier}")
-        print(f"State: {state}")
+        print(f"CSRF Token: {csrf_token}")
+        print(f"Return to: {return_to}")
         print("=" * 80)
         
         token_data = {
@@ -231,16 +256,16 @@ def callback():
         
         flash(f'¡Conectado exitosamente como {kick_user.username}!', 'success')
         
-        print("[DEBUG CALLBACK] return_to recibido:", session.get('kick_return_to'))
-        return_to = session.pop('kick_return_to', url_for('public.yanglee_page'))
+        # return_to ya fue extraído del state decodificado al inicio
+        logger.debug(f"[KICK CALLBACK] Redirigiendo a: {return_to}")
         return redirect(return_to)
         
     except Exception as e:
+        logger.error(f"[KICK CALLBACK] Exception: {str(e)}")
         flash(f'Error en el proceso de autenticación: {str(e)}', 'danger')
-        return redirect(url_for('public.yanglee_page'))
-    finally:
-        session.pop('kick_oauth_state', None)
-        session.pop('kick_code_verifier', None)
+        # En caso de error, intentar usar return_to si está disponible
+        fallback_url = locals().get('return_to', url_for('public.yanglee_page'))
+        return redirect(fallback_url)
 
 @kick_bp.route('/logout')
 def logout():
