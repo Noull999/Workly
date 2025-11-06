@@ -73,6 +73,8 @@ def login():
     if 'return_to' in request.args:
         session['kick_return_to'] = request.args.get('return_to')
     
+    print("[DEBUG LOGIN] return_to guardado:", session.get('kick_return_to'))
+    
     params = {
         'client_id': KICK_CLIENT_ID,
         'redirect_uri': redirect_uri,
@@ -229,6 +231,7 @@ def callback():
         
         flash(f'¡Conectado exitosamente como {kick_user.username}!', 'success')
         
+        print("[DEBUG CALLBACK] return_to recibido:", session.get('kick_return_to'))
         return_to = session.pop('kick_return_to', url_for('public.yanglee_page'))
         return redirect(return_to)
         
