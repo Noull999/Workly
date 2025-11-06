@@ -608,3 +608,196 @@ def edit_raffle(raffle_id):
         return redirect(url_for('kick.admin_raffles'))
     
     return render_template('kick/edit_raffle.html', form=form, raffle=raffle)
+
+
+# ===== API ENDPOINTS PARA SISTEMA DE PUNTOS SIN OAUTH =====
+
+@kick_bp.route('/api/watchtime/update', methods=['POST'])
+def update_watchtime():
+    """API: Actualiza watch time y suma puntos cuando el usuario ve el stream en vivo"""
+    from models import Viewer
+    from app import db
+    from datetime import datetime, timedelta
+    from helpers.kick_api import get_stream_status
+    
+    try:
+        data = request.json
+        username_kick = data.get('username_kick')
+        channel_name = data.get('channel_name')
+        
+        if not username_kick or not channel_name:
+            return jsonify({'ok': False, 'message': 'Username y channel_name son requeridos'}), 400
+        
+        # Verificar si el canal está en vivo
+        stream_status = get_stream_status(channel_name)
+        if not stream_status.get('is_live'):
+            return jsonify({'ok': False, 'message': 'Canal offline'}), 200
+        
+        # Buscar o crear viewer con SELECT ... FOR UPDATE para prevenir race conditions
+        viewer = Viewer.query.filter_by(username_kick=username_kick).with_for_update().first()
+        
+        if not viewer:
+            # Nuevo viewer - crear y permitir primera asignación de puntos
+            viewer = Viewer(username_kick=username_kick, points=10, watch_time=1, messages_sent=0, last_seen=datetime.utcnow())
+            db.session.add(viewer)
+            db.session.commit()
+            return jsonify({'ok': True, 'points': viewer.points, 'watch_time': viewer.watch_time})
+        
+        # COOLDOWN: Verificar que han pasado al menos 60 segundos desde la última actualización
+        if viewer.last_seen:
+            time_since_last = datetime.utcnow() - viewer.last_seen
+            if time_since_last < timedelta(seconds=60):
+                # Cooldown activo - no permitir farming de puntos
+                seconds_remaining = int(60 - time_since_last.total_seconds())
+                db.session.commit()  # Liberar lock
+                return jsonify({
+                    'ok': False,
+                    'message': f'Espera {seconds_remaining}s antes de la próxima actualización',
+                    'points': viewer.points,
+                    'watch_time': viewer.watch_time
+                }), 429  # Too Many Requests
+        
+        # Sumar puntos y tiempo (fila bloqueada - seguro contra concurrencia)
+        viewer.points += 10
+        viewer.watch_time += 1
+        viewer.last_seen = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({'ok': True, 'points': viewer.points, 'watch_time': viewer.watch_time})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': str(e)}), 500
+
+
+@kick_bp.route('/api/raffle/join', methods=['POST'])
+def join_raffle():
+    """API: Permitir que un usuario se una a un sorteo gastando puntos"""
+    from models import Viewer, Raffle, RaffleEntry
+    from app import db
+    
+    try:
+        data = request.json
+        username_kick = data.get('username_kick')
+        raffle_id = data.get('raffle_id')
+        
+        if not username_kick or not raffle_id:
+            return jsonify({'ok': False, 'message': 'Username y raffle_id son requeridos'}), 400
+        
+        # Buscar viewer
+        viewer = Viewer.query.filter_by(username_kick=username_kick).first()
+        if not viewer:
+            return jsonify({'ok': False, 'message': 'Usuario no encontrado'}), 404
+        
+        # Buscar raffle
+        raffle = Raffle.query.get(raffle_id)
+        if not raffle or not raffle.is_active:
+            return jsonify({'ok': False, 'message': 'Error al unirse'}), 404
+        
+        # Verificar si ya participó
+        existing_entry = RaffleEntry.query.filter_by(raffle_id=raffle_id, viewer_id=viewer.id).first()
+        if existing_entry:
+            return jsonify({'ok': False, 'message': 'Ya participaste en este sorteo'}), 400
+        
+        # Verificar puntos suficientes
+        if viewer.points < raffle.entry_cost:
+            return jsonify({'ok': False, 'message': 'Puntos insuficientes'}), 400
+        
+        # Restar puntos y crear entrada
+        viewer.points -= raffle.entry_cost
+        
+        # Calcular número de entrada
+        entry_number = raffle.entry_count + 1
+        
+        entry = RaffleEntry(raffle_id=raffle_id, viewer_id=viewer.id, entry_number=entry_number)
+        db.session.add(entry)
+        db.session.commit()
+        
+        return jsonify({'ok': True, 'new_points': viewer.points, 'entry_number': entry_number})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': str(e)}), 500
+
+
+@kick_bp.route('/api/raffle/draw/<int:raffle_id>', methods=['POST'])
+@login_required
+def draw_raffle(raffle_id):
+    """API: Ejecutar sorteo aleatorio (solo admin/streamer)"""
+    from models import Raffle, RaffleEntry
+    from app import db
+    import random
+    
+    try:
+        raffle = Raffle.query.get_or_404(raffle_id)
+        
+        # Verificar permisos
+        if raffle.user_id and raffle.user_id != current_user.id:
+            return jsonify({'ok': False, 'message': 'Sin permisos'}), 403
+        
+        # Verificar que está activo
+        if not raffle.is_active:
+            return jsonify({'ok': False, 'message': 'Sorteo no activo'}), 400
+        
+        # Obtener entradas
+        entries = RaffleEntry.query.filter_by(raffle_id=raffle_id).all()
+        if not entries:
+            return jsonify({'ok': False, 'message': 'No hay participantes'}), 400
+        
+        # Elegir ganador aleatorio
+        winner_entry = random.choice(entries)
+        raffle.is_active = False
+        raffle.winner_viewer_id = winner_entry.viewer_id
+        
+        db.session.commit()
+        
+        winner_username = winner_entry.viewer.username_kick
+        
+        return jsonify({
+            'ok': True,
+            'winner': winner_username,
+            'entry_number': winner_entry.entry_number
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': str(e)}), 500
+
+
+@kick_bp.route('/api/viewer/points/<username_kick>')
+def get_viewer_points(username_kick):
+    """API: Obtener puntos de un viewer"""
+    from models import Viewer
+    
+    viewer = Viewer.query.filter_by(username_kick=username_kick).first()
+    if not viewer:
+        return jsonify({'ok': True, 'points': 0, 'watch_time': 0})
+    
+    return jsonify({
+        'ok': True,
+        'points': viewer.points,
+        'watch_time': viewer.watch_time,
+        'username_kick': viewer.username_kick
+    })
+
+
+@kick_bp.route('/api/raffles/active')
+def get_active_raffles():
+    """API: Obtener sorteos activos"""
+    from models import Raffle
+    
+    raffles = Raffle.query.filter_by(is_active=True).all()
+    
+    return jsonify({
+        'ok': True,
+        'raffles': [{
+            'id': r.id,
+            'title': r.title,
+            'description': r.description,
+            'prize': r.prize,
+            'entry_cost': r.entry_cost,
+            'entry_count': r.entry_count,
+            'max_entries': r.max_entries
+        } for r in raffles]
+    })

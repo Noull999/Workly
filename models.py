@@ -766,6 +766,23 @@ class Clip(db.Model):
 
 # ===== KICK INTEGRATION MODELS =====
 
+class Viewer(db.Model):
+    """Viewers que participan en sistema de puntos SIN OAuth (solo username manual)"""
+    id = db.Column(db.Integer, primary_key=True)
+    username_kick = db.Column(db.String(100), unique=True, nullable=False)  # Username de Kick (ingresado manualmente)
+    points = db.Column(db.Integer, default=0, nullable=False)  # Puntos acumulados
+    watch_time = db.Column(db.Integer, default=0, nullable=False)  # Tiempo visto en minutos
+    messages_sent = db.Column(db.Integer, default=0, nullable=False)  # Mensajes enviados (para futuro)
+    last_seen = db.Column(db.DateTime, nullable=True)  # Última vez activo
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    raffle_entries = db.relationship('RaffleEntry', backref='viewer', lazy=True, cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<Viewer {self.username_kick} - {self.points} pts>'
+
+
 class KickUser(db.Model):
     """Usuarios que se han autenticado con Kick OAuth"""
     id = db.Column(db.Integer, primary_key=True)
@@ -776,9 +793,6 @@ class KickUser(db.Model):
     refresh_token = db.Column(db.String(500), nullable=True)  # Refresh token
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationships
-    raffle_entries = db.relationship('RaffleEntry', backref='kick_user', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<KickUser {self.username} (ID: {self.kick_id})>'
@@ -794,46 +808,36 @@ class Raffle(db.Model):
     prize = db.Column(db.String(300), nullable=False)  # Premio del sorteo
     
     # Configuración de puntos
-    entry_cost = db.Column(db.Integer, nullable=False, default=100)  # Costo en puntos de Kick
+    entry_cost = db.Column(db.Integer, nullable=False, default=100)  # Costo en puntos
     max_entries = db.Column(db.Integer, nullable=True)  # Máximo de participantes (null = ilimitado)
+    is_active = db.Column(db.Boolean, default=True)  # Si el sorteo está activo
     
     # Usuario/Streamer que crea el sorteo (referencia al sistema Workly)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Opcional
     kick_channel_username = db.Column(db.String(100), nullable=False)  # Username del canal de Kick
     
-    # Estado del sorteo
-    status = db.Column(db.String(20), default='active')  # active, completed, cancelled
-    winner_kick_user_id = db.Column(db.Integer, db.ForeignKey('kick_user.id'), nullable=True)  # Ganador
+    # Ganador (puede ser Viewer o KickUser)
+    winner_viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=True)
     
     # Timestamps
-    start_date = db.Column(db.DateTime, default=datetime.utcnow)
-    end_date = db.Column(db.DateTime, nullable=True)  # Fecha de cierre (null = abierto)
-    completed_at = db.Column(db.DateTime, nullable=True)  # Cuando se seleccionó ganador
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
     creator = db.relationship('User', backref='raffles_created')
-    winner = db.relationship('KickUser', backref='raffles_won', foreign_keys=[winner_kick_user_id])
+    winner_viewer = db.relationship('Viewer', backref='raffles_won', foreign_keys=[winner_viewer_id])
     entries = db.relationship('RaffleEntry', backref='raffle', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
-        return f'<Raffle {self.title} - {self.status}>'
+        return f'<Raffle {self.title} - Active: {self.is_active}>'
     
     @property
     def entry_count(self):
         """Número actual de participantes"""
         return len(self.entries)
     
-    @property
-    def is_active(self):
-        """Verifica si el sorteo está activo y abierto"""
-        if self.status != 'active':
-            return False
-        if self.end_date and datetime.utcnow() > self.end_date:
-            return False
-        if self.max_entries and self.entry_count >= self.max_entries:
-            return False
-        return True
+    def get_entries(self):
+        """Obtiene todas las entradas del sorteo"""
+        return self.entries
 
 
 class RaffleEntry(db.Model):
@@ -842,17 +846,16 @@ class RaffleEntry(db.Model):
     
     # Referencias
     raffle_id = db.Column(db.Integer, db.ForeignKey('raffle.id'), nullable=False)
-    kick_user_id = db.Column(db.Integer, db.ForeignKey('kick_user.id'), nullable=False)
+    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=False)
     
     # Información de la participación
-    points_spent = db.Column(db.Integer, nullable=False)  # Puntos gastados al participar
     entry_number = db.Column(db.Integer, nullable=False)  # Número de entrada (para sorteo)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Unique constraint: un usuario solo puede participar una vez por sorteo
+    # Unique constraint: un viewer solo puede participar una vez por sorteo
     __table_args__ = (
-        db.UniqueConstraint('raffle_id', 'kick_user_id', name='unique_raffle_entry_per_user'),
+        db.UniqueConstraint('raffle_id', 'viewer_id', name='unique_raffle_entry_per_viewer'),
     )
     
     def __repr__(self):
-        return f'<RaffleEntry #{self.entry_number} - Raffle {self.raffle_id} by KickUser {self.kick_user_id}>'
+        return f'<RaffleEntry #{self.entry_number} - Raffle {self.raffle_id} by Viewer {self.viewer_id}>'
