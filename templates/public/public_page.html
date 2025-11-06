@@ -1450,11 +1450,14 @@
                 placeholder="Tu username de Kick"
                 maxlength="30"
             />
+            <div id="usernameError" class="hidden" style="color: #FF6600; text-align: center; margin-top: 10px; font-size: 0.9rem;">
+                <i class="fas fa-exclamation-triangle"></i> <span id="usernameErrorText"></span>
+            </div>
             <button id="saveUsernameBtn" class="modal-btn">
                 <i class="fas fa-save mr-2"></i> GUARDAR Y COMENZAR
             </button>
             <p class="text-center text-gray-500 text-sm mt-4">
-                Puedes cambiar esto después en tu perfil
+                Verificaremos que tu username exista en Kick
             </p>
         </div>
     </div>
@@ -1805,20 +1808,81 @@
             if (saveUsernameBtn) {
                 saveUsernameBtn.addEventListener('click', function() {
                     const username = usernameInput.value.trim();
-                    if (username && username.length > 0) {
-                        localStorage.setItem('kick_username', username);
-                        kickUsername = username;
-                        usernameModal.classList.add('hidden');
-                        if (pointsWidget) {
-                            pointsWidget.classList.remove('hidden');
+                    const errorDiv = document.getElementById('usernameError');
+                    const errorText = document.getElementById('usernameErrorText');
+                    
+                    // Ocultar error anterior
+                    if (errorDiv) errorDiv.classList.add('hidden');
+                    
+                    if (!username || username.length === 0) {
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'Por favor ingresa un username';
+                            errorDiv.classList.remove('hidden');
                         }
-                        updateUsernameDisplay();
-                        updatePointsCounter();
-                        startAutoUpdates();
-                        loadActiveRaffles();
-                    } else {
-                        alert('Por favor ingresa un username válido');
+                        return;
                     }
+                    
+                    // Mostrar estado de verificación
+                    const originalHTML = saveUsernameBtn.innerHTML;
+                    saveUsernameBtn.disabled = true;
+                    saveUsernameBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> VERIFICANDO...';
+                    
+                    // Verificar username con API
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', '/kick/api/verify-username/' + encodeURIComponent(username), true);
+                    
+                    xhr.onload = function() {
+                        saveUsernameBtn.disabled = false;
+                        saveUsernameBtn.innerHTML = originalHTML;
+                        
+                        if (xhr.status === 200) {
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                
+                                if (data.ok && data.exists) {
+                                    // Username válido - guardar y continuar
+                                    localStorage.setItem('kick_username', username);
+                                    kickUsername = username;
+                                    usernameModal.classList.add('hidden');
+                                    if (pointsWidget) {
+                                        pointsWidget.classList.remove('hidden');
+                                    }
+                                    updateUsernameDisplay();
+                                    updatePointsCounter();
+                                    startAutoUpdates();
+                                    loadActiveRaffles();
+                                } else {
+                                    // Username no existe
+                                    if (errorDiv && errorText) {
+                                        errorText.textContent = 'Este username no existe en Kick. Verifica que esté escrito correctamente.';
+                                        errorDiv.classList.remove('hidden');
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing response:', e);
+                                if (errorDiv && errorText) {
+                                    errorText.textContent = 'Error al verificar username. Intenta nuevamente.';
+                                    errorDiv.classList.remove('hidden');
+                                }
+                            }
+                        } else {
+                            if (errorDiv && errorText) {
+                                errorText.textContent = 'Error al verificar username. Intenta nuevamente.';
+                                errorDiv.classList.remove('hidden');
+                            }
+                        }
+                    };
+                    
+                    xhr.onerror = function() {
+                        saveUsernameBtn.disabled = false;
+                        saveUsernameBtn.innerHTML = originalHTML;
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'Error de conexión. Intenta nuevamente.';
+                            errorDiv.classList.remove('hidden');
+                        }
+                    };
+                    
+                    xhr.send();
                 });
             }
             

@@ -825,6 +825,40 @@ def get_active_raffles():
     })
 
 
+@kick_bp.route('/api/verify-username/<username>')
+def verify_kick_username(username):
+    """API: Verificar si un username existe en Kick"""
+    from helpers.kick_api import get_channel_info
+    
+    try:
+        # Intentar obtener info del canal
+        channel_info = get_channel_info(username)
+        
+        # Verificar si hubo error (usuario no existe o API falló)
+        if channel_info.get('error'):
+            return jsonify({
+                'ok': True,
+                'exists': False,
+                'message': 'Usuario no encontrado en Kick'
+            })
+        
+        # Usuario existe
+        return jsonify({
+            'ok': True,
+            'exists': True,
+            'username': channel_info.get('username'),
+            'display_name': channel_info.get('display_name', username)
+        })
+            
+    except Exception as e:
+        # Si hay excepción inesperada
+        return jsonify({
+            'ok': True,
+            'exists': False,
+            'message': 'Error al verificar username'
+        })
+
+
 @kick_bp.route('/api/points/config')
 def get_points_config():
     """API: Obtener configuración actual de puntos (para mostrar en UI)"""
