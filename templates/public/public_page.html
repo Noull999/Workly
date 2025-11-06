@@ -157,27 +157,14 @@
             animation: pulse 3s ease-in-out infinite;
         }
 
-        /* Gradient Text */
+        /* Gradient Text - Streamer Name */
         .gradient-text {
-            color: #FF6600;
-            text-shadow: 0 0 30px rgba(124, 58, 237, 0.8), 
-                         0 0 60px rgba(255, 102, 0, 0.6),
-                         0 0 90px rgba(168, 85, 247, 0.4);
+            color: #FF1493;
+            text-shadow: 0 0 20px rgba(255, 20, 147, 0.8), 
+                         0 0 40px rgba(255, 20, 147, 0.5);
             font-weight: 700;
-            animation: glow 3s ease-in-out infinite;
-        }
-        
-        @keyframes glow {
-            0%, 100% { 
-                text-shadow: 0 0 30px rgba(124, 58, 237, 0.8), 
-                             0 0 60px rgba(255, 102, 0, 0.6),
-                             0 0 90px rgba(168, 85, 247, 0.4);
-            }
-            50% { 
-                text-shadow: 0 0 40px rgba(124, 58, 237, 1), 
-                             0 0 80px rgba(255, 102, 0, 0.8),
-                             0 0 120px rgba(168, 85, 247, 0.6);
-            }
+            font-size: 1.5rem;
+            letter-spacing: 0.1em;
         }
 
         @keyframes shimmer {
@@ -306,10 +293,10 @@
             left: 0;
             right: 0;
             z-index: 10000;
-            background: linear-gradient(180deg, rgba(20, 10, 40, 0.98) 0%, rgba(10, 5, 20, 0.95) 100%);
-            backdrop-filter: blur(15px);
-            border-bottom: 3px solid rgba(168, 85, 247, 0.6);
-            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4), 0 0 60px rgba(255, 102, 0, 0.1);
+            background: rgba(15, 10, 30, 0.98);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid #a855f7;
+            box-shadow: 0 4px 30px rgba(168, 85, 247, 0.6), 0 0 60px rgba(168, 85, 247, 0.3);
             transition: all 0.3s ease;
         }
 
@@ -342,6 +329,63 @@
 
         .nav-link:hover::after {
             width: 80%;
+        }
+
+        /* Nav User Widget */
+        .nav-user-widget {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(124, 58, 237, 0.2);
+            border: 2px solid #7C3AED;
+            border-radius: 25px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .nav-username {
+            color: #FF6600;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .nav-points {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #a855f7;
+            font-weight: 700;
+        }
+
+        .nav-gem-icon {
+            color: #7C3AED;
+            font-size: 1rem;
+        }
+
+        /* Nav Social Buttons */
+        .nav-social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(168, 85, 247, 0.2));
+            border: 2px solid #7C3AED;
+            border-radius: 20px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-social-btn:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.5), rgba(168, 85, 247, 0.3));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .nav-social-btn i {
+            font-size: 1rem;
         }
 
         /* LIVE Badge */
@@ -743,14 +787,14 @@
     <!-- Sticky Navigation Bar -->
     <nav class="sticky-nav">
         <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between py-4">
-                <!-- Logo/Name -->
-                <div class="text-xl font-bold orbitron gradient-text">
+            <div class="flex items-center justify-between py-3">
+                <!-- Logo/Name (Streamer) -->
+                <div class="gradient-text orbitron">
                     {{ page.title or 'YANGLEE' }}
                 </div>
                 
-                <!-- Navigation Links -->
-                <div class="hidden md:flex items-center gap-6">
+                <!-- Navigation Links (Center) -->
+                <div class="hidden lg:flex items-center gap-6">
                     <a href="#inicio" class="nav-link orbitron">Inicio</a>
                     {% if sorteos_habilitados %}
                     <a href="#sorteos" class="nav-link orbitron">Sorteos</a>
@@ -762,15 +806,56 @@
                     <a href="#contacto" class="nav-link orbitron">Contacto</a>
                 </div>
 
+                <!-- Right Side: User Widget + Social Buttons -->
+                <div class="hidden lg:flex items-center gap-3">
+                    <!-- User & Points Widget -->
+                    <div id="navUserWidget" class="nav-user-widget hidden">
+                        <span class="nav-username" id="navUsername">Usuario</span>
+                        <div class="nav-points">
+                            <i class="fas fa-gem nav-gem-icon"></i>
+                            <span id="navPoints">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Social Buttons -->
+                    {% if page.social_links %}
+                        {% if page.social_links.kick %}
+                        <a href="{{ page.social_links.kick }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-kickstarter"></i>
+                            <span class="hidden xl:inline">Ver en Kick</span>
+                        </a>
+                        {% endif %}
+                        {% if page.social_links.instagram %}
+                        <a href="{{ page.social_links.instagram }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        {% endif %}
+                        {% if page.social_links.tiktok %}
+                        <a href="{{ page.social_links.tiktok }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
                 <!-- Mobile Menu Toggle -->
-                <button class="md:hidden text-white text-2xl" id="mobileMenuToggle">
+                <button class="lg:hidden text-white text-2xl" id="mobileMenuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
 
             <!-- Mobile Menu -->
-            <div class="md:hidden hidden pb-4" id="mobileMenu">
+            <div class="lg:hidden hidden pb-4" id="mobileMenu">
                 <div class="flex flex-col gap-3">
+                    <!-- User Widget (Mobile) -->
+                    <div id="navUserWidgetMobile" class="nav-user-widget hidden mb-2">
+                        <span class="nav-username" id="navUsernameMobile">Usuario</span>
+                        <div class="nav-points">
+                            <i class="fas fa-gem nav-gem-icon"></i>
+                            <span id="navPointsMobile">0</span>
+                        </div>
+                    </div>
+                    
                     <a href="#inicio" class="nav-link orbitron">Inicio</a>
                     {% if sorteos_habilitados %}
                     <a href="#sorteos" class="nav-link orbitron">Sorteos</a>
@@ -780,6 +865,28 @@
                     {% endif %}
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                     <a href="#contacto" class="nav-link orbitron">Contacto</a>
+                    
+                    <!-- Social Links (Mobile) -->
+                    {% if page.social_links %}
+                    <div class="flex gap-2 mt-2">
+                        {% if page.social_links.kick %}
+                        <a href="{{ page.social_links.kick }}" target="_blank" class="nav-social-btn flex-1 justify-center">
+                            <i class="fab fa-kickstarter"></i>
+                            Kick
+                        </a>
+                        {% endif %}
+                        {% if page.social_links.instagram %}
+                        <a href="{{ page.social_links.instagram }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        {% endif %}
+                        {% if page.social_links.tiktok %}
+                        <a href="{{ page.social_links.tiktok }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
