@@ -378,3 +378,29 @@ class ClipForm(FlaskForm):
     is_featured = BooleanField('Marcar como Destacado')
     order_position = IntegerField('Posición de Orden', validators=[Optional(), NumberRange(min=0)], default=0)
     submit = SubmitField('Guardar Clip')
+
+
+class PointsConfigForm(FlaskForm):
+    """Formulario para configurar sistema de puntos de Kick"""
+    points_per_minute_watching = IntegerField(
+        'Puntos por Minuto Viendo Stream',
+        validators=[DataRequired(), NumberRange(min=1, max=1000)],
+        default=10
+    )
+    points_per_message = IntegerField(
+        'Puntos por Mensaje en Chat',
+        validators=[DataRequired(), NumberRange(min=0, max=100)],
+        default=5
+    )
+    cooldown_seconds = IntegerField(
+        'Cooldown entre Actualizaciones (Segundos)',
+        validators=[DataRequired(), NumberRange(min=30, max=300)],
+        default=60
+    )
+    max_points_per_day = IntegerField(
+        'Límite de Puntos por Día (0 = Ilimitado)',
+        validators=[Optional(), NumberRange(min=0)],
+        default=0
+    )
+    enabled = BooleanField('Sistema de Puntos Activado', default=True)
+    submit = SubmitField('Guardar Configuración')

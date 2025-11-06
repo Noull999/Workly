@@ -615,7 +615,7 @@ def edit_raffle(raffle_id):
 @kick_bp.route('/api/watchtime/update', methods=['POST'])
 def update_watchtime():
     """API: Actualiza watch time y suma puntos cuando el usuario ve el stream en vivo"""
-    from models import Viewer
+    from models import Viewer, PointsConfig
     from app import db
     from datetime import datetime, timedelta
     from helpers.kick_api import get_stream_status
@@ -628,6 +628,19 @@ def update_watchtime():
         if not username_kick or not channel_name:
             return jsonify({'ok': False, 'message': 'Username y channel_name son requeridos'}), 400
         
+        # Obtener configuración de puntos
+        # TODO: Hacer dinámico por canal usando parámetro channel_company_id
+        # Por ahora usa company_id=1 (yanglee's company)
+        config = PointsConfig.query.filter_by(company_id=1).with_for_update().first()
+        if not config:
+            config = PointsConfig(company_id=1)
+            db.session.add(config)
+            db.session.flush()
+        
+        # Verificar si el sistema de puntos está habilitado
+        if not config.enabled:
+            return jsonify({'ok': False, 'message': 'Sistema de puntos desactivado'}), 403
+        
         # Verificar si el canal está en vivo
         stream_status = get_stream_status(channel_name)
         if not stream_status.get('is_live'):
@@ -638,17 +651,23 @@ def update_watchtime():
         
         if not viewer:
             # Nuevo viewer - crear y permitir primera asignación de puntos
-            viewer = Viewer(username_kick=username_kick, points=10, watch_time=1, messages_sent=0, last_seen=datetime.utcnow())
+            viewer = Viewer(
+                username_kick=username_kick, 
+                points=config.points_per_minute_watching, 
+                watch_time=1, 
+                messages_sent=0, 
+                last_seen=datetime.utcnow()
+            )
             db.session.add(viewer)
             db.session.commit()
             return jsonify({'ok': True, 'points': viewer.points, 'watch_time': viewer.watch_time})
         
-        # COOLDOWN: Verificar que han pasado al menos 60 segundos desde la última actualización
+        # COOLDOWN: Verificar cooldown configurable
         if viewer.last_seen:
             time_since_last = datetime.utcnow() - viewer.last_seen
-            if time_since_last < timedelta(seconds=60):
+            if time_since_last < timedelta(seconds=config.cooldown_seconds):
                 # Cooldown activo - no permitir farming de puntos
-                seconds_remaining = int(60 - time_since_last.total_seconds())
+                seconds_remaining = int(config.cooldown_seconds - time_since_last.total_seconds())
                 db.session.commit()  # Liberar lock
                 return jsonify({
                     'ok': False,
@@ -657,8 +676,11 @@ def update_watchtime():
                     'watch_time': viewer.watch_time
                 }), 429  # Too Many Requests
         
+        # TODO: Implementar max_points_per_day cuando se agregue daily_points tracking a Viewer model
+        # Por ahora el límite diario no se enforces (requiere campos adicionales en DB)
+        
         # Sumar puntos y tiempo (fila bloqueada - seguro contra concurrencia)
-        viewer.points += 10
+        viewer.points += config.points_per_minute_watching
         viewer.watch_time += 1
         viewer.last_seen = datetime.utcnow()
         
@@ -801,3 +823,61 @@ def get_active_raffles():
             'max_entries': r.max_entries
         } for r in raffles]
     })
+
+
+@kick_bp.route('/api/points/config')
+def get_points_config():
+    """API: Obtener configuración actual de puntos (para mostrar en UI)"""
+    from models import PointsConfig
+    from app import db
+    
+    # Por defecto company_id=1 (yanglee)
+    config = PointsConfig.get_or_create_default(company_id=1)
+    db.session.commit()  # Commit si se creó
+    
+    return jsonify({
+        'ok': True,
+        'config': {
+            'points_per_minute_watching': config.points_per_minute_watching,
+            'points_per_message': config.points_per_message,
+            'cooldown_seconds': config.cooldown_seconds,
+            'max_points_per_day': config.max_points_per_day,
+            'enabled': config.enabled
+        }
+    })
+
+
+@kick_bp.route('/admin/points-config', methods=['GET', 'POST'])
+@login_required
+def points_config():
+    """Configurar sistema de puntos de Kick (solo admin)"""
+    from flask_login import current_user
+    from forms import PointsConfigForm
+    from models import PointsConfig
+    from app import db
+    
+    # Solo admin puede acceder
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para acceder a esta página.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    # Obtener o crear configuración para la empresa del usuario
+    config = PointsConfig.get_or_create_default(company_id=current_user.company_id)
+    db.session.commit()  # Commit si se creó
+    
+    form = PointsConfigForm(obj=config)
+    
+    if form.validate_on_submit():
+        # Actualizar configuración
+        config.points_per_minute_watching = form.points_per_minute_watching.data
+        config.points_per_message = form.points_per_message.data
+        config.cooldown_seconds = form.cooldown_seconds.data
+        config.max_points_per_day = form.max_points_per_day.data if form.max_points_per_day.data else None
+        config.enabled = form.enabled.data
+        
+        db.session.commit()
+        
+        flash('Configuración de puntos actualizada exitosamente.', 'success')
+        return redirect(url_for('kick.points_config'))
+    
+    return render_template('kick/points_config.html', form=form, config=config)

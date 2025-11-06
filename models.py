@@ -783,6 +783,46 @@ class Viewer(db.Model):
         return f'<Viewer {self.username_kick} - {self.points} pts>'
 
 
+class PointsConfig(db.Model):
+    """Configuración de puntos por empresa - permite personalizar el sistema de recompensas"""
+    id = db.Column(db.Integer, primary_key=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)  # Multi-tenant
+    
+    # Configuración de recompensas
+    points_per_minute_watching = db.Column(db.Integer, default=10, nullable=False)  # Puntos por minuto viendo stream
+    points_per_message = db.Column(db.Integer, default=5, nullable=False)  # Puntos por mensaje en chat (futuro)
+    cooldown_seconds = db.Column(db.Integer, default=60, nullable=False)  # Cooldown entre actualizaciones
+    
+    # Límites y configuración adicional
+    max_points_per_day = db.Column(db.Integer, nullable=True)  # Límite diario (null = ilimitado)
+    enabled = db.Column(db.Boolean, default=True)  # Sistema activado/desactivado
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    company = db.relationship('Company', backref=db.backref('points_config', uselist=False, lazy=True))
+    
+    # Unique constraint: una configuración por empresa
+    __table_args__ = (
+        db.UniqueConstraint('company_id', name='unique_points_config_per_company'),
+    )
+    
+    def __repr__(self):
+        return f'<PointsConfig Company {self.company_id} - {self.points_per_minute_watching} pts/min>'
+    
+    @classmethod
+    def get_or_create_default(cls, company_id):
+        """Obtiene o crea configuración por defecto para una empresa (sin commit)"""
+        config = cls.query.filter_by(company_id=company_id).first()
+        if not config:
+            config = cls(company_id=company_id)
+            db.session.add(config)
+            db.session.flush()  # Flush sin commit para mantener transacción
+        return config
+
+
 class KickUser(db.Model):
     """Usuarios que se han autenticado con Kick OAuth"""
     id = db.Column(db.Integer, primary_key=True)

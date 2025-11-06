@@ -465,37 +465,178 @@
             cursor: not-allowed;
         }
 
-        /* Points Counter Styles */
-        .points-counter {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(255, 102, 0, 0.3));
-            border: 2px solid #7C3AED;
-            border-radius: 20px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            color: white;
-            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
-            transition: all 0.3s ease;
+        /* Floating Points Widget Styles */
+        .points-widget {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 999;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(255, 102, 0, 0.25));
+            backdrop-filter: blur(20px);
+            border: 3px solid transparent;
+            border-image: linear-gradient(135deg, #7C3AED, #FF6600) 1;
+            border-radius: 25px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 0 40px rgba(124, 58, 237, 0.6), 0 0 60px rgba(255, 102, 0, 0.4);
+            transition: all 0.4s ease;
+            min-width: 200px;
         }
 
-        .points-counter:hover {
-            box-shadow: 0 0 30px rgba(124, 58, 237, 0.6), 0 0 40px rgba(255, 102, 0, 0.4);
-            transform: scale(1.05);
+        .points-widget:hover {
+            box-shadow: 0 0 50px rgba(124, 58, 237, 0.8), 0 0 80px rgba(255, 102, 0, 0.6);
+            transform: translateY(-5px);
         }
 
-        .points-icon {
+        @media (max-width: 768px) {
+            .points-widget {
+                top: 80px;
+                right: 10px;
+                padding: 1rem 1.25rem;
+                min-width: 160px;
+            }
+        }
+
+        .points-icon-large {
+            font-size: 3rem;
             color: #FFD700;
-            font-size: 1.2rem;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
             animation: pulse 2s ease-in-out infinite;
+            display: block;
+            text-align: center;
+            margin-bottom: 0.5rem;
         }
 
-        .points-value {
+        @media (max-width: 768px) {
+            .points-icon-large {
+                font-size: 2rem;
+            }
+        }
+
+        .points-value-large {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
             color: #FFD700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5);
+            text-align: center;
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .points-value-large {
+                font-size: 1.75rem;
+            }
+        }
+
+        .watchtime-display {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            color: #a78bfa;
+            text-align: center;
+            display: block;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .watchtime-display {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* +X Points Animation */
+        .points-increment-animation {
+            position: fixed;
+            right: 120px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #FF6600;
+            text-shadow: 0 0 20px rgba(255, 102, 0, 0.8), 0 0 40px rgba(255, 102, 0, 0.5);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .points-increment-animation {
+                right: 80px;
+                font-size: 1.5rem;
+            }
+        }
+
+        /* How to Get Points Section */
+        .points-info-card {
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.9), rgba(20, 20, 20, 0.95));
+            border: 2px solid transparent;
+            border-image: linear-gradient(135deg, #7C3AED, #FF6600) 1;
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .points-info-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #7C3AED, #FF6600, #7C3AED);
+            background-size: 200% 200%;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+            border-radius: 20px;
+            animation: gradientRotate 3s ease infinite;
+        }
+
+        .points-info-card:hover::before {
+            opacity: 1;
+        }
+
+        .points-info-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.5);
+        }
+
+        .points-info-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+            text-align: center;
+        }
+
+        .points-info-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #7C3AED, #FF6600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .points-info-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            margin-bottom: 0.5rem;
+        }
+
+        .points-info-label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            text-align: center;
+            color: #a78bfa;
+            font-weight: 600;
         }
 
         /* Raffle Card Styles */
@@ -603,12 +744,6 @@
                     {% endif %}
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                     <a href="#contacto" class="nav-link orbitron">Contacto</a>
-                    
-                    <!-- Points Counter -->
-                    <div id="pointsCounter" class="points-counter hidden">
-                        <i class="fas fa-star points-icon"></i>
-                        <span class="points-value" id="pointsValue">0</span>
-                    </div>
                 </div>
 
                 <!-- Mobile Menu Toggle -->
@@ -633,6 +768,13 @@
             </div>
         </div>
     </nav>
+
+    <!-- Floating Points Widget -->
+    <div id="pointsWidget" class="points-widget hidden">
+        <i class="fas fa-gem points-icon-large"></i>
+        <span class="points-value-large" id="pointsValueLarge">0</span>
+        <span class="watchtime-display" id="watchtimeDisplay">0 min viendo</span>
+    </div>
 
     <!-- Hero Section -->
     <section id="inicio" class="min-h-screen flex items-center justify-center px-4 py-20 pt-32">
@@ -1059,6 +1201,47 @@
                     </a>
                     {% endif %}
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Get Points Section -->
+    <section class="py-16 sm:py-20 px-4 bg-gradient-to-b from-black to-purple-900/20" data-animate="fade">
+        <div class="container mx-auto">
+            <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron text-center mb-12 sm:mb-16 gradient-text tracking-wider fade-in-up">
+                💰 CÓMO GANAR PUNTOS
+            </h2>
+            
+            <div id="pointsInfoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <!-- Cards will be loaded dynamically via JavaScript -->
+                <div class="points-info-card fade-in-up">
+                    <span class="points-info-icon">📺</span>
+                    <h3 class="points-info-title">Ver Stream en Vivo</h3>
+                    <div class="points-info-value" id="pointsPerMinute">...</div>
+                    <p class="points-info-label">puntos/minuto</p>
+                </div>
+                
+                <div class="points-info-card fade-in-up delay-100">
+                    <span class="points-info-icon">💬</span>
+                    <h3 class="points-info-title">Escribir en Chat</h3>
+                    <div class="points-info-value" id="pointsPerMessage">...</div>
+                    <p class="points-info-label">puntos/mensaje</p>
+                    <p class="text-center text-gray-500 text-sm mt-2 italic">[próximamente]</p>
+                </div>
+                
+                <div class="points-info-card fade-in-up delay-200">
+                    <span class="points-info-icon">⏱️</span>
+                    <h3 class="points-info-title">Cooldown</h3>
+                    <div class="points-info-value" id="cooldownSeconds">...</div>
+                    <p class="points-info-label">segundos entre puntos</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <p class="text-xl text-gray-300 font-semibold">
+                    <i class="fas fa-info-circle text-purple-500 mr-2"></i>
+                    ¡Gana puntos automáticamente mientras disfrutas del stream!
+                </p>
             </div>
         </div>
     </section>
@@ -1586,6 +1769,8 @@
         let kickUsername = null;
         let pointsUpdateInterval = null;
         let watchtimeUpdateInterval = null;
+        let currentPoints = 0;
+        let currentWatchtime = 0;
 
         function initPointsSystem() {
             kickUsername = localStorage.getItem('kick_username');
@@ -1593,12 +1778,16 @@
             const usernameModal = document.getElementById('usernameModal');
             const usernameInput = document.getElementById('usernameInput');
             const saveUsernameBtn = document.getElementById('saveUsernameBtn');
-            const pointsCounter = document.getElementById('pointsCounter');
+            const pointsWidget = document.getElementById('pointsWidget');
+            
+            loadPointsConfig();
             
             if (!kickUsername && usernameModal) {
                 usernameModal.classList.remove('hidden');
             } else if (kickUsername) {
-                pointsCounter.classList.remove('hidden');
+                if (pointsWidget) {
+                    pointsWidget.classList.remove('hidden');
+                }
                 updatePointsCounter();
                 startAutoUpdates();
                 loadActiveRaffles();
@@ -1611,7 +1800,9 @@
                         localStorage.setItem('kick_username', username);
                         kickUsername = username;
                         usernameModal.classList.add('hidden');
-                        pointsCounter.classList.remove('hidden');
+                        if (pointsWidget) {
+                            pointsWidget.classList.remove('hidden');
+                        }
                         updatePointsCounter();
                         startAutoUpdates();
                         loadActiveRaffles();
@@ -1630,6 +1821,85 @@
             }
         }
 
+        function loadPointsConfig() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/kick/api/points/config', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.ok && data.config) {
+                            const config = data.config;
+                            
+                            const pointsPerMinute = document.getElementById('pointsPerMinute');
+                            const pointsPerMessage = document.getElementById('pointsPerMessage');
+                            const cooldownSeconds = document.getElementById('cooldownSeconds');
+                            
+                            if (pointsPerMinute) {
+                                pointsPerMinute.textContent = config.points_per_minute_watching || 10;
+                            }
+                            if (pointsPerMessage) {
+                                pointsPerMessage.textContent = config.points_per_message || 5;
+                            }
+                            if (cooldownSeconds) {
+                                cooldownSeconds.textContent = config.cooldown_seconds || 60;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing points config:', e);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('Error loading points config');
+            };
+            
+            xhr.send();
+        }
+
+        function showPointsIncrementAnimation(increment) {
+            const pointsWidget = document.getElementById('pointsWidget');
+            if (!pointsWidget || increment <= 0) return;
+            
+            const widgetRect = pointsWidget.getBoundingClientRect();
+            const animElement = document.createElement('div');
+            animElement.className = 'points-increment-animation';
+            animElement.textContent = '+' + increment;
+            animElement.style.top = (widgetRect.top + 30) + 'px';
+            
+            document.body.appendChild(animElement);
+            
+            gsap.to(animElement, {
+                y: -100,
+                opacity: 0,
+                duration: 1.5,
+                ease: 'power2.out',
+                onComplete: function() {
+                    animElement.remove();
+                }
+            });
+        }
+
+        function animateCounterValue(elementId, newValue) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const oldValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
+            
+            if (oldValue === newValue) return;
+            
+            gsap.to({value: oldValue}, {
+                value: newValue,
+                duration: 0.8,
+                ease: 'power2.out',
+                onUpdate: function() {
+                    element.textContent = Math.floor(this.targets()[0].value).toLocaleString();
+                }
+            });
+        }
+
         function updatePointsCounter() {
             if (!kickUsername) return;
             
@@ -1640,9 +1910,18 @@
                 if (xhr.status === 200) {
                     try {
                         const data = JSON.parse(xhr.responseText);
-                        const pointsValue = document.getElementById('pointsValue');
-                        if (pointsValue && data.points !== undefined) {
-                            pointsValue.textContent = data.points.toLocaleString();
+                        
+                        if (data.points !== undefined) {
+                            animateCounterValue('pointsValueLarge', data.points);
+                            currentPoints = data.points;
+                        }
+                        
+                        if (data.watch_time !== undefined) {
+                            const watchtimeDisplay = document.getElementById('watchtimeDisplay');
+                            if (watchtimeDisplay) {
+                                watchtimeDisplay.textContent = data.watch_time + ' min viendo';
+                            }
+                            currentWatchtime = data.watch_time;
                         }
                     } catch (e) {
                         console.error('Error parsing points data:', e);
@@ -1668,9 +1947,26 @@
                 if (xhr.status === 200) {
                     try {
                         const data = JSON.parse(xhr.responseText);
-                        const pointsValue = document.getElementById('pointsValue');
-                        if (pointsValue && data.points !== undefined) {
-                            pointsValue.textContent = data.points.toLocaleString();
+                        
+                        if (data.ok && data.points !== undefined) {
+                            const oldPoints = currentPoints;
+                            const newPoints = data.points;
+                            const pointsIncrement = newPoints - oldPoints;
+                            
+                            if (pointsIncrement > 0) {
+                                showPointsIncrementAnimation(pointsIncrement);
+                            }
+                            
+                            animateCounterValue('pointsValueLarge', newPoints);
+                            currentPoints = newPoints;
+                            
+                            if (data.watch_time !== undefined) {
+                                const watchtimeDisplay = document.getElementById('watchtimeDisplay');
+                                if (watchtimeDisplay) {
+                                    watchtimeDisplay.textContent = data.watch_time + ' min viendo';
+                                }
+                                currentWatchtime = data.watch_time;
+                            }
                         }
                     } catch (e) {
                         console.error('Error parsing watchtime data:', e);

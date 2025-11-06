@@ -31,8 +31,15 @@ def get_channel_data(username: str, use_cache: bool = True) -> Optional[Dict[str
     
     try:
         # API pública de Kick (no requiere autenticación)
+        # Headers necesarios para evitar 403 Forbidden
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json',
+            'Referer': 'https://kick.com/'
+        }
         response = requests.get(
             f'https://kick.com/api/v2/channels/{username}',
+            headers=headers,
             timeout=10
         )
         
