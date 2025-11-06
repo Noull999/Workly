@@ -292,10 +292,11 @@
             top: 0;
             left: 0;
             right: 0;
-            z-index: 1000;
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 2px solid rgba(168, 85, 247, 0.3);
+            z-index: 10000;
+            background: linear-gradient(180deg, rgba(20, 10, 40, 0.98) 0%, rgba(10, 5, 20, 0.95) 100%);
+            backdrop-filter: blur(15px);
+            border-bottom: 3px solid rgba(168, 85, 247, 0.6);
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4), 0 0 60px rgba(255, 102, 0, 0.1);
             transition: all 0.3s ease;
         }
 
@@ -2118,14 +2119,14 @@
                 card.className = 'raffle-card';
                 
                 const hasJoined = raffle.has_joined || false;
-                const canAfford = kickUsername && raffle.points_cost <= (raffle.user_points || 0);
+                const canAfford = kickUsername && raffle.entry_cost <= (raffle.user_points || 0);
                 
                 card.innerHTML = `
                     <div class="flex items-start justify-between mb-4">
                         <h3 class="text-2xl font-bold orbitron text-white">${escapeHtml(raffle.title)}</h3>
                         <span class="raffle-badge">
                             <i class="fas fa-users"></i>
-                            ${raffle.participant_count || 0}
+                            ${raffle.entry_count || 0}
                         </span>
                     </div>
                     
@@ -2141,14 +2142,14 @@
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-star text-yellow-500"></i>
-                            <span class="text-xl font-bold orbitron text-yellow-500">${raffle.points_cost}</span>
+                            <span class="text-xl font-bold orbitron text-yellow-500">${raffle.entry_cost}</span>
                             <span class="text-gray-400">puntos</span>
                         </div>
                     </div>
                     
                     ${hasJoined ? 
                         '<button class="raffle-btn" disabled><i class="fas fa-check mr-2"></i>YA PARTICIPAS</button>' :
-                        '<button class="raffle-btn" onclick="joinRaffle(' + raffle.id + ', ' + raffle.points_cost + ')" ' + 
+                        '<button class="raffle-btn" onclick="joinRaffle(' + raffle.id + ', ' + raffle.entry_cost + ')" ' + 
                         (kickUsername ? '' : 'disabled') + '>' +
                         '<i class="fas fa-ticket-alt mr-2"></i>PARTICIPAR</button>'
                     }
