@@ -786,7 +786,7 @@ class Viewer(db.Model):
 class PointsConfig(db.Model):
     """Configuración de puntos por empresa - permite personalizar el sistema de recompensas"""
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)  # Multi-tenant
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=True)  # Multi-tenant (nullable para uso público)
     
     # Configuración de recompensas
     points_per_minute_watching = db.Column(db.Integer, default=10, nullable=False)  # Puntos por minuto viendo stream

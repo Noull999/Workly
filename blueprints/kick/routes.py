@@ -629,11 +629,10 @@ def update_watchtime():
             return jsonify({'ok': False, 'message': 'Username y channel_name son requeridos'}), 400
         
         # Obtener configuración de puntos
-        # TODO: Hacer dinámico por canal usando parámetro channel_company_id
-        # Por ahora usa company_id=1 (yanglee's company)
-        config = PointsConfig.query.filter_by(company_id=1).with_for_update().first()
+        # Uso público sin company - usa None
+        config = PointsConfig.query.filter_by(company_id=None).with_for_update().first()
         if not config:
-            config = PointsConfig(company_id=1)
+            config = PointsConfig(company_id=None)
             db.session.add(config)
             db.session.flush()
         
@@ -865,8 +864,8 @@ def get_points_config():
     from models import PointsConfig
     from app import db
     
-    # Por defecto company_id=1 (yanglee)
-    config = PointsConfig.get_or_create_default(company_id=1)
+    # Uso público sin company - usa None
+    config = PointsConfig.get_or_create_default(company_id=None)
     db.session.commit()  # Commit si se creó
     
     return jsonify({

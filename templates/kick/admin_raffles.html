@@ -78,32 +78,32 @@
                                         </span>
                                     </td>
                                     <td>
-                                        {% if raffle.status == 'active' %}
+                                        {% if raffle.is_active and not raffle.winner_viewer_id %}
                                         <span class="badge bg-success">
                                             <i class="fas fa-check-circle me-1"></i>Activo
                                         </span>
-                                        {% elif raffle.status == 'completed' %}
+                                        {% elif not raffle.is_active and raffle.winner_viewer_id %}
                                         <span class="badge bg-info">
                                             <i class="fas fa-flag-checkered me-1"></i>Completado
                                         </span>
-                                        {% elif raffle.status == 'cancelled' %}
+                                        {% elif not raffle.is_active and not raffle.winner_viewer_id %}
                                         <span class="badge bg-secondary">
                                             <i class="fas fa-ban me-1"></i>Cancelado
                                         </span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if raffle.status == 'completed' and raffle.winner %}
+                                        {% if not raffle.is_active and raffle.winner_viewer %}
                                         <div class="text-success">
                                             <i class="fas fa-crown me-1"></i>
-                                            <strong>{{ raffle.winner.username }}</strong>
+                                            <strong>{{ raffle.winner_viewer.username_kick }}</strong>
                                         </div>
                                         {% else %}
                                         <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if raffle.status == 'active' %}
+                                        {% if raffle.is_active and not raffle.winner_viewer_id %}
                                         <!-- Botón Editar -->
                                         <a href="{{ url_for('kick.edit_raffle', raffle_id=raffle.id) }}" class="btn btn-info btn-sm mb-1" title="Editar sorteo">
                                             <i class="fas fa-edit"></i>
@@ -137,7 +137,7 @@
                                             </button>
                                         </form>
                                         
-                                        {% elif raffle.status == 'completed' %}
+                                        {% elif not raffle.is_active and raffle.winner_viewer_id %}
                                         <span class="text-muted me-2">
                                             <i class="fas fa-check me-1"></i>Finalizado
                                         </span>
@@ -148,7 +148,7 @@
                                             </button>
                                         </form>
                                         
-                                        {% elif raffle.status == 'cancelled' %}
+                                        {% elif not raffle.is_active and not raffle.winner_viewer_id %}
                                         <span class="text-muted me-2">
                                             <i class="fas fa-ban me-1"></i>Cancelado
                                         </span>
