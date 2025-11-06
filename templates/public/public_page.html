@@ -772,6 +772,7 @@
     <!-- Floating Points Widget -->
     <div id="pointsWidget" class="points-widget hidden">
         <i class="fas fa-gem points-icon-large"></i>
+        <span class="watchtime-display" id="usernameDisplay" style="font-size: 0.9rem; color: #FF6600; margin-bottom: 0.25rem; display: block;"></span>
         <span class="points-value-large" id="pointsValueLarge">0</span>
         <span class="watchtime-display" id="watchtimeDisplay">0 min viendo</span>
     </div>
@@ -1772,6 +1773,13 @@
         let currentPoints = 0;
         let currentWatchtime = 0;
 
+        function updateUsernameDisplay() {
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            if (usernameDisplay && kickUsername) {
+                usernameDisplay.textContent = '👤 ' + kickUsername;
+            }
+        }
+
         function initPointsSystem() {
             kickUsername = localStorage.getItem('kick_username');
             
@@ -1788,6 +1796,7 @@
                 if (pointsWidget) {
                     pointsWidget.classList.remove('hidden');
                 }
+                updateUsernameDisplay();
                 updatePointsCounter();
                 startAutoUpdates();
                 loadActiveRaffles();
@@ -1803,6 +1812,7 @@
                         if (pointsWidget) {
                             pointsWidget.classList.remove('hidden');
                         }
+                        updateUsernameDisplay();
                         updatePointsCounter();
                         startAutoUpdates();
                         loadActiveRaffles();
