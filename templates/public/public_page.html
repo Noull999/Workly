@@ -1906,6 +1906,28 @@
             }
         }
 
+        function updateNavUserWidget() {
+            const navUserWidget = document.getElementById('navUserWidget');
+            const navUserWidgetMobile = document.getElementById('navUserWidgetMobile');
+            const navUsername = document.getElementById('navUsername');
+            const navUsernameMobile = document.getElementById('navUsernameMobile');
+            
+            if (kickUsername) {
+                if (navUserWidget) {
+                    navUserWidget.classList.remove('hidden');
+                }
+                if (navUserWidgetMobile) {
+                    navUserWidgetMobile.classList.remove('hidden');
+                }
+                if (navUsername) {
+                    navUsername.textContent = kickUsername;
+                }
+                if (navUsernameMobile) {
+                    navUsernameMobile.textContent = kickUsername;
+                }
+            }
+        }
+
         function initPointsSystem() {
             kickUsername = localStorage.getItem('kick_username');
             
@@ -1923,6 +1945,7 @@
                     pointsWidget.classList.remove('hidden');
                 }
                 updateUsernameDisplay();
+                updateNavUserWidget();
                 updatePointsCounter();
                 startAutoUpdates();
                 loadActiveRaffles();
@@ -1971,6 +1994,7 @@
                                         pointsWidget.classList.remove('hidden');
                                     }
                                     updateUsernameDisplay();
+                                    updateNavUserWidget();
                                     updatePointsCounter();
                                     startAutoUpdates();
                                     loadActiveRaffles();
@@ -2092,7 +2116,16 @@
                 duration: 0.8,
                 ease: 'power2.out',
                 onUpdate: function() {
-                    element.textContent = Math.floor(this.targets()[0].value).toLocaleString();
+                    const formattedValue = Math.floor(this.targets()[0].value).toLocaleString();
+                    element.textContent = formattedValue;
+                    
+                    // También actualizar nav widgets
+                    if (elementId === 'pointsValueLarge') {
+                        const navPoints = document.getElementById('navPoints');
+                        const navPointsMobile = document.getElementById('navPointsMobile');
+                        if (navPoints) navPoints.textContent = formattedValue;
+                        if (navPointsMobile) navPointsMobile.textContent = formattedValue;
+                    }
                 }
             });
         }
