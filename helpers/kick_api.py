@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any
 
 # Cache simple en memoria (en producción usar Redis)
 _channel_cache = {}
-_cache_duration = timedelta(minutes=5)
+_cache_duration = timedelta(seconds=30)
 
 def get_channel_data(username: str, use_cache: bool = True) -> Optional[Dict[str, Any]]:
     """
@@ -58,9 +58,13 @@ def get_channel_data(username: str, use_cache: bool = True) -> Optional[Dict[str
         print(f"Excepción al obtener datos del canal {username}: {str(e)}")
         return None
 
-def get_stream_status(username: str) -> Dict[str, Any]:
+def get_stream_status(username: str, use_cache: bool = True) -> Dict[str, Any]:
     """
     Obtiene el estado actual del stream
+    
+    Args:
+        username: Username del canal de Kick
+        use_cache: Si usar cache (default True)
     
     Returns:
         Dict con:
@@ -70,7 +74,7 @@ def get_stream_status(username: str) -> Dict[str, Any]:
         - thumbnail: str
         - started_at: datetime
     """
-    data = get_channel_data(username)
+    data = get_channel_data(username, use_cache=use_cache)
     
     if not data:
         return {

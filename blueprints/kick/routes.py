@@ -636,8 +636,8 @@ def update_watchtime():
         if not config.enabled:
             return jsonify({'ok': False, 'message': 'Sistema de puntos desactivado'}), 403
         
-        # Verificar si el canal está en vivo
-        stream_status = get_stream_status(channel_name)
+        # Verificar si el canal está en vivo (sin cache para verificación en tiempo real)
+        stream_status = get_stream_status(channel_name, use_cache=False)
         if not stream_status.get('is_live'):
             return jsonify({'ok': False, 'message': 'Canal offline'}), 200
         

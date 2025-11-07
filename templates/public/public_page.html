@@ -2167,13 +2167,20 @@
         }
 
         function updateWatchtime() {
-            if (!kickUsername) return;
+            if (!kickUsername) {
+                console.warn('[WATCHTIME] No hay username configurado, saltando actualización');
+                return;
+            }
+            
+            console.log(`[WATCHTIME] 🔄 Iniciando actualización para: ${kickUsername} @ ${new Date().toLocaleTimeString()}`);
             
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/kick/api/watchtime/update', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             
             xhr.onload = function() {
+                console.log(`[WATCHTIME] Respuesta del servidor (status ${xhr.status}):`, xhr.responseText);
+                
                 if (xhr.status === 200) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -2182,6 +2189,9 @@
                             const oldPoints = currentPoints;
                             const newPoints = data.points;
                             const pointsIncrement = newPoints - oldPoints;
+                            
+                            console.log(`[WATCHTIME] ✅ CANAL EN VIVO - Puntos: ${oldPoints} → ${newPoints} (+${pointsIncrement})`);
+                            console.log(`[WATCHTIME] ⏱️ Watch time: ${data.watch_time} minutos`);
                             
                             if (pointsIncrement > 0) {
                                 showPointsIncrementAnimation(pointsIncrement);
@@ -2197,15 +2207,19 @@
                                 }
                                 currentWatchtime = data.watch_time;
                             }
+                        } else {
+                            console.warn(`[WATCHTIME] ⚠️ CANAL OFFLINE o error: ${data.message || 'Sin mensaje'}`);
                         }
                     } catch (e) {
-                        console.error('Error parsing watchtime data:', e);
+                        console.error('[WATCHTIME] ❌ Error parsing watchtime data:', e);
                     }
+                } else {
+                    console.error(`[WATCHTIME] ❌ Error HTTP ${xhr.status}`);
                 }
             };
             
             xhr.onerror = function() {
-                console.error('Error updating watchtime');
+                console.error('[WATCHTIME] ❌ Error de conexión al actualizar watchtime');
             };
             
             const payload = JSON.stringify({
@@ -2213,6 +2227,7 @@
                 channel_name: 'yanglee'
             });
             
+            console.log('[WATCHTIME] 📤 Enviando payload:', payload);
             xhr.send(payload);
         }
 
