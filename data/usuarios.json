@@ -1,0 +1,18 @@
+[
+  {
+    "email": "yangprroo@gmail.com",
+    "nombre": "YANGLEE",
+    "kick_username": "YANGLEE",
+    "descripcion": "Streamer profesional de gaming y entretenimiento",
+    "foto_perfil": "",
+    "color_primario": "#7C3AED",
+    "color_secundario": "#FF6600",
+    "sorteos_habilitados": true,
+    "stake_wager_race_enabled": true,
+    "redes": {
+      "kick": "https://kick.com/yanglee",
+      "instagram": "",
+      "tiktok": ""
+    }
+  }
+]
