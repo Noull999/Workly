@@ -2235,6 +2235,10 @@
             if (pointsUpdateInterval) clearInterval(pointsUpdateInterval);
             if (watchtimeUpdateInterval) clearInterval(watchtimeUpdateInterval);
             
+            // Ejecutar inmediatamente la primera actualización
+            updateWatchtime();
+            
+            // Luego configurar las actualizaciones periódicas cada 60 segundos
             pointsUpdateInterval = setInterval(updatePointsCounter, 60000);
             watchtimeUpdateInterval = setInterval(updateWatchtime, 60000);
         }
