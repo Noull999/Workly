@@ -898,6 +898,11 @@
         <span class="watchtime-display" id="usernameDisplay" style="font-size: 0.9rem; color: #FF6600; margin-bottom: 0.25rem; display: block;"></span>
         <span class="points-value-large" id="pointsValueLarge">0</span>
         <span class="watchtime-display" id="watchtimeDisplay">0 min viendo</span>
+        <div id="wagerRankDisplay" class="hidden" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 2px solid rgba(124, 58, 237, 0.5);">
+            <i class="fas fa-trophy" style="color: #FFD700; margin-right: 0.5rem;"></i>
+            <span style="font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 700; color: #a855f7;">#<span id="wagerRankNumber">0</span></span>
+            <span style="display: block; font-size: 0.75rem; color: #a78bfa; margin-top: 0.25rem;">Wager Race</span>
+        </div>
     </div>
 
     <!-- Hero Section -->
@@ -1928,6 +1933,31 @@
             }
         }
 
+        function updateWagerRank() {
+            {% if wager_race and wager_race.current %}
+            if (!kickUsername) return;
+            
+            const wagerRankDisplay = document.getElementById('wagerRankDisplay');
+            const wagerRankNumber = document.getElementById('wagerRankNumber');
+            
+            if (!wagerRankDisplay || !wagerRankNumber) return;
+            
+            // Buscar el usuario en el wager race data
+            const userEntry = wagerRaceData.find(entry => 
+                entry.username.toLowerCase() === kickUsername.toLowerCase()
+            );
+            
+            if (userEntry) {
+                console.log(`🏆 WAGER RACE: Usuario ${kickUsername} encontrado en posición #${userEntry.rank}`);
+                wagerRankNumber.textContent = userEntry.rank;
+                wagerRankDisplay.classList.remove('hidden');
+            } else {
+                console.log(`📊 WAGER RACE: Usuario ${kickUsername} no está en el Top 100`);
+                wagerRankDisplay.classList.add('hidden');
+            }
+            {% endif %}
+        }
+
         function initPointsSystem() {
             kickUsername = localStorage.getItem('kick_username');
             
@@ -1947,6 +1977,7 @@
                 updateUsernameDisplay();
                 updateNavUserWidget();
                 updatePointsCounter();
+                updateWagerRank();
                 startAutoUpdates();
                 loadActiveRaffles();
             }
@@ -1996,6 +2027,7 @@
                                     updateUsernameDisplay();
                                     updateNavUserWidget();
                                     updatePointsCounter();
+                                    updateWagerRank();
                                     startAutoUpdates();
                                     loadActiveRaffles();
                                 } else {

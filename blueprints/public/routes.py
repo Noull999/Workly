@@ -37,9 +37,9 @@ def get_wager_race_data():
         csv_data = StringIO(response.text)
         reader = csv.DictReader(csv_data)
         
-        # Separar períodos actual y anterior
-        current_period = []
-        previous_period = []
+        # Recolectar todas las entradas y agrupar por start_date
+        all_entries = []
+        periods_dict = {}
         
         for row in reader:
             try:
@@ -51,19 +51,37 @@ def get_wager_race_data():
                     'end_date': row.get('end_date_utc', '')
                 }
                 
-                # Determinar período (actual vs anterior)
-                # El CSV tiene dos bloques: Top 100 actual, luego Top anterior
-                if entry['start_date'].startswith('2025-10'):
-                    current_period.append(entry)
-                elif entry['start_date'].startswith('2025-09'):
-                    previous_period.append(entry)
+                all_entries.append(entry)
+                
+                # Agrupar por start_date
+                start_date = entry['start_date']
+                if start_date not in periods_dict:
+                    periods_dict[start_date] = []
+                periods_dict[start_date].append(entry)
+                
             except (ValueError, KeyError) as e:
                 print(f"Error procesando fila del CSV: {e}")
                 continue
         
+        # Detectar automáticamente el período actual (fecha más reciente)
+        if not periods_dict:
+            print("⚠️ WAGER RACE: No se encontraron datos en el CSV")
+            return None
+        
+        # Ordenar fechas de más reciente a más antigua
+        sorted_periods = sorted(periods_dict.keys(), reverse=True)
+        
+        # Período actual = fecha más reciente
+        current_period = periods_dict.get(sorted_periods[0], []) if len(sorted_periods) > 0 else []
+        # Período anterior = segunda fecha más reciente
+        previous_period = periods_dict.get(sorted_periods[1], []) if len(sorted_periods) > 1 else []
+        
         # Ordenar por rank
         current_period.sort(key=lambda x: x['rank'])
         previous_period.sort(key=lambda x: x['rank'])
+        
+        print(f"✅ WAGER RACE: Período actual: {sorted_periods[0] if sorted_periods else 'N/A'} ({len(current_period)} entradas)")
+        print(f"✅ WAGER RACE: Período anterior: {sorted_periods[1] if len(sorted_periods) > 1 else 'N/A'} ({len(previous_period)} entradas)")
         
         result = {
             'current': current_period,
@@ -78,7 +96,7 @@ def get_wager_race_data():
         return result
         
     except Exception as e:
-        print(f"Error obteniendo datos de Wager Race: {e}")
+        print(f"❌ WAGER RACE: Error obteniendo datos: {e}")
         # Retornar cache antiguo si existe, sino None
         return _wager_race_cache.get('data')
 
