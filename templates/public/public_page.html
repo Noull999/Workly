@@ -1866,11 +1866,12 @@
         }
         
         // Inicializar tabla con Top 10 cuando carga la página
-        document.addEventListener('DOMContentLoaded', function() {
-            {% if wager_race and wager_race.current %}
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadTop10);
+        } else {
+            // DOMContentLoaded ya ocurrió, ejecutar inmediatamente
             loadTop10();
-            {% endif %}
-        });
+        }
         {% endif %}
 
         // ===== SMOOTH SCROLL NAVIGATION =====
