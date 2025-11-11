@@ -1864,6 +1864,13 @@
                 searchInput.value = '';
             }
         }
+        
+        // Inicializar tabla con Top 10 cuando carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if wager_race and wager_race.current %}
+            loadTop10();
+            {% endif %}
+        });
         {% endif %}
 
         // ===== SMOOTH SCROLL NAVIGATION =====
