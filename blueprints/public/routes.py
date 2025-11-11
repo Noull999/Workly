@@ -40,18 +40,30 @@ def get_wager_race_data():
         # Recolectar todas las entradas y agrupar por start_date
         all_entries = []
         periods_dict = {}
+        total_rows = 0
+        processed_rows = 0
         
         for row in reader:
+            total_rows += 1
             try:
+                # Limpiar comas de los números antes de convertir
+                wagered_str = str(row.get('wagered', '0')).replace(',', '').strip()
+                rank_str = str(row.get('rank', '0')).replace(',', '').strip()
+                
+                # Manejar valores vacíos
+                wagered_value = float(wagered_str) if wagered_str else 0.0
+                rank_value = int(rank_str) if rank_str else 0
+                
                 entry = {
                     'username': row.get('user_name', '').strip(),
-                    'wagered': float(row.get('wagered', 0)),
-                    'rank': int(row.get('rank', 0)),
+                    'wagered': wagered_value,
+                    'rank': rank_value,
                     'start_date': row.get('start_date_utc', ''),
                     'end_date': row.get('end_date_utc', '')
                 }
                 
                 all_entries.append(entry)
+                processed_rows += 1
                 
                 # Agrupar por start_date
                 start_date = entry['start_date']
@@ -60,7 +72,7 @@ def get_wager_race_data():
                 periods_dict[start_date].append(entry)
                 
             except (ValueError, KeyError) as e:
-                print(f"Error procesando fila del CSV: {e}")
+                print(f"⚠️ WAGER RACE: Error procesando fila del CSV: {e}, row: {row}")
                 continue
         
         # Detectar automáticamente el período actual (fecha más reciente)
@@ -80,6 +92,7 @@ def get_wager_race_data():
         current_period.sort(key=lambda x: x['rank'])
         previous_period.sort(key=lambda x: x['rank'])
         
+        print(f"📊 WAGER RACE: CSV procesado - {processed_rows}/{total_rows} filas válidas")
         print(f"✅ WAGER RACE: Período actual: {sorted_periods[0] if sorted_periods else 'N/A'} ({len(current_period)} entradas)")
         print(f"✅ WAGER RACE: Período anterior: {sorted_periods[1] if len(sorted_periods) > 1 else 'N/A'} ({len(previous_period)} entradas)")
         
