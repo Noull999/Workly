@@ -295,6 +295,10 @@ def perfil_dinamico(email):
     wager_race_data = None
     if usuario_data.get('stake_wager_race_enabled', True):
         wager_race_data = get_wager_race_data()
+        if wager_race_data:
+            print(f"🔍 PERFIL: Wager Race cargado - {len(wager_race_data.get('current', []))} jugadores en período actual")
+        else:
+            print("⚠️ PERFIL: Wager Race no disponible (None)")
     
     # Pasar todos los datos del JSON al template
     return render_template('public/public_page.html', 
