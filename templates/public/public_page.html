@@ -1800,14 +1800,22 @@
         }
 
         function loadTop10() {
+            console.log('🔍 DEBUG: loadTop10() ejecutándose');
+            console.log('🔍 DEBUG: wagerRaceData tiene', wagerRaceData ? wagerRaceData.length : 'undefined', 'jugadores');
+            
             showingTop100 = false;
             const tableBody = document.getElementById('wagerRaceTableBody');
             const mobileList = document.getElementById('wagerRaceMobileList');
             
+            console.log('🔍 DEBUG: tableBody encontrado?', tableBody ? 'SÍ' : 'NO');
+            console.log('🔍 DEBUG: mobileList encontrado?', mobileList ? 'SÍ' : 'NO');
+            
             const top10 = wagerRaceData.slice(0, 10);
+            console.log('🔍 DEBUG: top10 tiene', top10.length, 'jugadores');
             
             if (tableBody) {
                 tableBody.innerHTML = '';
+                console.log('🔍 DEBUG: Creando filas de tabla...');
                 top10.forEach(player => {
                     const row = document.createElement('tr');
                     row.className = 'border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row';
@@ -1828,10 +1836,14 @@
                     `;
                     tableBody.appendChild(row);
                 });
+                console.log('🔍 DEBUG: Se agregaron', top10.length, 'filas a tableBody');
+            } else {
+                console.log('⚠️ DEBUG: tableBody NO encontrado, no se pueden agregar filas');
             }
             
             if (mobileList) {
                 mobileList.innerHTML = '';
+                console.log('🔍 DEBUG: Creando tarjetas móviles...');
                 top10.forEach(player => {
                     const card = document.createElement('div');
                     card.className = 'bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row';
@@ -1853,6 +1865,9 @@
                     `;
                     mobileList.appendChild(card);
                 });
+                console.log('🔍 DEBUG: Se agregaron', top10.length, 'tarjetas a mobileList');
+            } else {
+                console.log('⚠️ DEBUG: mobileList NO encontrado, no se pueden agregar tarjetas');
             }
             
             if (viewAllText) {
@@ -1863,6 +1878,8 @@
             if (searchInput) {
                 searchInput.value = '';
             }
+            
+            console.log('✅ DEBUG: loadTop10() completado');
         }
         
         // Inicializar tabla con Top 10 cuando carga la página
