@@ -900,9 +900,10 @@ def points_config():
     form = PointsConfigForm(obj=config)
     
     if form.validate_on_submit():
-        # Actualizar configuración
+        # Actualizar configuración - 3 sistemas principales
         config.points_per_minute_watching = form.points_per_minute_watching.data
-        config.points_per_message = form.points_per_message.data
+        config.daily_visit_points = form.daily_visit_points.data
+        config.default_code_points = form.default_code_points.data
         config.cooldown_seconds = form.cooldown_seconds.data
         config.max_points_per_day = form.max_points_per_day.data if form.max_points_per_day.data else None
         config.enabled = form.enabled.data
