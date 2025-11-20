@@ -1381,27 +1381,31 @@
             </h2>
             
             <div id="pointsInfoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                <!-- Cards will be loaded dynamically via JavaScript -->
+                <!-- Sistema 1: Watchtime -->
                 <div class="points-info-card fade-in-up">
                     <span class="points-info-icon">📺</span>
                     <h3 class="points-info-title">Ver Stream en Vivo</h3>
                     <div class="points-info-value" id="pointsPerMinute">...</div>
                     <p class="points-info-label">puntos/minuto</p>
+                    <p class="text-center text-gray-400 text-xs mt-2">Automático mientras ves</p>
                 </div>
                 
+                <!-- Sistema 2: Visita Diaria -->
                 <div class="points-info-card fade-in-up delay-100">
-                    <span class="points-info-icon">💬</span>
-                    <h3 class="points-info-title">Escribir en Chat</h3>
-                    <div class="points-info-value" id="pointsPerMessage">...</div>
-                    <p class="points-info-label">puntos/mensaje</p>
-                    <p class="text-center text-gray-500 text-sm mt-2 italic">[próximamente]</p>
+                    <span class="points-info-icon">🎁</span>
+                    <h3 class="points-info-title">Visita Diaria</h3>
+                    <div class="points-info-value" id="dailyVisitPoints">...</div>
+                    <p class="points-info-label">puntos/día</p>
+                    <p class="text-center text-gray-400 text-xs mt-2">Al ingresar cada día</p>
                 </div>
                 
+                <!-- Sistema 3: Códigos Canjeables -->
                 <div class="points-info-card fade-in-up delay-200">
-                    <span class="points-info-icon">⏱️</span>
-                    <h3 class="points-info-title">Cooldown</h3>
-                    <div class="points-info-value" id="cooldownSeconds">...</div>
-                    <p class="points-info-label">segundos entre puntos</p>
+                    <span class="points-info-icon">🎟️</span>
+                    <h3 class="points-info-title">Códigos Especiales</h3>
+                    <div class="points-info-value" id="defaultCodePoints">...</div>
+                    <p class="points-info-label">puntos promedio</p>
+                    <p class="text-center text-gray-400 text-xs mt-2">Canjea códigos exclusivos</p>
                 </div>
             </div>
             
@@ -2152,17 +2156,17 @@
                             const config = data.config;
                             
                             const pointsPerMinute = document.getElementById('pointsPerMinute');
-                            const pointsPerMessage = document.getElementById('pointsPerMessage');
-                            const cooldownSeconds = document.getElementById('cooldownSeconds');
+                            const dailyVisitPoints = document.getElementById('dailyVisitPoints');
+                            const defaultCodePoints = document.getElementById('defaultCodePoints');
                             
                             if (pointsPerMinute) {
                                 pointsPerMinute.textContent = config.points_per_minute_watching || 10;
                             }
-                            if (pointsPerMessage) {
-                                pointsPerMessage.textContent = config.points_per_message || 5;
+                            if (dailyVisitPoints) {
+                                dailyVisitPoints.textContent = config.daily_visit_points || 100;
                             }
-                            if (cooldownSeconds) {
-                                cooldownSeconds.textContent = config.cooldown_seconds || 60;
+                            if (defaultCodePoints) {
+                                defaultCodePoints.textContent = config.default_code_points || 50;
                             }
                         }
                     } catch (e) {
