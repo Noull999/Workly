@@ -12,8 +12,7 @@
                 <span class="h4 text-muted">- Sistema de Recompensas Kick</span>
             </h1>
             <p class="text-muted">
-                Personaliza cuántos puntos ganan los espectadores por diferentes actividades en tu canal.
-                Estos valores se aplicarán en tiempo real.
+                Configura los 3 sistemas principales para que tus viewers ganen puntos.
             </p>
         </div>
     </div>
@@ -36,58 +35,97 @@
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold">
-                        <i class="fas fa-sliders-h me-2"></i>Ajustar Valores de Puntos
+                        <i class="fas fa-sliders-h me-2"></i>Sistemas de Puntos
                     </h6>
                 </div>
                 <div class="card-body">
                     <form method="POST">
                         {{ form.hidden_tag() }}
                         
-                        <!-- Points per minute watching -->
-                        <div class="mb-3">
-                            <label for="points_per_minute_watching" class="form-label">
-                                <i class="fas fa-tv text-primary me-2"></i>{{ form.points_per_minute_watching.label.text }}
-                            </label>
-                            {{ form.points_per_minute_watching(class="form-control") }}
-                            <div class="form-text">
-                                Puntos que ganan los espectadores por cada minuto viendo tu stream en vivo.
-                            </div>
-                            {% if form.points_per_minute_watching.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.points_per_minute_watching.errors %}
-                                        {{ error }}
-                                    {% endfor %}
+                        <!-- Sistema 1: Watchtime -->
+                        <div class="mb-4 border-start border-primary border-4 ps-3">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-tv me-2"></i>Sistema 1: Watchtime
+                            </h5>
+                            <div class="mb-3">
+                                <label for="points_per_minute_watching" class="form-label fw-bold">
+                                    {{ form.points_per_minute_watching.label.text }}
+                                </label>
+                                {{ form.points_per_minute_watching(class="form-control form-control-lg") }}
+                                <div class="form-text">
+                                    Puntos que ganan por cada minuto viendo tu stream en vivo.
                                 </div>
-                            {% endif %}
+                                {% if form.points_per_minute_watching.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.points_per_minute_watching.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
 
-                        <!-- Points per message -->
-                        <div class="mb-3">
-                            <label for="points_per_message" class="form-label">
-                                <i class="fas fa-comment text-success me-2"></i>{{ form.points_per_message.label.text }}
-                                <span class="badge bg-warning text-dark">Próximamente</span>
-                            </label>
-                            {{ form.points_per_message(class="form-control") }}
-                            <div class="form-text">
-                                Puntos que ganarán los espectadores por cada mensaje en el chat (función en desarrollo).
-                            </div>
-                            {% if form.points_per_message.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.points_per_message.errors %}
-                                        {{ error }}
-                                    {% endfor %}
+                        <!-- Sistema 2: Visita Diaria -->
+                        <div class="mb-4 border-start border-success border-4 ps-3">
+                            <h5 class="text-success mb-3">
+                                <i class="fas fa-calendar-check me-2"></i>Sistema 2: Visita Diaria
+                            </h5>
+                            <div class="mb-3">
+                                <label for="daily_visit_points" class="form-label fw-bold">
+                                    {{ form.daily_visit_points.label.text }}
+                                </label>
+                                {{ form.daily_visit_points(class="form-control form-control-lg") }}
+                                <div class="form-text">
+                                    Puntos de bienvenida que reciben automáticamente al iniciar sesión cada día.
                                 </div>
-                            {% endif %}
+                                {% if form.daily_visit_points.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.daily_visit_points.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
+
+                        <!-- Sistema 3: Códigos Canjeables -->
+                        <div class="mb-4 border-start border-warning border-4 ps-3">
+                            <h5 class="text-warning mb-3">
+                                <i class="fas fa-ticket-alt me-2"></i>Sistema 3: Códigos Canjeables
+                            </h5>
+                            <div class="mb-3">
+                                <label for="default_code_points" class="form-label fw-bold">
+                                    {{ form.default_code_points.label.text }}
+                                </label>
+                                {{ form.default_code_points(class="form-control form-control-lg") }}
+                                <div class="form-text">
+                                    Valor sugerido por defecto al crear nuevos códigos (puedes personalizar cada código individualmente).
+                                </div>
+                                {% if form.default_code_points.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.default_code_points.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Configuración Adicional -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-tools me-2"></i>Configuración Adicional
+                        </h5>
 
                         <!-- Cooldown seconds -->
                         <div class="mb-3">
                             <label for="cooldown_seconds" class="form-label">
-                                <i class="fas fa-clock text-warning me-2"></i>{{ form.cooldown_seconds.label.text }}
+                                <i class="fas fa-clock text-info me-2"></i>{{ form.cooldown_seconds.label.text }}
                             </label>
                             {{ form.cooldown_seconds(class="form-control") }}
                             <div class="form-text">
-                                Tiempo mínimo que debe pasar entre cada acumulación de puntos (previene abuso).
+                                Tiempo mínimo entre actualizaciones de watchtime (previene abuso).
                             </div>
                             {% if form.cooldown_seconds.errors %}
                                 <div class="text-danger">
@@ -103,7 +141,7 @@
                             <label for="max_points_per_day" class="form-label">
                                 <i class="fas fa-chart-line text-info me-2"></i>{{ form.max_points_per_day.label.text }}
                             </label>
-                            {{ form.max_points_per_day(class="form-control", placeholder="0 = Sin límite") }}
+                            {{ form.max_points_per_day(class="form-control") }}
                             <div class="form-text">
                                 Máximo de puntos que un espectador puede ganar por día. Dejar en 0 para ilimitado.
                             </div>
@@ -119,22 +157,22 @@
                         <!-- Sistema activado -->
                         <div class="mb-4">
                             <div class="form-check form-switch">
-                                {{ form.enabled(class="form-check-input", role="switch") }}
-                                <label class="form-check-label" for="enabled">
+                                {{ form.enabled(class="form-check-input", role="switch", style="width: 3em; height: 1.5em;") }}
+                                <label class="form-check-label fw-bold" for="enabled">
                                     <i class="fas fa-power-off me-2"></i>{{ form.enabled.label.text }}
                                 </label>
                             </div>
                             <div class="form-text">
-                                Activa o desactiva todo el sistema de puntos. Si está desactivado, no se otorgarán puntos.
+                                Activa o desactiva todo el sistema de puntos.
                             </div>
                         </div>
 
                         <!-- Botones -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{{ url_for('kick.admin_raffles') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Volver a Sorteos
+                                <i class="fas fa-arrow-left me-2"></i>Volver
                             </a>
-                            {{ form.submit(class="btn btn-primary") }}
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
                         </div>
                     </form>
                 </div>
@@ -144,39 +182,65 @@
         <!-- Panel de Información -->
         <div class="col-lg-4">
             <div class="card shadow mb-3">
-                <div class="card-header py-3">
+                <div class="card-header py-3 bg-primary text-white">
                     <h6 class="m-0 font-weight-bold">
-                        <i class="fas fa-info-circle me-2"></i>Configuración Actual
+                        <i class="fas fa-info-circle me-2"></i>Resumen Actual
                     </h6>
                 </div>
                 <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-8">Ver Stream:</dt>
-                        <dd class="col-sm-4 text-end">
-                            <span class="badge bg-primary">{{ config.points_per_minute_watching }} pts/min</span>
+                    <div class="mb-3">
+                        <h6 class="text-primary mb-2">
+                            <i class="fas fa-tv me-2"></i>Watchtime
+                        </h6>
+                        <p class="mb-1">
+                            <span class="badge bg-primary fs-6">{{ config.points_per_minute_watching }} puntos/minuto</span>
+                        </p>
+                        <small class="text-muted">10 min = {{ config.points_per_minute_watching * 10 }} puntos</small>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <h6 class="text-success mb-2">
+                            <i class="fas fa-calendar-check me-2"></i>Visita Diaria
+                        </h6>
+                        <p class="mb-1">
+                            <span class="badge bg-success fs-6">{{ config.daily_visit_points }} puntos/día</span>
+                        </p>
+                        <small class="text-muted">Otorgados automáticamente al ingresar</small>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <h6 class="text-warning mb-2">
+                            <i class="fas fa-ticket-alt me-2"></i>Códigos
+                        </h6>
+                        <p class="mb-1">
+                            <span class="badge bg-warning text-dark fs-6">{{ config.default_code_points }} puntos</span>
+                        </p>
+                        <small class="text-muted">Valor sugerido por defecto</small>
+                    </div>
+
+                    <hr>
+
+                    <dl class="row mb-0 small">
+                        <dt class="col-7">Cooldown:</dt>
+                        <dd class="col-5 text-end">
+                            <span class="badge bg-info">{{ config.cooldown_seconds }}s</span>
                         </dd>
 
-                        <dt class="col-sm-8">Chat:</dt>
-                        <dd class="col-sm-4 text-end">
-                            <span class="badge bg-success">{{ config.points_per_message }} pts/msg</span>
-                        </dd>
-
-                        <dt class="col-sm-8">Cooldown:</dt>
-                        <dd class="col-sm-4 text-end">
-                            <span class="badge bg-warning text-dark">{{ config.cooldown_seconds }}s</span>
-                        </dd>
-
-                        <dt class="col-sm-8">Límite Diario:</dt>
-                        <dd class="col-sm-4 text-end">
+                        <dt class="col-7">Límite Diario:</dt>
+                        <dd class="col-5 text-end">
                             {% if config.max_points_per_day %}
-                            <span class="badge bg-info">{{ config.max_points_per_day }} pts</span>
+                            <span class="badge bg-secondary">{{ config.max_points_per_day }} pts</span>
                             {% else %}
                             <span class="badge bg-secondary">Ilimitado</span>
                             {% endif %}
                         </dd>
 
-                        <dt class="col-sm-8">Estado:</dt>
-                        <dd class="col-sm-4 text-end">
+                        <dt class="col-7">Estado:</dt>
+                        <dd class="col-5 text-end">
                             {% if config.enabled %}
                             <span class="badge bg-success">
                                 <i class="fas fa-check-circle"></i> Activo
@@ -200,52 +264,18 @@
                 <div class="card-body">
                     <ul class="mb-0 small">
                         <li class="mb-2">
-                            <strong>Puntos por minuto:</strong> Entre 5-20 puntos es balanceado para streams regulares.
+                            <strong>Watchtime:</strong> 5-20 pts/min es balanceado.
                         </li>
                         <li class="mb-2">
-                            <strong>Cooldown:</strong> 60 segundos previene abuso sin afectar la experiencia.
+                            <strong>Visita Diaria:</strong> 50-200 pts fomenta el retorno diario.
                         </li>
                         <li class="mb-2">
-                            <strong>Límite diario:</strong> Opcional, útil si quieres controlar la economía de puntos.
+                            <strong>Códigos:</strong> 25-100 pts para eventos especiales.
                         </li>
                         <li>
-                            <strong>Sistema activo:</strong> Desactívalo temporalmente si necesitas pausar las recompensas.
+                            <strong>Cooldown:</strong> 60 segundos previene abuso.
                         </li>
                     </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Vista previa -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold">
-                        <i class="fas fa-eye me-2"></i>Vista Previa de la Experiencia del Usuario
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-tv me-2"></i>
-                        <strong>Ejemplo:</strong> Un espectador que vea tu stream durante 10 minutos ganará aproximadamente
-                        <strong>{{ config.points_per_minute_watching * 10 }} puntos</strong>
-                        ({{ config.points_per_minute_watching }} pts/min × 10 min).
-                    </div>
-                    <div class="alert alert-warning">
-                        <i class="fas fa-clock me-2"></i>
-                        Con un cooldown de <strong>{{ config.cooldown_seconds }} segundos</strong>, 
-                        los puntos se actualizan cada minuto, asegurando que el sistema funcione correctamente.
-                    </div>
-                    {% if config.max_points_per_day %}
-                    <div class="alert alert-secondary">
-                        <i class="fas fa-chart-line me-2"></i>
-                        Con el límite diario de <strong>{{ config.max_points_per_day }} puntos</strong>,
-                        un espectador puede ver hasta aproximadamente <strong>{{ (config.max_points_per_day / config.points_per_minute_watching)|int }} minutos</strong> 
-                        de stream por día antes de alcanzar el límite.
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
