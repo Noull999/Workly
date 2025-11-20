@@ -899,3 +899,99 @@ class RaffleEntry(db.Model):
     
     def __repr__(self):
         return f'<RaffleEntry #{self.entry_number} - Raffle {self.raffle_id} by Viewer {self.viewer_id}>'
+
+
+class RedeemCode(db.Model):
+    """Códigos canjeables para otorgar puntos a viewers"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Información del código
+    code = db.Column(db.String(50), unique=True, nullable=False)  # Código único
+    description = db.Column(db.String(200), nullable=True)  # Descripción opcional
+    points = db.Column(db.Integer, nullable=False, default=100)  # Puntos que otorga
+    
+    # Configuración de usos
+    max_uses = db.Column(db.Integer, nullable=False, default=1)  # Máximo de usos totales
+    current_uses = db.Column(db.Integer, default=0, nullable=False)  # Usos actuales
+    
+    # Estado y expiración
+    is_active = db.Column(db.Boolean, default=True, nullable=False)  # Código activo
+    expires_at = db.Column(db.DateTime, nullable=True)  # Fecha de expiración (null = no expira)
+    
+    # Multi-tenant (nullable para uso público)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Creador del código
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    creator = db.relationship('User', backref='redeem_codes_created')
+    redemptions = db.relationship('CodeRedemption', backref='code', lazy=True, cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<RedeemCode {self.code} - {self.points} pts ({self.current_uses}/{self.max_uses} usos)>'
+    
+    @property
+    def is_available(self):
+        """Verifica si el código está disponible para usar"""
+        if not self.is_active:
+            return False
+        if self.current_uses >= self.max_uses:
+            return False
+        if self.expires_at and datetime.utcnow() > self.expires_at:
+            return False
+        return True
+    
+    @property
+    def remaining_uses(self):
+        """Usos restantes del código"""
+        return max(0, self.max_uses - self.current_uses)
+
+
+class CodeRedemption(db.Model):
+    """Registro de canjes de códigos por viewers"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Referencias
+    code_id = db.Column(db.Integer, db.ForeignKey('redeem_code.id'), nullable=False)
+    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=False)
+    
+    # Información del canje
+    points_awarded = db.Column(db.Integer, nullable=False)  # Puntos otorgados en este canje
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    viewer = db.relationship('Viewer', backref='code_redemptions')
+    
+    # Unique constraint: un viewer solo puede usar cada código una vez
+    __table_args__ = (
+        db.UniqueConstraint('code_id', 'viewer_id', name='unique_code_redemption_per_viewer'),
+    )
+    
+    def __repr__(self):
+        return f'<CodeRedemption Code {self.code_id} by Viewer {self.viewer_id} - {self.points_awarded} pts>'
+
+
+class DailyVisit(db.Model):
+    """Registro de visitas diarias de viewers para otorgar puntos de bienvenida"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Referencias
+    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=False)
+    
+    # Información de la visita
+    visit_date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date)  # Fecha de la visita
+    points_awarded = db.Column(db.Integer, nullable=False, default=100)  # Puntos otorgados
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    viewer = db.relationship('Viewer', backref='daily_visits')
+    
+    # Unique constraint: un viewer solo puede tener una visita por día
+    __table_args__ = (
+        db.UniqueConstraint('viewer_id', 'visit_date', name='unique_daily_visit_per_viewer'),
+    )
+    
+    def __repr__(self):
+        return f'<DailyVisit Viewer {self.viewer_id} on {self.visit_date} - {self.points_awarded} pts>'
