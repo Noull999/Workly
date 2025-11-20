@@ -2515,29 +2515,50 @@
 
         // ===== SISTEMA DE VISITA DIARIA =====
         function checkDailyVisit() {
-            if (!kickUsername) return;
+            console.log('[DAILY-VISIT] 🔄 Verificando visita diaria...');
+            console.log('[DAILY-VISIT] 👤 kickUsername:', kickUsername);
+            
+            if (!kickUsername) {
+                console.log('[DAILY-VISIT] ⚠️ No hay kickUsername, abortando');
+                return;
+            }
+            
+            console.log('[DAILY-VISIT] 📤 Enviando request a /kick/api/daily-visit');
             
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/kick/api/daily-visit', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             
             xhr.onload = function() {
+                console.log('[DAILY-VISIT] 📥 Respuesta recibida (status ' + xhr.status + '):', xhr.responseText);
+                
                 if (xhr.status === 200) {
                     try {
                         const data = JSON.parse(xhr.responseText);
+                        console.log('[DAILY-VISIT] 📊 Data parseada:', data);
+                        
                         if (data.ok && data.points_awarded) {
+                            console.log('[DAILY-VISIT] ✅ Puntos otorgados:', data.points_awarded);
                             showToast('¡Puntos de Bienvenida!', data.message, 'fa-gift');
                             updatePointsCounter();
+                        } else {
+                            console.log('[DAILY-VISIT] ℹ️ Ya visitó hoy o no se otorgaron puntos');
                         }
                     } catch (e) {
-                        console.error('Error procesando visita diaria:', e);
+                        console.error('[DAILY-VISIT] ❌ Error procesando visita diaria:', e);
                     }
                 }
             };
             
-            xhr.send(JSON.stringify({
+            xhr.onerror = function() {
+                console.error('[DAILY-VISIT] ❌ Error de red');
+            };
+            
+            const payload = {
                 username_kick: kickUsername
-            }));
+            };
+            console.log('[DAILY-VISIT] 📦 Payload:', JSON.stringify(payload));
+            xhr.send(JSON.stringify(payload));
         }
 
         // ===== SISTEMA DE CANJE DE CÓDIGOS =====
