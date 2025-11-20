@@ -381,27 +381,48 @@ class ClipForm(FlaskForm):
 
 
 class PointsConfigForm(FlaskForm):
-    """Formulario para configurar sistema de puntos de Kick"""
+    """Formulario para configurar sistema de puntos de Kick - 3 sistemas principales"""
+    
+    # Sistema 1: Watchtime (ver stream)
     points_per_minute_watching = IntegerField(
         'Puntos por Minuto Viendo Stream',
         validators=[DataRequired(), NumberRange(min=1, max=1000)],
-        default=10
+        default=10,
+        render_kw={'placeholder': 'ej: 10'}
     )
-    points_per_message = IntegerField(
-        'Puntos por Mensaje en Chat',
-        validators=[DataRequired(), NumberRange(min=0, max=100)],
-        default=5
+    
+    # Sistema 2: Visita Diaria
+    daily_visit_points = IntegerField(
+        'Puntos por Visita Diaria',
+        validators=[DataRequired(), NumberRange(min=1, max=10000)],
+        default=100,
+        render_kw={'placeholder': 'ej: 100'}
     )
+    
+    # Sistema 3: Códigos Canjeables (valor por defecto sugerido)
+    default_code_points = IntegerField(
+        'Puntos por Defecto para Códigos',
+        validators=[DataRequired(), NumberRange(min=1, max=100000)],
+        default=50,
+        render_kw={'placeholder': 'ej: 50'}
+    )
+    
+    # Configuración de sistema
     cooldown_seconds = IntegerField(
         'Cooldown entre Actualizaciones (Segundos)',
         validators=[DataRequired(), NumberRange(min=30, max=300)],
-        default=60
+        default=60,
+        render_kw={'placeholder': 'ej: 60'}
     )
+    
+    # Límites
     max_points_per_day = IntegerField(
         'Límite de Puntos por Día (0 = Ilimitado)',
         validators=[Optional(), NumberRange(min=0)],
-        default=0
+        default=0,
+        render_kw={'placeholder': 'ej: 0 para ilimitado'}
     )
+    
     enabled = BooleanField('Sistema de Puntos Activado', default=True)
     submit = SubmitField('Guardar Configuración')
 
