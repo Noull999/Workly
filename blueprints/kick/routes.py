@@ -859,7 +859,7 @@ def verify_kick_username(username):
 
 @kick_bp.route('/api/points/config')
 def get_points_config():
-    """API: Obtener configuración actual de puntos (para mostrar en UI)"""
+    """API: Obtener configuración actual de puntos - 3 sistemas principales"""
     from models import PointsConfig
     from app import db
     
@@ -871,7 +871,8 @@ def get_points_config():
         'ok': True,
         'config': {
             'points_per_minute_watching': config.points_per_minute_watching,
-            'points_per_message': config.points_per_message,
+            'daily_visit_points': config.daily_visit_points,
+            'default_code_points': config.default_code_points,
             'cooldown_seconds': config.cooldown_seconds,
             'max_points_per_day': config.max_points_per_day,
             'enabled': config.enabled
