@@ -899,6 +899,49 @@
             <span style="font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 700; color: #a855f7;">#<span id="wagerRankNumber">0</span></span>
             <span style="display: block; font-size: 0.75rem; color: #a78bfa; margin-top: 0.25rem;">Wager Race</span>
         </div>
+        <button id="redeemCodeBtn" onclick="openRedeemModal()" style="margin-top: 0.75rem; width: 100%; padding: 0.5rem; background: linear-gradient(135deg, #7C3AED, #FF6600); border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease;">
+            <i class="fas fa-gift"></i> Canjear Código
+        </button>
+    </div>
+    
+    <!-- Redeem Code Modal -->
+    <div id="redeemCodeModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 border-2 border-purple-500 shadow-2xl shadow-purple-500/50">
+            <h2 class="text-3xl font-extrabold orbitron text-center mb-6 gradient-text">
+                <i class="fas fa-gift"></i> Canjear Código
+            </h2>
+            <p class="text-gray-300 text-center mb-6">Ingresa un código para obtener puntos gratis</p>
+            
+            <div class="mb-6">
+                <input type="text" id="redeemCodeInput" placeholder="Ingresa el código..." 
+                    class="w-full bg-gray-700/50 border-2 border-purple-500/50 rounded-xl px-4 py-3 text-white text-center text-lg font-bold orbitron focus:outline-none focus:border-purple-500 uppercase"
+                    style="letter-spacing: 2px;">
+            </div>
+            
+            <div id="redeemErrorDiv" class="hidden mb-4 bg-red-500/20 border border-red-500 rounded-lg p-3">
+                <p id="redeemErrorText" class="text-red-400 text-sm text-center"></p>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="closeRedeemModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all">
+                    Cancelar
+                </button>
+                <button onclick="submitRedeemCode()" id="submitRedeemBtn" class="flex-1 bg-gradient-to-r from-purple-500 to-orange-500 hover:from-purple-400 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-purple-500/40">
+                    <i class="fas fa-check"></i> Canjear
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="fixed top-24 right-6 bg-gradient-to-r from-purple-500 to-orange-500 text-white px-6 py-4 rounded-xl shadow-2xl shadow-purple-500/50 hidden z-50 transform transition-all duration-300 orbitron">
+        <div class="flex items-center gap-3">
+            <i id="toastIcon" class="fas fa-check-circle text-2xl"></i>
+            <div>
+                <p id="toastTitle" class="font-bold text-lg"></p>
+                <p id="toastMessage" class="text-sm opacity-90"></p>
+            </div>
+        </div>
     </div>
 
     <!-- Hero Section -->
@@ -1999,6 +2042,7 @@
                 updateNavUserWidget();
                 updatePointsCounter();
                 updateWagerRank();
+                checkDailyVisit();
                 startAutoUpdates();
                 loadActiveRaffles();
             }
@@ -2049,6 +2093,7 @@
                                     updateNavUserWidget();
                                     updatePointsCounter();
                                     updateWagerRank();
+                                    checkDailyVisit();
                                     startAutoUpdates();
                                     loadActiveRaffles();
                                 } else {
@@ -2443,6 +2488,189 @@
             div.textContent = text || '';
             return div.innerHTML;
         }
+
+        // ===== SISTEMA DE NOTIFICACIONES =====
+        function showToast(title, message, icon = 'fa-check-circle') {
+            const toast = document.getElementById('toastNotification');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            if (!toast || !toastTitle || !toastMessage || !toastIcon) return;
+            
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            toastIcon.className = `fas ${icon} text-2xl`;
+            
+            toast.classList.remove('hidden');
+            toast.style.transform = 'translateX(0)';
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 4000);
+        }
+
+        // ===== SISTEMA DE VISITA DIARIA =====
+        function checkDailyVisit() {
+            if (!kickUsername) return;
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/kick/api/daily-visit', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.ok && data.points_awarded) {
+                            showToast('¡Puntos de Bienvenida!', data.message, 'fa-gift');
+                            updatePointsCounter();
+                        }
+                    } catch (e) {
+                        console.error('Error procesando visita diaria:', e);
+                    }
+                }
+            };
+            
+            xhr.send(JSON.stringify({
+                username_kick: kickUsername
+            }));
+        }
+
+        // ===== SISTEMA DE CANJE DE CÓDIGOS =====
+        function openRedeemModal() {
+            const modal = document.getElementById('redeemCodeModal');
+            const input = document.getElementById('redeemCodeInput');
+            const errorDiv = document.getElementById('redeemErrorDiv');
+            
+            if (!modal) return;
+            
+            modal.classList.remove('hidden');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            if (errorDiv) {
+                errorDiv.classList.add('hidden');
+            }
+        }
+
+        function closeRedeemModal() {
+            const modal = document.getElementById('redeemCodeModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function submitRedeemCode() {
+            if (!kickUsername) {
+                showToast('Error', 'Debes ingresar tu username primero', 'fa-exclamation-circle');
+                return;
+            }
+            
+            const input = document.getElementById('redeemCodeInput');
+            const errorDiv = document.getElementById('redeemErrorDiv');
+            const errorText = document.getElementById('redeemErrorText');
+            const submitBtn = document.getElementById('submitRedeemBtn');
+            
+            if (!input) return;
+            
+            const code = input.value.trim().toUpperCase();
+            
+            if (!code) {
+                if (errorDiv && errorText) {
+                    errorText.textContent = 'Por favor ingresa un código';
+                    errorDiv.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            // Ocultar errores previos
+            if (errorDiv) errorDiv.classList.add('hidden');
+            
+            // Deshabilitar botón
+            const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Canjeando...';
+            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/kick/api/redeem-code', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                }
+                
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.ok) {
+                            closeRedeemModal();
+                            showToast('¡Código Canjeado!', data.message, 'fa-gift');
+                            updatePointsCounter();
+                        } else {
+                            if (errorDiv && errorText) {
+                                errorText.textContent = data.message || 'Error al canjear código';
+                                errorDiv.classList.remove('hidden');
+                            }
+                        }
+                    } catch (e) {
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'Error al procesar respuesta';
+                            errorDiv.classList.remove('hidden');
+                        }
+                    }
+                } else {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (errorDiv && errorText) {
+                            errorText.textContent = data.message || 'Error al canjear código';
+                            errorDiv.classList.remove('hidden');
+                        }
+                    } catch (e) {
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'Error de conexión';
+                            errorDiv.classList.remove('hidden');
+                        }
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                }
+                if (errorDiv && errorText) {
+                    errorText.textContent = 'Error de conexión. Intenta nuevamente.';
+                    errorDiv.classList.remove('hidden');
+                }
+            };
+            
+            xhr.send(JSON.stringify({
+                username_kick: kickUsername,
+                code: code
+            }));
+        }
+
+        // Permitir Enter para canjear código
+        document.addEventListener('DOMContentLoaded', function() {
+            const redeemInput = document.getElementById('redeemCodeInput');
+            if (redeemInput) {
+                redeemInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        submitRedeemCode();
+                    }
+                });
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             initPointsSystem();

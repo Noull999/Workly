@@ -913,3 +913,317 @@ def points_config():
         return redirect(url_for('kick.points_config'))
     
     return render_template('kick/points_config.html', form=form, config=config)
+
+
+@kick_bp.route('/admin/redeem-codes', methods=['GET', 'POST'])
+@login_required
+def admin_redeem_codes():
+    """Gestionar códigos canjeables (listar y crear nuevos)"""
+    from flask_login import current_user
+    from forms import RedeemCodeForm
+    from models import RedeemCode
+    from app import db
+    
+    # Solo admin puede acceder
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para acceder a esta página.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    form = RedeemCodeForm()
+    
+    if form.validate_on_submit():
+        # Verificar que el código no exista
+        existing_code = RedeemCode.query.filter_by(code=form.code.data.upper()).first()
+        if existing_code:
+            flash(f'El código "{form.code.data}" ya existe.', 'danger')
+        else:
+            # Crear nuevo código
+            new_code = RedeemCode(
+                code=form.code.data.upper(),
+                description=form.description.data,
+                points=form.points.data,
+                max_uses=form.max_uses.data,
+                expires_at=form.expires_at.data,
+                is_active=form.is_active.data,
+                user_id=current_user.id
+            )
+            db.session.add(new_code)
+            db.session.commit()
+            
+            flash(f'Código "{new_code.code}" creado exitosamente.', 'success')
+            return redirect(url_for('kick.admin_redeem_codes'))
+    
+    # Global admins ven todos los códigos, otros solo los suyos
+    if current_user.is_admin_global():
+        codes = RedeemCode.query.order_by(RedeemCode.created_at.desc()).all()
+    else:
+        codes = RedeemCode.query.filter_by(user_id=current_user.id).order_by(RedeemCode.created_at.desc()).all()
+    
+    return render_template('kick/admin_redeem_codes.html', form=form, codes=codes)
+
+
+@kick_bp.route('/admin/redeem-codes/edit/<int:code_id>', methods=['GET', 'POST'])
+@login_required
+def edit_redeem_code(code_id):
+    """Editar un código canjeable existente"""
+    from flask_login import current_user
+    from forms import RedeemCodeForm
+    from models import RedeemCode
+    from app import db
+    
+    # Verificar permisos de admin
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para acceder a esta página.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    code = RedeemCode.query.get_or_404(code_id)
+    
+    # Global admins pueden editar cualquier código, otros solo los suyos
+    if not current_user.is_admin_global() and code.user_id != current_user.id:
+        flash('No tienes permiso para editar este código.', 'danger')
+        return redirect(url_for('kick.admin_redeem_codes'))
+    
+    form = RedeemCodeForm(obj=code)
+    
+    if form.validate_on_submit():
+        # Verificar que el código no exista (excepto el actual)
+        existing_code = RedeemCode.query.filter(
+            RedeemCode.code == form.code.data.upper(),
+            RedeemCode.id != code_id
+        ).first()
+        
+        if existing_code:
+            flash(f'El código "{form.code.data}" ya existe.', 'danger')
+        else:
+            code.code = form.code.data.upper()
+            code.description = form.description.data
+            code.points = form.points.data
+            code.max_uses = form.max_uses.data
+            code.expires_at = form.expires_at.data
+            code.is_active = form.is_active.data
+            
+            db.session.commit()
+            
+            flash(f'Código "{code.code}" actualizado exitosamente.', 'success')
+            return redirect(url_for('kick.admin_redeem_codes'))
+    
+    return render_template('kick/edit_redeem_code.html', form=form, code=code)
+
+
+@kick_bp.route('/admin/redeem-codes/toggle/<int:code_id>', methods=['POST'])
+@login_required
+def toggle_redeem_code(code_id):
+    """Activar/desactivar un código"""
+    from flask_login import current_user
+    from models import RedeemCode
+    from app import db
+    
+    # Verificar permisos de admin
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para realizar esta acción.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    code = RedeemCode.query.get_or_404(code_id)
+    
+    # Global admins pueden modificar cualquier código, otros solo los suyos
+    if not current_user.is_admin_global() and code.user_id != current_user.id:
+        flash('No tienes permiso para modificar este código.', 'danger')
+        return redirect(url_for('kick.admin_redeem_codes'))
+    
+    code.is_active = not code.is_active
+    db.session.commit()
+    
+    status = 'activado' if code.is_active else 'desactivado'
+    flash(f'Código "{code.code}" {status} exitosamente.', 'success')
+    
+    return redirect(url_for('kick.admin_redeem_codes'))
+
+
+@kick_bp.route('/admin/redeem-codes/view/<int:code_id>')
+@login_required
+def view_redeem_code(code_id):
+    """Ver detalles y estadísticas de un código"""
+    from flask_login import current_user
+    from models import RedeemCode
+    
+    # Verificar permisos de admin
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para acceder a esta página.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    code = RedeemCode.query.get_or_404(code_id)
+    
+    # Global admins pueden ver cualquier código, otros solo los suyos
+    if not current_user.is_admin_global() and code.user_id != current_user.id:
+        flash('No tienes permiso para ver este código.', 'danger')
+        return redirect(url_for('kick.admin_redeem_codes'))
+    
+    return render_template('kick/view_redeem_code.html', code=code)
+
+
+# ===== API ENDPOINTS PARA SISTEMA DE PUNTOS EXTRA =====
+
+@kick_bp.route('/api/daily-visit', methods=['POST'])
+@csrf.exempt
+def daily_visit():
+    """API: Registrar visita diaria y otorgar puntos de bienvenida"""
+    from models import Viewer, DailyVisit, PointsConfig
+    from app import db
+    from datetime import datetime, date
+    
+    try:
+        data = request.json
+        username_kick = data.get('username_kick')
+        
+        if not username_kick:
+            return jsonify({'ok': False, 'message': 'Username es requerido'}), 400
+        
+        # Obtener configuración de puntos
+        config = PointsConfig.query.filter_by(company_id=None).first()
+        if not config or not config.enabled:
+            return jsonify({'ok': False, 'message': 'Sistema de puntos desactivado'}), 403
+        
+        # Buscar o crear viewer
+        viewer = Viewer.query.filter_by(username_kick=username_kick).first()
+        if not viewer:
+            # Nuevo viewer - crear con puntos de bienvenida
+            viewer = Viewer(
+                username_kick=username_kick,
+                points=100,  # Puntos de visita diaria
+                watch_time=0,
+                messages_sent=0
+            )
+            db.session.add(viewer)
+            db.session.flush()
+            
+            # Registrar visita
+            visit = DailyVisit(
+                viewer_id=viewer.id,
+                visit_date=date.today(),
+                points_awarded=100
+            )
+            db.session.add(visit)
+            db.session.commit()
+            
+            return jsonify({
+                'ok': True,
+                'first_visit': True,
+                'points_awarded': 100,
+                'total_points': viewer.points,
+                'message': '¡Bienvenido! +100 puntos por tu primera visita'
+            })
+        
+        # Verificar si ya visitó hoy
+        today = date.today()
+        visit_today = DailyVisit.query.filter_by(
+            viewer_id=viewer.id,
+            visit_date=today
+        ).first()
+        
+        if visit_today:
+            # Ya visitó hoy - no dar puntos
+            return jsonify({
+                'ok': True,
+                'already_visited': True,
+                'total_points': viewer.points,
+                'message': 'Ya recibiste tus puntos de visita diaria'
+            })
+        
+        # Primera visita del día - dar puntos
+        viewer.points += 100
+        visit = DailyVisit(
+            viewer_id=viewer.id,
+            visit_date=today,
+            points_awarded=100
+        )
+        db.session.add(visit)
+        db.session.commit()
+        
+        return jsonify({
+            'ok': True,
+            'first_visit': False,
+            'points_awarded': 100,
+            'total_points': viewer.points,
+            'message': '¡Bienvenido de nuevo! +100 puntos por visitar hoy'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': str(e)}), 500
+
+
+@kick_bp.route('/api/redeem-code', methods=['POST'])
+@csrf.exempt
+def redeem_code():
+    """API: Canjear código para obtener puntos"""
+    from models import Viewer, RedeemCode, CodeRedemption, PointsConfig
+    from app import db
+    from datetime import datetime
+    
+    try:
+        data = request.json
+        username_kick = data.get('username_kick')
+        code_text = data.get('code')
+        
+        if not username_kick or not code_text:
+            return jsonify({'ok': False, 'message': 'Username y código son requeridos'}), 400
+        
+        # Verificar que el sistema de puntos esté habilitado
+        config = PointsConfig.query.filter_by(company_id=None).first()
+        if not config or not config.enabled:
+            return jsonify({'ok': False, 'message': 'Sistema de puntos desactivado'}), 403
+        
+        # Buscar viewer
+        viewer = Viewer.query.filter_by(username_kick=username_kick).first()
+        if not viewer:
+            return jsonify({'ok': False, 'message': 'Usuario no encontrado. Ingresa tu username primero.'}), 404
+        
+        # Buscar código (case-insensitive)
+        code = RedeemCode.query.filter(
+            db.func.upper(RedeemCode.code) == code_text.upper()
+        ).first()
+        
+        if not code:
+            return jsonify({'ok': False, 'message': 'Código inválido'}), 404
+        
+        # Verificar si el código está disponible
+        if not code.is_available:
+            if not code.is_active:
+                return jsonify({'ok': False, 'message': 'Código desactivado'}), 400
+            elif code.current_uses >= code.max_uses:
+                return jsonify({'ok': False, 'message': 'Código agotado'}), 400
+            elif code.expires_at and datetime.utcnow() > code.expires_at:
+                return jsonify({'ok': False, 'message': 'Código expirado'}), 400
+        
+        # Verificar si el viewer ya usó este código
+        existing_redemption = CodeRedemption.query.filter_by(
+            code_id=code.id,
+            viewer_id=viewer.id
+        ).first()
+        
+        if existing_redemption:
+            return jsonify({'ok': False, 'message': 'Ya canjeaste este código anteriormente'}), 400
+        
+        # Canjear código - otorgar puntos
+        viewer.points += code.points
+        code.current_uses += 1
+        
+        redemption = CodeRedemption(
+            code_id=code.id,
+            viewer_id=viewer.id,
+            points_awarded=code.points
+        )
+        db.session.add(redemption)
+        db.session.commit()
+        
+        return jsonify({
+            'ok': True,
+            'points_awarded': code.points,
+            'total_points': viewer.points,
+            'code': code.code,
+            'message': f'¡Código canjeado! +{code.points} puntos'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': str(e)}), 500

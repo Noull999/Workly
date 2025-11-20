@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles del Código - Kick{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3">
+                <i class="fas fa-eye me-2"></i>Detalles del Código de Canje
+                <span class="h4 text-muted">- Kick</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Botones de acción superiores -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{{ url_for('kick.admin_redeem_codes') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Códigos
+            </a>
+            <a href="{{ url_for('kick.edit_redeem_code', code_id=code.id) }}" class="btn btn-info">
+                <i class="fas fa-edit me-2"></i>Editar Código
+            </a>
+        </div>
+    </div>
+
+    <!-- Información del código -->
+    <div class="row mb-4">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-ticket-alt me-2"></i>Información del Código
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Código</h6>
+                            <h4 class="text-primary"><strong>{{ code.code }}</strong></h4>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h6 class="text-muted">Estado</h6>
+                            {% if code.is_active %}
+                            <span class="badge bg-success fs-6">
+                                <i class="fas fa-check-circle me-1"></i>Activo
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary fs-6">
+                                <i class="fas fa-ban me-1"></i>Inactivo
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Descripción</h6>
+                            <p>{{ code.description or 'Sin descripción' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Puntos Otorgados</h6>
+                            <p class="fs-5">
+                                <i class="fas fa-coins text-warning me-1"></i>
+                                <strong>{{ code.points }}</strong> puntos
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Máximo de Usos</h6>
+                            <p class="fs-5"><strong>{{ code.max_uses }}</strong></p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Usos Actuales</h6>
+                            <p class="fs-5">
+                                <span class="badge bg-info fs-6">{{ code.current_uses }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Usos Restantes</h6>
+                            <p class="fs-5">
+                                <span class="badge {% if code.remaining_uses > 0 %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                    {{ code.remaining_uses }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Fecha de Expiración</h6>
+                            {% if code.expires_at %}
+                                <p>
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    {{ code.expires_at.strftime('%d/%m/%Y %H:%M') }}
+                                </p>
+                            {% else %}
+                                <p class="text-muted">Nunca expira</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Fecha de Creación</h6>
+                            <p>
+                                <i class="fas fa-calendar-plus me-1"></i>
+                                {{ code.created_at.strftime('%d/%m/%Y %H:%M') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas visuales -->
+    <div class="row mb-4">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-chart-bar me-2"></i>Estadísticas de Uso
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-hashtag fa-2x text-primary mb-2"></i>
+                                <h3 class="mb-0">{{ code.current_uses }}</h3>
+                                <small class="text-muted">Total Canjeados</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-users fa-2x text-success mb-2"></i>
+                                <h3 class="mb-0">{{ code.redemptions|length }}</h3>
+                                <small class="text-muted">Usuarios Únicos</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
+                                <h3 class="mb-0">
+                                    {% if code.max_uses > 0 %}
+                                        {{ ((code.current_uses / code.max_uses) * 100)|round|int }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </h3>
+                                <small class="text-muted">Tasa de Uso</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de canjes -->
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-history me-2"></i>Historial de Canjes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if code.redemptions %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Viewer ID</th>
+                                    <th>Puntos Otorgados</th>
+                                    <th>Fecha de Canje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for redemption in code.redemptions %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-user me-1"></i>
+                                        <strong>{{ redemption.viewer.username_kick if redemption.viewer else 'Usuario desconocido' }}</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ redemption.viewer_id }}</small>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-coins text-warning me-1"></i>
+                                        {{ redemption.points_awarded }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ redemption.redeemed_at.strftime('%d/%m/%Y %H:%M') }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Este código aún no ha sido canjeado por ningún usuario.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción inferiores -->
+    <div class="row mt-4 mb-4">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('kick.admin_redeem_codes') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Códigos
+                </a>
+                <div>
+                    <a href="{{ url_for('kick.edit_redeem_code', code_id=code.id) }}" class="btn btn-info me-2">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </a>
+                    <form method="POST" action="{{ url_for('kick.toggle_redeem_code', code_id=code.id) }}" class="d-inline">
+                        <button type="submit" class="btn {% if code.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                            <i class="fas {% if code.is_active %}fa-toggle-off{% else %}fa-toggle-on{% endif %} me-2"></i>
+                            {% if code.is_active %}Desactivar{% else %}Activar{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

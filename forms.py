@@ -404,3 +404,35 @@ class PointsConfigForm(FlaskForm):
     )
     enabled = BooleanField('Sistema de Puntos Activado', default=True)
     submit = SubmitField('Guardar Configuración')
+
+
+class RedeemCodeForm(FlaskForm):
+    """Formulario para crear y editar códigos canjeables"""
+    code = StringField(
+        'Código',
+        validators=[DataRequired(), Length(min=3, max=50)],
+        render_kw={'placeholder': 'ej: YANG2024'}
+    )
+    description = StringField(
+        'Descripción (Opcional)',
+        validators=[Optional(), Length(max=200)],
+        render_kw={'placeholder': 'ej: Código especial de Navidad'}
+    )
+    points = IntegerField(
+        'Puntos a Otorgar',
+        validators=[DataRequired(), NumberRange(min=1, max=100000)],
+        default=500
+    )
+    max_uses = IntegerField(
+        'Máximo de Usos',
+        validators=[DataRequired(), NumberRange(min=1, max=10000)],
+        default=5,
+        render_kw={'placeholder': 'ej: 5 personas pueden usar este código'}
+    )
+    expires_at = DateTimeLocalField(
+        'Fecha de Expiración (Opcional)',
+        validators=[Optional()],
+        format='%Y-%m-%dT%H:%M'
+    )
+    is_active = BooleanField('Código Activo', default=True)
+    submit = SubmitField('Guardar Código')

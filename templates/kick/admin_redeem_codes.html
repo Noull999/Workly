@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Códigos de Canje - Kick{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3">
+                <i class="fas fa-ticket-alt me-2"></i>Gestión de Códigos de Canje
+                <span class="h4 text-muted">- Kick</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Formulario de creación de nuevo código -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-plus-circle me-2"></i>Crear Nuevo Código
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('kick.admin_redeem_codes') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <!-- Código -->
+                            <div class="col-md-3 mb-3">
+                                {{ form.code.label(class="form-label") }}
+                                <span class="text-danger">*</span>
+                                {{ form.code(class="form-control", placeholder="CODIGO2024") }}
+                                {% if form.code.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.code.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-md-3 mb-3">
+                                {{ form.description.label(class="form-label") }}
+                                {{ form.description(class="form-control", placeholder="Código promocional") }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.description.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Puntos -->
+                            <div class="col-md-2 mb-3">
+                                {{ form.points.label(class="form-label") }}
+                                <span class="text-danger">*</span>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-coins text-warning"></i>
+                                    </span>
+                                    {{ form.points(class="form-control", placeholder="100", min="1") }}
+                                </div>
+                                {% if form.points.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.points.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Máximo de usos -->
+                            <div class="col-md-2 mb-3">
+                                {{ form.max_uses.label(class="form-label") }}
+                                <span class="text-danger">*</span>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-hashtag"></i>
+                                    </span>
+                                    {{ form.max_uses(class="form-control", placeholder="10", min="1") }}
+                                </div>
+                                {% if form.max_uses.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.max_uses.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Fecha de expiración -->
+                            <div class="col-md-2 mb-3">
+                                {{ form.expires_at.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </span>
+                                    {{ form.expires_at(class="form-control") }}
+                                </div>
+                                {% if form.expires_at.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.expires_at.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">Opcional</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check me-2"></i>Crear Código
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de códigos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-list me-2"></i>Códigos Canjeables
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if codes %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Descripción</th>
+                                    <th>Puntos</th>
+                                    <th>Usos</th>
+                                    <th>Restantes</th>
+                                    <th>Expira</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for code in codes %}
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary">{{ code.code }}</strong>
+                                    </td>
+                                    <td>
+                                        {{ code.description or '-' }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-coins text-warning me-1"></i>{{ code.points }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ code.current_uses }}/{{ code.max_uses }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if code.remaining_uses > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ code.remaining_uses }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if code.expires_at %}
+                                            <small>{{ code.expires_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                                        {% else %}
+                                            <span class="text-muted">Nunca</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if code.is_active %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Activo
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-ban me-1"></i>Inactivo
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <!-- Botón Ver Detalles -->
+                                        <a href="{{ url_for('kick.view_redeem_code', code_id=code.id) }}" class="btn btn-primary btn-sm mb-1" title="Ver detalles y canjes">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        <!-- Botón Editar -->
+                                        <a href="{{ url_for('kick.edit_redeem_code', code_id=code.id) }}" class="btn btn-info btn-sm mb-1" title="Editar código">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        <!-- Botón Toggle Activo/Inactivo -->
+                                        <form method="POST" action="{{ url_for('kick.toggle_redeem_code', code_id=code.id) }}" class="d-inline">
+                                            <button type="submit" class="btn {% if code.is_active %}btn-warning{% else %}btn-success{% endif %} btn-sm mb-1" title="{% if code.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                                <i class="fas {% if code.is_active %}fa-toggle-off{% else %}fa-toggle-on{% endif %}"></i>
+                                            </button>
+                                        </form>
+                                        
+                                        <!-- Botón Eliminar -->
+                                        <form method="POST" action="{{ url_for('kick.delete_redeem_code', code_id=code.id) }}" class="d-inline" onsubmit="return confirm('¿ELIMINAR PERMANENTEMENTE este código? Esta acción NO se puede deshacer.');">
+                                            <button type="submit" class="btn btn-danger btn-sm mb-1" title="Eliminar código">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No hay códigos canjeables creados. Crea uno usando el formulario de arriba.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información de ayuda -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-info py-2">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-info-circle me-2"></i>Información
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">
+                            <strong>Código:</strong> Debe ser único. Los viewers usarán este código para canjear puntos.
+                        </li>
+                        <li class="mb-2">
+                            <strong>Puntos:</strong> Cantidad de puntos que recibirá el viewer al canjear el código.
+                        </li>
+                        <li class="mb-2">
+                            <strong>Máximo de Usos:</strong> Número total de veces que el código puede ser canjeado.
+                        </li>
+                        <li>
+                            <strong>Expiración:</strong> Si se especifica, el código no podrá ser canjeado después de esta fecha.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
