@@ -1087,10 +1087,11 @@ def daily_visit():
         # Buscar o crear viewer
         viewer = Viewer.query.filter_by(username_kick=username_kick).first()
         if not viewer:
-            # Nuevo viewer - crear con puntos de bienvenida
+            # Nuevo viewer - crear con puntos de bienvenida (desde config)
+            daily_points = config.daily_visit_points
             viewer = Viewer(
                 username_kick=username_kick,
-                points=100,  # Puntos de visita diaria
+                points=daily_points,
                 watch_time=0,
                 messages_sent=0
             )
@@ -1101,7 +1102,7 @@ def daily_visit():
             visit = DailyVisit(
                 viewer_id=viewer.id,
                 visit_date=date.today(),
-                points_awarded=100
+                points_awarded=daily_points
             )
             db.session.add(visit)
             db.session.commit()
@@ -1109,9 +1110,9 @@ def daily_visit():
             return jsonify({
                 'ok': True,
                 'first_visit': True,
-                'points_awarded': 100,
+                'points_awarded': daily_points,
                 'total_points': viewer.points,
-                'message': '¡Bienvenido! +100 puntos por tu primera visita'
+                'message': f'¡Bienvenido! +{daily_points} puntos por tu primera visita'
             })
         
         # Verificar si ya visitó hoy
@@ -1130,12 +1131,13 @@ def daily_visit():
                 'message': 'Ya recibiste tus puntos de visita diaria'
             })
         
-        # Primera visita del día - dar puntos
-        viewer.points += 100
+        # Primera visita del día - dar puntos (desde config)
+        daily_points = config.daily_visit_points
+        viewer.points += daily_points
         visit = DailyVisit(
             viewer_id=viewer.id,
             visit_date=today,
-            points_awarded=100
+            points_awarded=daily_points
         )
         db.session.add(visit)
         db.session.commit()
@@ -1143,9 +1145,9 @@ def daily_visit():
         return jsonify({
             'ok': True,
             'first_visit': False,
-            'points_awarded': 100,
+            'points_awarded': daily_points,
             'total_points': viewer.points,
-            'message': '¡Bienvenido de nuevo! +100 puntos por visitar hoy'
+            'message': f'¡Bienvenido de nuevo! +{daily_points} puntos por visitar hoy'
         })
         
     except Exception as e:
