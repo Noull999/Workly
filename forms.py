@@ -381,7 +381,7 @@ class ClipForm(FlaskForm):
 
 
 class PointsConfigForm(FlaskForm):
-    """Formulario para configurar sistema de puntos de Kick - 3 sistemas principales"""
+    """Formulario para configurar sistema de puntos de Kick - 2 sistemas automáticos"""
     
     # Sistema 1: Watchtime (ver stream)
     points_per_minute_watching = IntegerField(
@@ -397,14 +397,6 @@ class PointsConfigForm(FlaskForm):
         validators=[DataRequired(), NumberRange(min=1, max=10000)],
         default=100,
         render_kw={'placeholder': 'ej: 100'}
-    )
-    
-    # Sistema 3: Códigos Canjeables (valor por defecto sugerido)
-    default_code_points = IntegerField(
-        'Puntos por Defecto para Códigos',
-        validators=[DataRequired(), NumberRange(min=1, max=100000)],
-        default=50,
-        render_kw={'placeholder': 'ej: 50'}
     )
     
     # Configuración de sistema

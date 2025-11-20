@@ -1403,9 +1403,8 @@
                 <div class="points-info-card fade-in-up delay-200">
                     <span class="points-info-icon">🎟️</span>
                     <h3 class="points-info-title">Códigos Especiales</h3>
-                    <div class="points-info-value" id="defaultCodePoints">...</div>
-                    <p class="points-info-label">puntos promedio</p>
-                    <p class="text-center text-gray-400 text-xs mt-2">Canjea códigos exclusivos</p>
+                    <p class="text-center text-gray-300 text-lg mt-4 mb-4">Canjea códigos exclusivos durante el stream</p>
+                    <p class="text-center text-gray-400 text-sm">Los códigos se anuncian en vivo con puntos variables</p>
                 </div>
             </div>
             
@@ -2157,16 +2156,12 @@
                             
                             const pointsPerMinute = document.getElementById('pointsPerMinute');
                             const dailyVisitPoints = document.getElementById('dailyVisitPoints');
-                            const defaultCodePoints = document.getElementById('defaultCodePoints');
                             
                             if (pointsPerMinute) {
                                 pointsPerMinute.textContent = config.points_per_minute_watching || 10;
                             }
                             if (dailyVisitPoints) {
                                 dailyVisitPoints.textContent = config.daily_visit_points || 100;
-                            }
-                            if (defaultCodePoints) {
-                                defaultCodePoints.textContent = config.default_code_points || 50;
                             }
                         }
                     } catch (e) {

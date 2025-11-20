@@ -12,7 +12,7 @@
                 <span class="h4 text-muted">- Sistema de Recompensas Kick</span>
             </h1>
             <p class="text-muted">
-                Configura los 3 sistemas principales para que tus viewers ganen puntos.
+                Configura los 2 sistemas automáticos para que tus viewers ganen puntos.
             </p>
         </div>
     </div>
@@ -81,29 +81,6 @@
                                 {% if form.daily_visit_points.errors %}
                                     <div class="text-danger">
                                         {% for error in form.daily_visit_points.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Sistema 3: Códigos Canjeables -->
-                        <div class="mb-4 border-start border-warning border-4 ps-3">
-                            <h5 class="text-warning mb-3">
-                                <i class="fas fa-ticket-alt me-2"></i>Sistema 3: Códigos Canjeables
-                            </h5>
-                            <div class="mb-3">
-                                <label for="default_code_points" class="form-label fw-bold">
-                                    {{ form.default_code_points.label.text }}
-                                </label>
-                                {{ form.default_code_points(class="form-control form-control-lg") }}
-                                <div class="form-text">
-                                    Valor sugerido por defecto al crear nuevos códigos (puedes personalizar cada código individualmente).
-                                </div>
-                                {% if form.default_code_points.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.default_code_points.errors %}
                                             {{ error }}
                                         {% endfor %}
                                     </div>
@@ -212,18 +189,6 @@
 
                     <hr>
 
-                    <div class="mb-3">
-                        <h6 class="text-warning mb-2">
-                            <i class="fas fa-ticket-alt me-2"></i>Códigos
-                        </h6>
-                        <p class="mb-1">
-                            <span class="badge bg-warning text-dark fs-6">{{ config.default_code_points }} puntos</span>
-                        </p>
-                        <small class="text-muted">Valor sugerido por defecto</small>
-                    </div>
-
-                    <hr>
-
                     <dl class="row mb-0 small">
                         <dt class="col-7">Cooldown:</dt>
                         <dd class="col-5 text-end">
@@ -268,9 +233,6 @@
                         </li>
                         <li class="mb-2">
                             <strong>Visita Diaria:</strong> 50-200 pts fomenta el retorno diario.
-                        </li>
-                        <li class="mb-2">
-                            <strong>Códigos:</strong> 25-100 pts para eventos especiales.
                         </li>
                         <li>
                             <strong>Cooldown:</strong> 60 segundos previene abuso.

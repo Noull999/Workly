@@ -876,7 +876,6 @@ def get_points_config():
         'config': {
             'points_per_minute_watching': config.points_per_minute_watching,
             'daily_visit_points': config.daily_visit_points,
-            'default_code_points': config.default_code_points,
             'cooldown_seconds': config.cooldown_seconds,
             'max_points_per_day': config.max_points_per_day,
             'enabled': config.enabled
@@ -905,10 +904,9 @@ def points_config():
     form = PointsConfigForm(obj=config)
     
     if form.validate_on_submit():
-        # Actualizar configuración - 3 sistemas principales
+        # Actualizar configuración - 2 sistemas automáticos
         config.points_per_minute_watching = form.points_per_minute_watching.data
         config.daily_visit_points = form.daily_visit_points.data
-        config.default_code_points = form.default_code_points.data
         config.cooldown_seconds = form.cooldown_seconds.data
         config.max_points_per_day = form.max_points_per_day.data if form.max_points_per_day.data else None
         config.enabled = form.enabled.data
