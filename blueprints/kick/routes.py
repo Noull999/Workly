@@ -1,6 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, session, jsonify
 from flask_login import login_required, current_user, login_user
 from . import kick_bp
+from app import csrf
 import os
 import secrets
 import requests
@@ -609,6 +610,7 @@ def edit_raffle(raffle_id):
 # ===== API ENDPOINTS PARA SISTEMA DE PUNTOS SIN OAUTH =====
 
 @kick_bp.route('/api/watchtime/update', methods=['POST'])
+@csrf.exempt
 def update_watchtime():
     """API: Actualiza watch time y suma puntos cuando el usuario ve el stream en vivo"""
     from models import Viewer, PointsConfig
@@ -689,6 +691,7 @@ def update_watchtime():
 
 
 @kick_bp.route('/api/raffle/join', methods=['POST'])
+@csrf.exempt
 def join_raffle():
     """API: Permitir que un usuario se una a un sorteo gastando puntos"""
     from models import Viewer, Raffle, RaffleEntry
