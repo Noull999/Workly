@@ -732,6 +732,10 @@ def join_raffle():
         
         entry = RaffleEntry(raffle_id=raffle_id, viewer_id=viewer.id, entry_number=entry_number)
         db.session.add(entry)
+        
+        # Incrementar entry_count del sorteo
+        raffle.entry_count += 1
+        
         db.session.commit()
         
         return jsonify({'ok': True, 'new_points': viewer.points, 'entry_number': entry_number})
@@ -1061,6 +1065,34 @@ def view_redeem_code(code_id):
         return redirect(url_for('kick.admin_redeem_codes'))
     
     return render_template('kick/view_redeem_code.html', code=code)
+
+
+@kick_bp.route('/admin/redeem-codes/delete/<int:code_id>', methods=['POST'])
+@login_required
+def delete_redeem_code(code_id):
+    """Eliminar un código canjeable"""
+    from flask_login import current_user
+    from models import RedeemCode
+    from app import db
+    
+    # Verificar permisos de admin
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para realizar esta acción.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    code = RedeemCode.query.get_or_404(code_id)
+    
+    # Global admins pueden eliminar cualquier código, otros solo los suyos
+    if not current_user.is_admin_global() and code.user_id != current_user.id:
+        flash('No tienes permiso para eliminar este código.', 'danger')
+        return redirect(url_for('kick.admin_redeem_codes'))
+    
+    code_name = code.code
+    db.session.delete(code)
+    db.session.commit()
+    
+    flash(f'Código "{code_name}" eliminado exitosamente.', 'success')
+    return redirect(url_for('kick.admin_redeem_codes'))
 
 
 # ===== API ENDPOINTS PARA SISTEMA DE PUNTOS EXTRA =====
