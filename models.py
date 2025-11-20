@@ -788,10 +788,13 @@ class PointsConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=True)  # Multi-tenant (nullable para uso público)
     
-    # Configuración de recompensas
+    # Configuración de recompensas - 3 sistemas principales
     points_per_minute_watching = db.Column(db.Integer, default=10, nullable=False)  # Puntos por minuto viendo stream
-    points_per_message = db.Column(db.Integer, default=5, nullable=False)  # Puntos por mensaje en chat (futuro)
-    cooldown_seconds = db.Column(db.Integer, default=60, nullable=False)  # Cooldown entre actualizaciones
+    daily_visit_points = db.Column(db.Integer, default=100, nullable=False)  # Puntos por visita diaria
+    default_code_points = db.Column(db.Integer, default=50, nullable=False)  # Puntos por defecto para códigos canjeables
+    
+    # Configuración de sistema
+    cooldown_seconds = db.Column(db.Integer, default=60, nullable=False)  # Cooldown entre actualizaciones de watchtime
     
     # Límites y configuración adicional
     max_points_per_day = db.Column(db.Integer, nullable=True)  # Límite diario (null = ilimitado)
