@@ -2455,8 +2455,8 @@
                 if (xhr.status === 200) {
                     try {
                         const data = JSON.parse(xhr.responseText);
-                        if (data.success) {
-                            alert('✅ ¡Participación exitosa! ' + (data.message || ''));
+                        if (data.ok) {
+                            alert('✅ ¡Participación exitosa! Entrada #' + (data.entry_number || ''));
                             updatePointsCounter();
                             loadActiveRaffles();
                         } else {
