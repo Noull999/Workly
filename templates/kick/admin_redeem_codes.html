@@ -216,6 +216,7 @@
                                         
                                         <!-- Botón Toggle Activo/Inactivo -->
                                         <form method="POST" action="{{ url_for('kick.toggle_redeem_code', code_id=code.id) }}" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn {% if code.is_active %}btn-warning{% else %}btn-success{% endif %} btn-sm mb-1" title="{% if code.is_active %}Desactivar{% else %}Activar{% endif %}">
                                                 <i class="fas {% if code.is_active %}fa-toggle-off{% else %}fa-toggle-on{% endif %}"></i>
                                             </button>
@@ -223,6 +224,7 @@
                                         
                                         <!-- Botón Eliminar -->
                                         <form method="POST" action="{{ url_for('kick.delete_redeem_code', code_id=code.id) }}" class="d-inline" onsubmit="return confirm('¿ELIMINAR PERMANENTEMENTE este código? Esta acción NO se puede deshacer.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-danger btn-sm mb-1" title="Eliminar código">
                                                 <i class="fas fa-trash"></i>
                                             </button>
