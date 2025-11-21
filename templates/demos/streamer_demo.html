@@ -1653,6 +1653,9 @@
 
     <!-- Scripts -->
     <script>
+        // Demo Mode Flag
+        const IS_DEMO = {{ 'true' if is_demo else 'false' }};
+        
         // Particle Generator
         function createParticles() {
             const container = document.getElementById('particles');
@@ -2045,6 +2048,12 @@
         }
 
         function initPointsSystem() {
+            // Salir inmediatamente si estamos en modo demo
+            if (IS_DEMO) {
+                console.log('🎭 MODO DEMO: Sistema de puntos deshabilitado (solo visual)');
+                return;
+            }
+            
             kickUsername = localStorage.getItem('kick_username');
             
             const usernameModal = document.getElementById('usernameModal');
@@ -2452,6 +2461,12 @@
         }
 
         function joinRaffle(raffleId, pointsCost) {
+            // Bloquear participación en modo demo
+            if (IS_DEMO) {
+                alert('🎭 Modo Demostración: Esta es una vista de ejemplo. Las participaciones están deshabilitadas.');
+                return;
+            }
+            
             if (!kickUsername) {
                 alert('Por favor ingresa tu username de Kick primero');
                 return;
@@ -2605,6 +2620,17 @@
         }
 
         function submitRedeemCode() {
+            // Bloquear canje en modo demo
+            if (IS_DEMO) {
+                const errorDiv = document.getElementById('redeemErrorDiv');
+                const errorText = document.getElementById('redeemErrorText');
+                if (errorDiv && errorText) {
+                    errorText.textContent = '🎭 Modo Demostración: El canje de códigos está deshabilitado';
+                    errorDiv.classList.remove('hidden');
+                }
+                return;
+            }
+            
             if (!kickUsername) {
                 showToast('Error', 'Debes ingresar tu username primero', 'fa-exclamation-circle');
                 return;
