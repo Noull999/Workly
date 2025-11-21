@@ -68,7 +68,10 @@ def streamer_demo():
         'descripcion': 'Streamer profesional de casino y gaming. ¡Únete a la comunidad!',
         'codigo_promocional': 'DEMO2024',
         'casino': 'https://stake.com',
-        'kick_username': 'demostreamer'
+        'kick_username': 'demostreamer',
+        'promedio_viewers': 2500,
+        'horarios_stream': 'Lunes a Viernes, 20:00 - 02:00',
+        'victorias_consecutivas': 47
     }
     
     # Sorteos activos de demostración
