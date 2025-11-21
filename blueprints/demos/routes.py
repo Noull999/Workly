@@ -205,4 +205,6 @@ def streamer_demo():
                          clips=clips_data,
                          kick_user_authenticated=False,
                          viewer_points=0,
-                         is_demo=True)
+                         is_demo=True,
+                         sorteos_habilitados=True,
+                         social_links=page_data['social_links'])
