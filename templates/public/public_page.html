@@ -793,13 +793,14 @@
                 <div class="hidden lg:flex items-center gap-6">
                     <a href="#inicio" class="nav-link orbitron">Inicio</a>
                     {% if sorteos_habilitados %}
-                    <a href="#sorteos" class="nav-link orbitron">Sorteos</a>
+                    <a href="#sorteos-activos" class="nav-link orbitron">Sorteos</a>
                     {% endif %}
                     {% if wager_race %}
                     <a href="#wager-race" class="nav-link orbitron">Wager Race</a>
                     {% endif %}
+                    <a href="#puntos" class="nav-link orbitron">Puntos</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
-                    <a href="#contacto" class="nav-link orbitron">Contacto</a>
+                    <a href="#contacto" class="nav-link orbitron">Redes</a>
                 </div>
 
                 <!-- Right Side: User Widget + Social Buttons -->
@@ -854,13 +855,14 @@
                     
                     <a href="#inicio" class="nav-link orbitron">Inicio</a>
                     {% if sorteos_habilitados %}
-                    <a href="#sorteos" class="nav-link orbitron">Sorteos</a>
+                    <a href="#sorteos-activos" class="nav-link orbitron">Sorteos</a>
                     {% endif %}
                     {% if wager_race %}
                     <a href="#wager-race" class="nav-link orbitron">Wager Race</a>
                     {% endif %}
+                    <a href="#puntos" class="nav-link orbitron">Puntos</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
-                    <a href="#contacto" class="nav-link orbitron">Contacto</a>
+                    <a href="#contacto" class="nav-link orbitron">Redes</a>
                     
                     <!-- Social Links (Mobile) -->
                     {% if page.social_links %}
@@ -1374,7 +1376,7 @@
     </section>
 
     <!-- How to Get Points Section -->
-    <section class="py-16 sm:py-20 px-4 bg-gradient-to-b from-black to-purple-900/20" data-animate="fade">
+    <section id="puntos" class="py-16 sm:py-20 px-4 bg-gradient-to-b from-black to-purple-900/20" data-animate="fade">
         <div class="container mx-auto">
             <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron text-center mb-12 sm:mb-16 gradient-text tracking-wider fade-in-up">
                 💰 CÓMO GANAR PUNTOS
