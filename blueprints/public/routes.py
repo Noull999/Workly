@@ -181,9 +181,25 @@ def perfil_dinamico(email):
     import os
     from urllib.parse import unquote_plus
     from flask import session, request
+    from models import PageVisit
+    from app import db
     
     # Decodificar email si viene URL-encoded
     email = unquote_plus(email)
+    
+    # Registrar visita para analytics
+    try:
+        page_visit = PageVisit(
+            page_name=email,
+            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr),
+            user_agent=request.headers.get('User-Agent', ''),
+            referrer=request.headers.get('Referer', '')
+        )
+        db.session.add(page_visit)
+        db.session.commit()
+    except Exception as e:
+        print(f"Error al registrar visita: {e}")
+        db.session.rollback()
     
     # Leer archivo JSON
     json_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'user_data.json')

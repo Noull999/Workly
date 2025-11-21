@@ -280,6 +280,148 @@
         {% endif %}
     </div>
 
+    <!-- Paneles de Kick para yangprroo@gmail.com -->
+    {% if current_user.email == 'yangprroo@gmail.com' and stats.kick %}
+    <div class="row mb-4">
+        <!-- Panel de Sorteos Activos -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-trophy me-2"></i>Sorteos Activos
+                    </h6>
+                    <a href="{{ url_for('kick.admin_raffles') }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-cog me-1"></i>Gestionar
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if stats.kick.active_raffles %}
+                        {% for raffle in stats.kick.active_raffles %}
+                        <div class="card mb-3 bg-dark border-warning">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5 class="text-warning mb-2">
+                                            <i class="fas fa-gift me-2"></i>{{ raffle.title }}
+                                        </h5>
+                                        <p class="text-muted mb-2">{{ raffle.description or 'Sin descripción' }}</p>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small class="text-muted">Premio:</small>
+                                                <p class="mb-1"><strong>{{ raffle.prize }}</strong></p>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Costo:</small>
+                                                <p class="mb-1">
+                                                    <i class="fas fa-coins text-warning me-1"></i>
+                                                    <strong>{{ raffle.entry_cost }} puntos</strong>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <div class="mb-2">
+                                            <span class="badge bg-primary fs-5">
+                                                {{ raffle.entry_count }} participantes
+                                            </span>
+                                        </div>
+                                        <a href="{{ url_for('kick.raffle_draw_view', raffle_id=raffle.id) }}" class="btn btn-success w-100 mb-2">
+                                            <i class="fas fa-random me-2"></i>Ver y Sortear
+                                        </a>
+                                        <small class="text-muted d-block">Creado: {{ raffle.created_at.strftime('%d/%m/%Y') }}</small>
+                                    </div>
+                                </div>
+                                {% if raffle.entries %}
+                                <hr class="border-secondary">
+                                <div>
+                                    <small class="text-muted">Últimos participantes:</small>
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        {% for entry in raffle.entries[:10] %}
+                                        <span class="badge bg-secondary">{{ entry.viewer.username_kick }}</span>
+                                        {% endfor %}
+                                        {% if raffle.entry_count > 10 %}
+                                        <span class="badge bg-info">+{{ raffle.entry_count - 10 }} más</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay sorteos activos.</p>
+                        <a href="{{ url_for('kick.create_raffle') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Crear Sorteo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Estadísticas de Visitas -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-chart-line me-2"></i>Visitas a tu Página
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Total de Visitas:</span>
+                            <h3 class="mb-0 text-info">{{ stats.kick.total_visits }}</h3>
+                        </div>
+                        <div class="progress mb-3" style="height: 5px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Hoy:</span>
+                            <h4 class="mb-0 text-success">{{ stats.kick.today_visits }}</h4>
+                        </div>
+                        <div class="progress mb-3" style="height: 5px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ (stats.kick.today_visits / (stats.kick.total_visits if stats.kick.total_visits > 0 else 1) * 100) }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Esta Semana:</span>
+                            <h4 class="mb-0 text-warning">{{ stats.kick.week_visits }}</h4>
+                        </div>
+                        <div class="progress mb-3" style="height: 5px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ (stats.kick.week_visits / (stats.kick.total_visits if stats.kick.total_visits > 0 else 1) * 100) }}%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Visitantes Únicos:</span>
+                            <h4 class="mb-0 text-primary">{{ stats.kick.unique_visitors }}</h4>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (stats.kick.unique_visitors / (stats.kick.total_visits if stats.kick.total_visits > 0 else 1) * 100) }}%"></div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="text-center">
+                        <a href="{{ url_for('public.yanglee_page') }}" target="_blank" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-external-link-alt me-1"></i>Ver Página Pública
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Contenido específico por módulos -->
     <div class="row">
         <!-- Panel de inventario -->

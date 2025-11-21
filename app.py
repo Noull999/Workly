@@ -160,6 +160,38 @@ def dashboard():
             recent_pages = company_query(NotionPage).order_by(NotionPage.updated_at.desc()).limit(5).all()
             active_checklists = company_query(NotionChecklistItem).filter_by(is_completed=False).count()
             
+            # Estadísticas de Kick (solo para yangprroo@gmail.com)
+            kick_stats = None
+            if current_user.email == 'yangprroo@gmail.com':
+                from models import Raffle, PageVisit
+                from sqlalchemy import func, distinct
+                
+                # Sorteos activos
+                active_raffles = Raffle.query.filter_by(user_id=current_user.id, is_active=True).all()
+                
+                # Estadísticas de visitas
+                total_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').count()
+                today_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').filter(
+                    PageVisit.created_at >= datetime.combine(today, datetime.min.time())
+                ).count()
+                
+                week_ago = today - timedelta(days=7)
+                week_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').filter(
+                    PageVisit.created_at >= datetime.combine(week_ago, datetime.min.time())
+                ).count()
+                
+                unique_visitors = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').with_entities(
+                    func.count(distinct(PageVisit.ip_address))
+                ).scalar() or 0
+                
+                kick_stats = {
+                    'active_raffles': active_raffles,
+                    'total_visits': total_visits,
+                    'today_visits': today_visits,
+                    'week_visits': week_visits,
+                    'unique_visitors': unique_visitors
+                }
+            
             stats = {
                 'inventory': {
                     'total_items': total_items, 
@@ -178,7 +210,8 @@ def dashboard():
                     'task_status_data': task_status_data
                 },
                 'notion': {'total_pages': total_pages, 'recent_pages': recent_pages, 'active_checklists': active_checklists},
-                'portfolio': {'page_views': 0, 'contact_requests': 0}  # Estos podrían calcularse si hay modelos para ello
+                'portfolio': {'page_views': 0, 'contact_requests': 0},
+                'kick': kick_stats
             }
         else:
             stats = {

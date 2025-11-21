@@ -459,6 +459,22 @@ def create_raffle():
     
     return render_template('kick/create_raffle.html', form=form)
 
+@kick_bp.route('/admin/raffles/<int:raffle_id>/draw', methods=['GET'])
+@login_required
+def raffle_draw_view(raffle_id):
+    """Ver sorteo y participantes"""
+    from flask_login import current_user
+    from models import Raffle
+    
+    raffle = Raffle.query.get_or_404(raffle_id)
+    
+    # Verificar que el sorteo pertenece al usuario
+    if raffle.user_id != current_user.id:
+        flash('No tienes permiso para gestionar este sorteo.', 'danger')
+        return redirect(url_for('kick.admin_raffles'))
+    
+    return render_template('kick/raffle_draw.html', raffle=raffle)
+
 @kick_bp.route('/admin/raffles/<int:raffle_id>/draw-winner', methods=['POST'])
 @login_required
 def draw_winner(raffle_id):
@@ -479,12 +495,12 @@ def draw_winner(raffle_id):
     # Verificar que el sorteo está activo
     if not raffle.is_active:
         flash('Este sorteo ya no está activo.', 'warning')
-        return redirect(url_for('kick.admin_raffles'))
+        return redirect(url_for('kick.raffle_draw_view', raffle_id=raffle_id))
     
     # Verificar que hay participantes
     if raffle.entry_count == 0:
         flash('No hay participantes en este sorteo.', 'warning')
-        return redirect(url_for('kick.admin_raffles'))
+        return redirect(url_for('kick.raffle_draw_view', raffle_id=raffle_id))
     
     # Seleccionar ganador aleatorio
     entries = raffle.entries
@@ -496,8 +512,8 @@ def draw_winner(raffle_id):
     
     db.session.commit()
     
-    flash(f'¡Ganador seleccionado! 🎉 Usuario: {winner_entry.viewer.username_kick} (Entrada #{winner_entry.entry_number})', 'success')
-    return redirect(url_for('kick.admin_raffles'))
+    # Redirigir a la página de sorteo con el ganador para mostrar animación
+    return redirect(url_for('kick.raffle_draw_view', raffle_id=raffle_id, winner=winner_entry.viewer.username_kick))
 
 @kick_bp.route('/admin/raffles/<int:raffle_id>/cancel', methods=['POST'])
 @login_required

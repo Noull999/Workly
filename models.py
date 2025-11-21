@@ -998,3 +998,20 @@ class DailyVisit(db.Model):
     
     def __repr__(self):
         return f'<DailyVisit Viewer {self.viewer_id} on {self.visit_date} - {self.points_awarded} pts>'
+
+
+class PageVisit(db.Model):
+    """Registro de visitas a la página pública de streamer para analytics"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Información de la visita
+    page_name = db.Column(db.String(100), nullable=False)  # ej: 'yanglee', 'raffle_123'
+    ip_address = db.Column(db.String(45), nullable=True)  # IPv4 o IPv6
+    user_agent = db.Column(db.String(500), nullable=True)  # Browser/device info
+    referrer = db.Column(db.String(500), nullable=True)  # De dónde vino el visitante
+    
+    # Timestamp
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<PageVisit {self.page_name} from {self.ip_address} at {self.created_at}>'
