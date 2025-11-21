@@ -749,9 +749,6 @@ def join_raffle():
         entry = RaffleEntry(raffle_id=raffle_id, viewer_id=viewer.id, entry_number=entry_number)
         db.session.add(entry)
         
-        # Incrementar entry_count del sorteo
-        raffle.entry_count += 1
-        
         db.session.commit()
         
         return jsonify({'ok': True, 'new_points': viewer.points, 'entry_number': entry_number})
