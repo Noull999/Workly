@@ -70,6 +70,41 @@ def from_json(value):
 app.jinja_env.filters['nl2br'] = nl2br
 app.jinja_env.filters['from_json'] = from_json
 
+# Context processor para datos globales de Kick
+@app.context_processor
+def inject_kick_widget():
+    """Inyectar datos del sorteo actual/ganador para yangprroo@gmail.com"""
+    if current_user.is_authenticated and current_user.email == 'yangprroo@gmail.com':
+        try:
+            from models import Raffle, RedeemCode
+            
+            # Buscar sorteo activo primero
+            active_raffle = Raffle.query.filter_by(user_id=current_user.id, is_active=True).order_by(Raffle.created_at.desc()).first()
+            
+            # Si no hay activo, buscar el último completado con ganador
+            completed_raffle = None
+            if not active_raffle:
+                completed_raffle = Raffle.query.filter_by(user_id=current_user.id, is_active=False).filter(
+                    Raffle.winner_viewer_id.isnot(None)
+                ).order_by(Raffle.created_at.desc()).first()
+            
+            # Contar códigos activos
+            active_codes = RedeemCode.query.filter_by(user_id=current_user.id, is_active=True).count()
+            
+            # Contar sorteos activos
+            active_raffles_count = Raffle.query.filter_by(user_id=current_user.id, is_active=True).count()
+            
+            return {
+                'kick_widget_raffle': active_raffle or completed_raffle,
+                'kick_active_codes_count': active_codes,
+                'kick_active_raffles_count': active_raffles_count
+            }
+        except Exception as e:
+            print(f"Error loading kick widget data: {e}")
+            return {'kick_widget_raffle': None, 'kick_active_codes_count': 0, 'kick_active_raffles_count': 0}
+    
+    return {'kick_widget_raffle': None, 'kick_active_codes_count': 0, 'kick_active_raffles_count': 0}
+
 with app.app_context():
     # Import models to ensure tables are created
     import models

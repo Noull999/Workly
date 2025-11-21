@@ -234,6 +234,68 @@
             border-color: var(--workly-orange) !important;
             color: var(--workly-orange) !important;
         }
+        
+        /* Widget de Sorteo en Navbar */
+        .kick-widget {
+            background: linear-gradient(135deg, rgba(108, 99, 255, 0.15), rgba(255, 107, 53, 0.15));
+            border: 1px solid var(--workly-purple);
+            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(108, 99, 255, 0.2);
+        }
+        
+        .kick-widget:hover {
+            background: linear-gradient(135deg, rgba(108, 99, 255, 0.25), rgba(255, 107, 53, 0.25));
+            border-color: var(--workly-orange);
+            box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .kick-widget-link {
+            text-decoration: none !important;
+        }
+        
+        .kick-widget-content {
+            line-height: 1.2;
+        }
+        
+        /* Animación de pulso para sorteo activo */
+        @keyframes pulse-glow {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+        
+        .kick-widget-icon {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        /* Animación de brillo para ganador */
+        @keyframes winner-shine {
+            0%, 100% {
+                filter: drop-shadow(0 0 3px rgba(40, 167, 69, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 8px rgba(40, 167, 69, 0.9));
+            }
+        }
+        
+        .kick-widget-icon-winner {
+            animation: winner-shine 2s ease-in-out infinite;
+        }
+        
+        /* Responsive - ocultar widget en pantallas pequeñas */
+        @media (max-width: 991px) {
+            .kick-widget {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -443,15 +505,50 @@
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('kick.admin_raffles') }}">
                                     <i class="fas fa-ticket-alt me-1"></i>Sorteos
+                                    {% if kick_active_raffles_count > 0 %}
+                                    <span class="badge bg-danger ms-1">{{ kick_active_raffles_count }}</span>
+                                    {% endif %}
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('kick.admin_redeem_codes') }}">
                                     <i class="fas fa-gift me-1"></i>Códigos Canjeables
+                                    {% if kick_active_codes_count > 0 %}
+                                    <span class="badge bg-success ms-1">{{ kick_active_codes_count }}</span>
+                                    {% endif %}
                                 </a></li>
                             </ul>
                         </li>
                         {% endif %}
                     {% endif %}
                 </ul>
+                
+                <!-- Widget de Sorteo para yangprroo@gmail.com -->
+                {% if current_user.is_authenticated and current_user.email == 'yangprroo@gmail.com' and kick_widget_raffle %}
+                <ul class="navbar-nav mx-2">
+                    <li class="nav-item">
+                        <a class="nav-link kick-widget-link" href="{{ url_for('kick.raffle_draw_view', raffle_id=kick_widget_raffle.id) }}" title="{% if kick_widget_raffle.is_active %}Sorteo Activo{% else %}Último Ganador{% endif %}">
+                            <div class="kick-widget d-flex align-items-center">
+                                {% if kick_widget_raffle.is_active %}
+                                    <i class="fas fa-gift fa-lg me-2 text-warning kick-widget-icon"></i>
+                                    <div class="kick-widget-content">
+                                        <small class="d-block text-muted" style="font-size: 0.65rem; line-height: 1;">SORTEO</small>
+                                        <strong class="d-block text-truncate" style="max-width: 150px; font-size: 0.85rem;">{{ kick_widget_raffle.prize }}</strong>
+                                        <small class="text-warning" style="font-size: 0.7rem;">
+                                            <i class="fas fa-users me-1"></i>{{ kick_widget_raffle.entry_count }} participantes
+                                        </small>
+                                    </div>
+                                {% else %}
+                                    <i class="fas fa-crown fa-lg me-2 text-success kick-widget-icon-winner"></i>
+                                    <div class="kick-widget-content">
+                                        <small class="d-block text-muted" style="font-size: 0.65rem; line-height: 1;">GANADOR</small>
+                                        <strong class="d-block text-success text-truncate" style="max-width: 150px; font-size: 0.85rem;">{{ kick_widget_raffle.winner_viewer.username_kick }}</strong>
+                                        <small class="text-muted" style="font-size: 0.7rem;">{{ kick_widget_raffle.prize }}</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+                {% endif %}
                 
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
