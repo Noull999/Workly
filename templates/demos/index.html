@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Demos de Módulos - Workly{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-2">
+                <i class="fas fa-desktop me-2" style="color: var(--bs-orange);"></i>
+                Demos de Módulos
+            </h1>
+            <p class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Demostraciones visuales de todos los módulos disponibles en Workly. 
+                Perfectas para videos promocionales y presentaciones.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for demo in demos %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-{{ demo.color }} shadow-sm hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-{{ demo.color }} bg-opacity-10 p-3 me-3">
+                            <i class="fas {{ demo.icon }} fa-2x text-{{ demo.color }}"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ demo.title }}</h5>
+                            <small class="text-muted">Demo interactiva</small>
+                        </div>
+                    </div>
+                    
+                    <p class="card-text text-muted mb-3">{{ demo.description }}</p>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2 small">
+                            <i class="fas fa-check-circle text-success me-1"></i>
+                            Funcionalidades incluidas:
+                        </h6>
+                        <ul class="list-unstyled small">
+                            {% for feature in demo.features %}
+                            <li class="mb-1">
+                                <i class="fas fa-chevron-right text-{{ demo.color }} me-2"></i>
+                                {{ feature }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <a href="{{ demo.url }}" class="btn btn-{{ demo.color }} w-100" target="_blank">
+                        <i class="fas fa-play-circle me-2"></i>Ver Demo
+                    </a>
+                </div>
+                <div class="card-footer bg-{{ demo.color }} bg-opacity-10 text-center small">
+                    <i class="fas fa-lock me-1"></i>
+                    Solo visible para súper administradores
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Placeholder para futuras demos -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-secondary opacity-50">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <i class="fas fa-plus-circle fa-4x text-secondary mb-3"></i>
+                    <h5 class="text-muted">Más demos próximamente</h5>
+                    <p class="small text-muted mb-0">
+                        Demos de Inventario, POS, Appointments, Scrum y Notion en desarrollo
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info mt-4" role="alert">
+        <i class="fas fa-lightbulb me-2"></i>
+        <strong>Tip:</strong> Estas demos utilizan datos ficticios y no afectan la base de datos real. 
+        Son perfectas para mostrar las funcionalidades de Workly sin exponer información de clientes.
+    </div>
+</div>
+
+<style>
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
+{% endblock %}

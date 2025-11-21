@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }}</title>
+    <meta name="description" content="{{ page.description }}">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: {{ page.primary_color or '#ff6600' }};
+            --secondary-color: {{ page.secondary_color or '#1a1a1a' }};
+            --neon-glow: 0 0 20px var(--primary-color), 0 0 40px var(--primary-color);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            z-index: -2;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-30px) translateX(30px); }
+            50% { transform: translateY(-60px) translateX(-30px); }
+            75% { transform: translateY(-30px) translateX(30px); }
+        }
+
+        /* Animated Border */
+        .animated-border {
+            position: relative;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-color), #a855f7, var(--primary-color));
+            background-size: 300% 300%;
+            animation: gradientRotate 3s ease infinite;
+            padding: 6px;
+        }
+
+        @keyframes gradientRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glow Effects */
+        .neon-glow {
+            box-shadow: var(--neon-glow);
+            transition: all 0.3s ease;
+        }
+
+        .neon-glow:hover {
+            box-shadow: 0 0 30px var(--primary-color), 0 0 60px var(--primary-color), 0 0 90px var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 20px var(--primary-color);
+        }
+
+        /* Clip Card Hover */
+        .clip-card {
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .clip-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary-color), #00ffff);
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            border-radius: 1rem;
+        }
+
+        .clip-card:hover::before {
+            opacity: 1;
+        }
+
+        .clip-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-color);
+        }
+
+        /* Overlay removido - ahora se usa directamente en el HTML */
+
+        /* Counter Animation */
+        .counter {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: 0 0 20px var(--primary-color);
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse-slow {
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        /* Gradient Text - Streamer Name */
+        .gradient-text {
+            color: #a855f7;
+            text-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 
+                         0 0 40px rgba(168, 85, 247, 0.5);
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        @keyframes shimmer {
+            to { background-position: 200% center; }
+        }
+
+        /* Social Button Float */
+        .social-float {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .social-float::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, var(--primary-color), transparent);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .social-float:hover {
+            transform: translateY(-8px);
+        }
+
+        .social-float:hover::after {
+            opacity: 1;
+        }
+
+        /* Animaciones de entrada */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+
+        /* Botones de redes mejorados */
+        .social-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        @media (min-width: 640px) {
+            .social-btn {
+                width: auto;
+                padding: 1rem 2rem;
+                gap: 0.75rem;
+                font-size: 1.125rem;
+            }
+        }
+
+        .social-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .social-btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .social-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        /* Secciones mejoradas */
+        .enhanced-card {
+            background: linear-gradient(135deg, rgba(30,30,30,0.9), rgba(20,20,20,0.95));
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+        }
+
+        .enhanced-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(var(--primary-color), 0.3);
+            border-color: var(--primary-color);
+        }
+
+        /* Sticky Navigation */
+        .sticky-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            background: rgba(15, 10, 30, 0.98);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid #a855f7;
+            box-shadow: 0 4px 30px rgba(168, 85, 247, 0.6), 0 0 60px rgba(168, 85, 247, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link {
+            position: relative;
+            padding: 0.5rem 1rem;
+            color: #ffffff;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-link:hover {
+            color: #FF6600;
+            text-shadow: 0 0 20px rgba(255, 102, 0, 0.8);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        /* Nav User Widget */
+        .nav-user-widget {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(124, 58, 237, 0.2);
+            border: 2px solid #7C3AED;
+            border-radius: 25px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .nav-username {
+            color: #FF6600;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .nav-points {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #a855f7;
+            font-weight: 700;
+        }
+
+        .nav-gem-icon {
+            color: #7C3AED;
+            font-size: 1rem;
+        }
+
+        /* Nav Social Buttons */
+        .nav-social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(168, 85, 247, 0.2));
+            border: 2px solid #7C3AED;
+            border-radius: 20px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-social-btn:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.5), rgba(168, 85, 247, 0.3));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .nav-social-btn i {
+            font-size: 1rem;
+        }
+
+        /* LIVE Badge */
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 1.125rem;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .live-dot {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .offline-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 1.125rem;
+            border: 2px solid #4b5563;
+        }
+
+        /* Username Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a0a2e 0%, #0f0519 100%);
+            border: 2px solid #7C3AED;
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 60px rgba(124, 58, 237, 0.6), 0 0 100px rgba(255, 102, 0, 0.3);
+            animation: slideInUp 0.4s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #7C3AED, #FF6600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #7C3AED;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-family: 'Rajdhani', sans-serif;
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #FF6600;
+            box-shadow: 0 0 20px rgba(255, 102, 0, 0.5);
+        }
+
+        .modal-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #7C3AED, #FF6600);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.8), 0 0 40px rgba(255, 102, 0, 0.6);
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Floating Points Widget Styles */
+        .points-widget {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 999;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(255, 102, 0, 0.25));
+            backdrop-filter: blur(20px);
+            border: 3px solid transparent;
+            border-image: linear-gradient(135deg, #7C3AED, #FF6600) 1;
+            border-radius: 25px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 0 40px rgba(124, 58, 237, 0.6), 0 0 60px rgba(255, 102, 0, 0.4);
+            transition: all 0.4s ease;
+            min-width: 200px;
+        }
+
+        .points-widget:hover {
+            box-shadow: 0 0 50px rgba(124, 58, 237, 0.8), 0 0 80px rgba(255, 102, 0, 0.6);
+            transform: translateY(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .points-widget {
+                top: 80px;
+                right: 10px;
+                padding: 1rem 1.25rem;
+                min-width: 160px;
+            }
+        }
+
+        .points-icon-large {
+            font-size: 3rem;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: pulse 2s ease-in-out infinite;
+            display: block;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .points-icon-large {
+                font-size: 2rem;
+            }
+        }
+
+        .points-value-large {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5);
+            text-align: center;
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .points-value-large {
+                font-size: 1.75rem;
+            }
+        }
+
+        .watchtime-display {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            color: #a78bfa;
+            text-align: center;
+            display: block;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .watchtime-display {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* +X Points Animation */
+        .points-increment-animation {
+            position: fixed;
+            right: 120px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #FF6600;
+            text-shadow: 0 0 20px rgba(255, 102, 0, 0.8), 0 0 40px rgba(255, 102, 0, 0.5);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .points-increment-animation {
+                right: 80px;
+                font-size: 1.5rem;
+            }
+        }
+
+        /* How to Get Points Section */
+        .points-info-card {
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.9), rgba(20, 20, 20, 0.95));
+            border: 2px solid transparent;
+            border-image: linear-gradient(135deg, #7C3AED, #FF6600) 1;
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .points-info-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #7C3AED, #FF6600, #7C3AED);
+            background-size: 200% 200%;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+            border-radius: 20px;
+            animation: gradientRotate 3s ease infinite;
+        }
+
+        .points-info-card:hover::before {
+            opacity: 1;
+        }
+
+        .points-info-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.5);
+        }
+
+        .points-info-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+            text-align: center;
+        }
+
+        .points-info-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #7C3AED, #FF6600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .points-info-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            margin-bottom: 0.5rem;
+        }
+
+        .points-info-label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            text-align: center;
+            color: #a78bfa;
+            font-weight: 600;
+        }
+
+        /* Raffle Card Styles */
+        .raffle-card {
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.9), rgba(20, 20, 20, 0.95));
+            border: 2px solid transparent;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .raffle-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #7C3AED, #FF6600, #7C3AED);
+            background-size: 200% 200%;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+            border-radius: 1rem;
+            animation: gradientRotate 3s ease infinite;
+        }
+
+        .raffle-card:hover::before {
+            opacity: 1;
+        }
+
+        .raffle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.4);
+        }
+
+        .raffle-btn {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background: linear-gradient(135deg, #7C3AED, #FF6600);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+
+        .raffle-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.8), 0 0 40px rgba(255, 102, 0, 0.6);
+        }
+
+        .raffle-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #4b5563, #374151);
+        }
+
+        .raffle-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(124, 58, 237, 0.3);
+            border: 1px solid #7C3AED;
+            border-radius: 15px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #a78bfa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div style="position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #7C3AED, #FF6600); padding: 12px; text-align: center; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+        <div style="font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.9rem; color: white; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <i class="fas fa-eye"></i>
+            <span>MODO DEMOSTRACIÓN</span>
+            <i class="fas fa-eye"></i>
+            <span style="margin-left: 15px; font-size: 0.85rem; opacity: 0.9;">|</span>
+            <span style="font-size: 0.8rem; opacity: 0.9;">Todos los datos son ficticios para fines de presentación</span>
+        </div>
+    </div>
+    <div style="height: 48px;"></div>
+
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Sticky Navigation Bar -->
+    <nav class="sticky-nav">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between py-3">
+                <!-- Logo/Name (Streamer) -->
+                <div class="gradient-text orbitron">
+                    {{ page.title or 'YANGLEE' }}
+                </div>
+                
+                <!-- Navigation Links (Center) -->
+                <div class="hidden lg:flex items-center gap-6">
+                    <a href="#inicio" class="nav-link orbitron">Inicio</a>
+                    {% if sorteos_habilitados %}
+                    <a href="#sorteos-activos" class="nav-link orbitron">Sorteos</a>
+                    {% endif %}
+                    {% if wager_race %}
+                    <a href="#wager-race" class="nav-link orbitron">Wager Race</a>
+                    {% endif %}
+                    <a href="#puntos" class="nav-link orbitron">Puntos</a>
+                    <a href="#clips" class="nav-link orbitron">Clips</a>
+                    <a href="#redes-sociales" class="nav-link orbitron">Redes</a>
+                </div>
+
+                <!-- Right Side: User Widget + Social Buttons -->
+                <div class="hidden lg:flex items-center gap-3">
+                    <!-- User & Points Widget -->
+                    <div id="navUserWidget" class="nav-user-widget hidden">
+                        <span class="nav-username" id="navUsername">Usuario</span>
+                        <div class="nav-points">
+                            <i class="fas fa-gem nav-gem-icon"></i>
+                            <span id="navPoints">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Social Buttons -->
+                    {% if page.social_links %}
+                        {% if page.social_links.kick %}
+                        <a href="{{ page.social_links.kick }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-kickstarter"></i>
+                            <span class="hidden xl:inline">Ver en Kick</span>
+                        </a>
+                        {% endif %}
+                        {% if page.social_links.instagram %}
+                        <a href="{{ page.social_links.instagram }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        {% endif %}
+                        {% if page.social_links.tiktok %}
+                        <a href="{{ page.social_links.tiktok }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Menu Toggle -->
+                <button class="lg:hidden text-white text-2xl" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div class="lg:hidden hidden pb-4" id="mobileMenu">
+                <div class="flex flex-col gap-3">
+                    <!-- User Widget (Mobile) -->
+                    <div id="navUserWidgetMobile" class="nav-user-widget hidden mb-2">
+                        <span class="nav-username" id="navUsernameMobile">Usuario</span>
+                        <div class="nav-points">
+                            <i class="fas fa-gem nav-gem-icon"></i>
+                            <span id="navPointsMobile">0</span>
+                        </div>
+                    </div>
+                    
+                    <a href="#inicio" class="nav-link orbitron">Inicio</a>
+                    {% if sorteos_habilitados %}
+                    <a href="#sorteos-activos" class="nav-link orbitron">Sorteos</a>
+                    {% endif %}
+                    {% if wager_race %}
+                    <a href="#wager-race" class="nav-link orbitron">Wager Race</a>
+                    {% endif %}
+                    <a href="#puntos" class="nav-link orbitron">Puntos</a>
+                    <a href="#clips" class="nav-link orbitron">Clips</a>
+                    <a href="#redes-sociales" class="nav-link orbitron">Redes</a>
+                    
+                    <!-- Social Links (Mobile) -->
+                    {% if page.social_links %}
+                    <div class="flex gap-2 mt-2">
+                        {% if page.social_links.kick %}
+                        <a href="{{ page.social_links.kick }}" target="_blank" class="nav-social-btn flex-1 justify-center">
+                            <i class="fab fa-kickstarter"></i>
+                            Kick
+                        </a>
+                        {% endif %}
+                        {% if page.social_links.instagram %}
+                        <a href="{{ page.social_links.instagram }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        {% endif %}
+                        {% if page.social_links.tiktok %}
+                        <a href="{{ page.social_links.tiktok }}" target="_blank" class="nav-social-btn">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Floating Points Widget -->
+    <div id="pointsWidget" class="points-widget hidden">
+        <i class="fas fa-gem points-icon-large"></i>
+        <span class="watchtime-display" id="usernameDisplay" style="font-size: 0.9rem; color: #FF6600; margin-bottom: 0.25rem; display: block;"></span>
+        <span class="points-value-large" id="pointsValueLarge">0</span>
+        <span class="watchtime-display" id="watchtimeDisplay">0 min viendo</span>
+        <div id="wagerRankDisplay" class="hidden" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 2px solid rgba(124, 58, 237, 0.5);">
+            <i class="fas fa-trophy" style="color: #FFD700; margin-right: 0.5rem;"></i>
+            <span style="font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 700; color: #a855f7;">#<span id="wagerRankNumber">0</span></span>
+            <span style="display: block; font-size: 0.75rem; color: #a78bfa; margin-top: 0.25rem;">Wager Race</span>
+        </div>
+        <button id="redeemCodeBtn" onclick="openRedeemModal()" style="margin-top: 0.75rem; width: 100%; padding: 0.5rem; background: linear-gradient(135deg, #7C3AED, #FF6600); border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease;">
+            <i class="fas fa-gift"></i> Canjear Código
+        </button>
+    </div>
+    
+    <!-- Redeem Code Modal -->
+    <div id="redeemCodeModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 border-2 border-purple-500 shadow-2xl shadow-purple-500/50">
+            <h2 class="text-3xl font-extrabold orbitron text-center mb-6 gradient-text">
+                <i class="fas fa-gift"></i> Canjear Código
+            </h2>
+            <p class="text-gray-300 text-center mb-6">Ingresa un código para obtener puntos gratis</p>
+            
+            <div class="mb-6">
+                <input type="text" id="redeemCodeInput" placeholder="Ingresa el código..." 
+                    class="w-full bg-gray-700/50 border-2 border-purple-500/50 rounded-xl px-4 py-3 text-white text-center text-lg font-bold orbitron focus:outline-none focus:border-purple-500 uppercase"
+                    style="letter-spacing: 2px;">
+            </div>
+            
+            <div id="redeemErrorDiv" class="hidden mb-4 bg-red-500/20 border border-red-500 rounded-lg p-3">
+                <p id="redeemErrorText" class="text-red-400 text-sm text-center"></p>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="closeRedeemModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all">
+                    Cancelar
+                </button>
+                <button onclick="submitRedeemCode()" id="submitRedeemBtn" class="flex-1 bg-gradient-to-r from-purple-500 to-orange-500 hover:from-purple-400 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-purple-500/40">
+                    <i class="fas fa-check"></i> Canjear
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="fixed top-24 right-6 bg-gradient-to-r from-purple-500 to-orange-500 text-white px-6 py-4 rounded-xl shadow-2xl shadow-purple-500/50 hidden z-50 transform transition-all duration-300 orbitron">
+        <div class="flex items-center gap-3">
+            <i id="toastIcon" class="fas fa-check-circle text-2xl"></i>
+            <div>
+                <p id="toastTitle" class="font-bold text-lg"></p>
+                <p id="toastMessage" class="text-sm opacity-90"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="min-h-screen flex items-center justify-center px-4 py-20 pt-32">
+        <div class="container mx-auto">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Left: Avatar -->
+                <div class="flex justify-center lg:justify-end" data-animate="left">
+                    <div class="animated-border">
+                        <div class="w-72 h-72 rounded-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
+                            {% if page.profile_image_url %}
+                            <img src="{{ page.profile_image_url }}" alt="{{ page.title }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-user text-9xl text-gray-600"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Info -->
+                <div class="text-center lg:text-left" data-animate="right">
+                    <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold orbitron gradient-text mb-6 fade-in-up tracking-wider">
+                        {{ page.title or 'YANGLEE' }}
+                    </h1>
+                    
+                    <!-- LIVE/OFFLINE Status -->
+                    {% if kick_data and kick_data.stream and kick_data.stream.is_live %}
+                    <div class="mb-6 flex justify-center lg:justify-start">
+                        <div class="live-badge">
+                            <div class="live-dot"></div>
+                            <span>EN VIVO</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="mb-6 flex justify-center lg:justify-start">
+                        <div class="offline-badge">
+                            <i class="fas fa-circle text-gray-500"></i>
+                            <span>OFFLINE</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <p class="text-lg sm:text-xl md:text-2xl text-gray-300 mb-10 max-w-xl font-medium tracking-wide fade-in-up delay-200 leading-relaxed">
+                        {{ page.description or 'Streamer profesional de gaming y entretenimiento' }}
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center lg:justify-start mb-8">
+                        {% if social_links.kick %}
+                        <a href="{{ social_links.kick }}" target="_blank" 
+                           class="social-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg shadow-green-500/40"
+                           style="display: inline-flex !important; align-items: center !important;">
+                            <i class="fas fa-play-circle text-2xl sm:text-3xl" style="margin-right: 0.5rem;"></i>
+                            <span style="font-weight: bold;">🎮 Ver en Kick</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if social_links.instagram %}
+                        <a href="{{ social_links.instagram }}" target="_blank" 
+                           class="social-btn bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/40">
+                            <i class="fab fa-instagram text-2xl sm:text-3xl"></i>
+                            <span>Instagram</span>
+                        </a>
+                        {% endif %}
+
+                        {% if social_links.tiktok %}
+                        <a href="{{ social_links.tiktok }}" target="_blank" 
+                           class="social-btn bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white shadow-lg shadow-gray-500/30 border border-gray-700">
+                            <i class="fab fa-tiktok text-2xl sm:text-3xl"></i>
+                            <span>TikTok</span>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Quick Social Links + Kick Login -->
+                    <div class="flex gap-6 mt-8 justify-center lg:justify-start fade-in-up delay-400 items-center">
+                        {% if social_links.youtube %}
+                        <a href="{{ social_links.youtube }}" target="_blank" class="text-4xl hover:text-red-500 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                        {% endif %}
+                        {% if social_links.twitter %}
+                        <a href="{{ social_links.twitter }}" target="_blank" class="text-4xl hover:text-blue-400 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        {% endif %}
+                        {% if social_links.discord %}
+                        <a href="{{ social_links.discord }}" target="_blank" class="text-4xl hover:text-indigo-500 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Kick Login Button (Small) -->
+                        {% if sorteos_habilitados and not kick_user_authenticated %}
+                        <a href="{{ url_for('kick.login', return_to=request.path) }}" 
+                           class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white rounded-full font-bold text-sm shadow-lg shadow-green-500/40 transition-all transform hover:scale-105">
+                            <i class="fab fa-kickstarter"></i>
+                            <span>Login Kick</span>
+                        </a>
+                        {% elif kick_user_authenticated %}
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-600 rounded-full font-bold text-sm shadow-lg">
+                            <i class="fab fa-kickstarter text-white"></i>
+                            <span class="text-white">{{ kick_username_authenticated }}</span>
+                            <a href="{{ url_for('kick_bp.logout', return_to=request.path) }}" class="text-white hover:text-gray-200 transition-colors">
+                                <i class="fas fa-sign-out-alt text-xs"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sorteos Activos Section -->
+    <section id="sorteos-activos" class="py-20 px-4 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent" data-animate="fade">
+        <div class="container mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-16 fade-in-up">
+                <h2 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold orbitron gradient-text tracking-wider mb-4">
+                    🎁 SORTEOS ACTIVOS
+                </h2>
+                <p class="text-xl sm:text-2xl text-gray-300 font-semibold">¡Participa con tus puntos del canal!</p>
+            </div>
+
+            <!-- Raffles Grid -->
+            <div id="rafflesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+                <!-- Loading message -->
+                <div class="col-span-full text-center text-gray-400 text-xl">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Cargando sorteos...
+                </div>
+            </div>
+
+            <!-- No raffles message (hidden by default) -->
+            <div id="noRafflesMessage" class="hidden text-center text-gray-400 text-xl py-12">
+                <i class="fas fa-gift text-6xl mb-4 opacity-30"></i>
+                <p>No hay sorteos activos en este momento</p>
+                <p class="text-sm mt-2">¡Vuelve pronto para participar!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Wager Race Section -->
+    {% if wager_race and wager_race.current %}
+    <section id="wager-race" class="py-20 px-4 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent" data-animate="fade">
+        <div class="container mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-16 fade-in-up">
+                <h2 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold orbitron gradient-text tracking-wider mb-4">
+                    <i class="fas fa-trophy text-yellow-500"></i> WAGER RACE
+                </h2>
+                <p class="text-xl sm:text-2xl text-gray-300 font-semibold">Competencia Mensual - Top Jugadores Stake</p>
+                <p class="text-sm text-gray-400 mt-2">Actualizado cada 5 minutos</p>
+            </div>
+
+            <!-- Podio Top 3 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto fade-in-up delay-100">
+                {% for player in wager_race.current[:3] %}
+                <div class="enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 
+                    {% if player.rank == 1 %}shadow-2xl shadow-yellow-500/40 border-2 border-yellow-500 order-1 md:order-2{% endif %}
+                    {% if player.rank == 2 %}shadow-xl shadow-gray-400/30 border-2 border-gray-400 order-2 md:order-1{% endif %}
+                    {% if player.rank == 3 %}shadow-xl shadow-orange-600/30 border-2 border-orange-600 order-3 md:order-3{% endif %}">
+                    
+                    <!-- Medal -->
+                    <div class="mb-4">
+                        {% if player.rank == 1 %}
+                        <div class="text-7xl">🥇</div>
+                        {% elif player.rank == 2 %}
+                        <div class="text-6xl">🥈</div>
+                        {% else %}
+                        <div class="text-6xl">🥉</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Rank Badge -->
+                    <div class="text-5xl font-extrabold orbitron mb-3
+                        {% if player.rank == 1 %}text-yellow-400{% endif %}
+                        {% if player.rank == 2 %}text-gray-300{% endif %}
+                        {% if player.rank == 3 %}text-orange-500{% endif %}">
+                        #{{ player.rank }}
+                    </div>
+                    
+                    <!-- Username -->
+                    <div class="text-2xl font-bold text-white mb-4 break-words">{{ player.username }}</div>
+                    
+                    <!-- Wagered Amount -->
+                    <div class="bg-black/50 rounded-xl p-4 border
+                        {% if player.rank == 1 %}border-yellow-500/50{% endif %}
+                        {% if player.rank == 2 %}border-gray-400/50{% endif %}
+                        {% if player.rank == 3 %}border-orange-600/50{% endif %}">
+                        <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                        <div class="text-2xl font-mono font-extrabold
+                            {% if player.rank == 1 %}text-yellow-400{% endif %}
+                            {% if player.rank == 2 %}text-gray-300{% endif %}
+                            {% if player.rank == 3 %}text-orange-500{% endif %}">
+                            ${{ "{:,.2f}".format(player.wagered) }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Top 10 Leaderboard -->
+            <div class="enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-purple-500/30 max-w-6xl mx-auto fade-in-up delay-200">
+                <h3 class="text-2xl sm:text-3xl font-extrabold orbitron text-center mb-8 gradient-text flex items-center justify-center gap-3">
+                    <i class="fas fa-list-ol"></i>
+                    Top 10 Completo
+                </h3>
+                
+                <!-- Desktop Table -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b-2 border-purple-500/50">
+                                <th class="px-4 py-3 text-left text-orange-500 font-bold orbitron">Rank</th>
+                                <th class="px-4 py-3 text-left text-orange-500 font-bold orbitron">Jugador</th>
+                                <th class="px-4 py-3 text-right text-orange-500 font-bold orbitron">Monto Apostado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wagerRaceTableBody">
+                            {% for player in wager_race.current[:10] %}
+                            <tr class="border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row" data-username="{{ player.username }}">
+                                <td class="px-4 py-4">
+                                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold orbitron
+                                        {% if player.rank <= 3 %}bg-gradient-to-r from-purple-500 to-orange-500 text-white{% else %}bg-gray-700 text-gray-300{% endif %}">
+                                        {{ player.rank }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 font-semibold text-white text-lg">{{ player.username }}</td>
+                                <td class="px-4 py-4 text-right">
+                                    <span class="text-2xl font-mono font-bold text-purple-400">${{ "{:,.2f}".format(player.wagered) }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Mobile Cards -->
+                <div class="md:hidden space-y-4" id="wagerRaceMobileList">
+                    {% for player in wager_race.current[:10] %}
+                    <div class="bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row" data-username="{{ player.username }}">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron
+                                {% if player.rank <= 3 %}bg-gradient-to-r from-purple-500 to-orange-500 text-white{% else %}bg-gray-700 text-gray-300{% endif %}">
+                                {{ player.rank }}
+                            </span>
+                            <span class="font-bold text-lg text-white">{{ player.username }}</span>
+                        </div>
+                        <div class="bg-black/50 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                            <div class="text-xl font-mono font-bold text-purple-400">${{ "{:,.2f}".format(player.wagered) }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Search and View All -->
+                <div class="mt-8 flex flex-col sm:flex-row gap-4 items-center justify-center">
+                    <!-- Search Box -->
+                    <div class="relative w-full sm:w-auto">
+                        <input type="text" id="wagerRaceSearch" placeholder="Buscar jugador..." 
+                            class="bg-gray-800/80 border-2 border-purple-500/50 rounded-full px-6 py-3 pl-12 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 w-full sm:w-80">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500"></i>
+                    </div>
+                    
+                    <!-- View All Button -->
+                    <button id="viewAllBtn" 
+                        class="social-btn bg-gradient-to-r from-purple-500 to-orange-500 hover:from-purple-400 hover:to-orange-400 text-white shadow-lg shadow-purple-500/40">
+                        <i class="fas fa-trophy"></i>
+                        <span id="viewAllText">Ver Top 100 Completo</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Central Section: Social Links, Raffle, Benefits -->
+    <section id="redes-sociales" class="py-20 px-4" data-animate="fade">
+        <div class="container mx-auto">
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Social Networks -->
+                <div class="lg:col-span-1 enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-purple-500/20 fade-in-up">
+                    <i class="fas fa-share-alt text-4xl sm:text-5xl md:text-6xl text-orange-500 mb-4 sm:mb-6 pulse-slow"></i>
+                    <h3 class="text-2xl sm:text-3xl md:text-4xl font-extrabold orbitron mb-4 sm:mb-6 gradient-text tracking-wide">Sígueme</h3>
+                    <p class="text-gray-300 text-lg leading-relaxed mb-6">
+                        Conéctate en todas mis redes sociales y no te pierdas ningún stream, clip o sorteo.
+                    </p>
+                    
+                    <!-- Social Links Buttons -->
+                    <div class="space-y-4">
+                        {% if social_links.telegram %}
+                        <a href="{{ social_links.telegram }}" target="_blank" 
+                           class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/40 transition-all transform hover:scale-105">
+                            <i class="fab fa-telegram text-2xl"></i>
+                            <span>Telegram</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if social_links.discord %}
+                        <a href="{{ social_links.discord }}" target="_blank" 
+                           class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/40 transition-all transform hover:scale-105">
+                            <i class="fab fa-discord text-2xl"></i>
+                            <span>Discord</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if social_links.whatsapp %}
+                        <a href="https://wa.me/{{ social_links.whatsapp }}" target="_blank" 
+                           class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white rounded-xl font-bold shadow-lg shadow-green-500/40 transition-all transform hover:scale-105">
+                            <i class="fab fa-whatsapp text-2xl"></i>
+                            <span>WhatsApp</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if social_links.instagram %}
+                        <a href="{{ social_links.instagram }}" target="_blank" 
+                           class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white rounded-xl font-bold shadow-lg shadow-pink-500/40 transition-all transform hover:scale-105">
+                            <i class="fab fa-instagram text-2xl"></i>
+                            <span>Instagram</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if social_links.youtube %}
+                        <a href="{{ social_links.youtube }}" target="_blank" 
+                           class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white rounded-xl font-bold shadow-lg shadow-red-500/40 transition-all transform hover:scale-105">
+                            <i class="fab fa-youtube text-2xl"></i>
+                            <span>YouTube</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Active Raffles (Center) -->
+                <div id="sorteos" class="lg:col-span-1">
+                    {% if sorteos_activos and sorteos_activos|length > 0 %}
+                    <div class="h-full flex flex-col">
+                        <div class="mb-4">
+                            <span class="inline-block px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold rounded-full animate-pulse">
+                                <i class="fas fa-gift mr-2"></i>{{ sorteos_activos|length }} SORTEO{% if sorteos_activos|length > 1 %}S{% endif %} ACTIVO{% if sorteos_activos|length > 1 %}S{% endif %}
+                            </span>
+                        </div>
+                        
+                        <!-- Contenedor con scroll para múltiples sorteos -->
+                        <div class="space-y-4 overflow-y-auto max-h-[600px] pr-2" style="scrollbar-width: thin; scrollbar-color: #7C3AED transparent;">
+                            {% for sorteo in sorteos_activos %}
+                            <div class="enhanced-card p-5 rounded-2xl shadow-2xl shadow-pink-500/30 border-2 border-pink-500/50 flex flex-col transition-all hover:shadow-pink-500/50 hover:scale-[1.02]">
+                                <h3 class="text-2xl font-extrabold orbitron mb-3 gradient-text">{{ sorteo.title }}</h3>
+                                <p class="text-gray-300 mb-3 text-sm leading-relaxed">{{ sorteo.description }}</p>
+                                
+                                <div class="grid grid-cols-2 gap-2 mb-3">
+                                    <div class="bg-black/60 rounded-xl p-3 border border-orange-500/50">
+                                        <p class="text-orange-400 font-bold text-xs mb-1">
+                                            <i class="fas fa-trophy mr-1"></i> Premio
+                                        </p>
+                                        <p class="text-white text-sm font-bold">{{ sorteo.prize }}</p>
+                                    </div>
+                                    
+                                    <div class="bg-black/60 rounded-xl p-3">
+                                        <p class="text-purple-400 font-bold text-xs mb-1">
+                                            <i class="fas fa-coins mr-1"></i> Costo
+                                        </p>
+                                        <p class="text-white text-sm">{{ sorteo.entry_cost }} pts</p>
+                                    </div>
+                                </div>
+                                
+                                {% if sorteo.end_date %}
+                                <div class="bg-black/60 rounded-xl p-2 mb-3">
+                                    <p class="text-gray-400 text-xs">
+                                        <i class="far fa-clock mr-1"></i>
+                                        Finaliza: {{ sorteo.end_date.strftime('%d/%m/%Y %H:%M') }}
+                                    </p>
+                                </div>
+                                {% endif %}
+                                
+                                <div>
+                                    {% if kick_user_authenticated %}
+                                    <a href="{{ url_for('public.raffle_entry', raffle_id=sorteo.id) }}" 
+                                       class="social-btn bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white shadow-lg shadow-purple-500/50 w-full text-center text-sm py-2">
+                                        <i class="fas fa-ticket-alt text-lg"></i>
+                                        <span>Participar Ahora</span>
+                                    </a>
+                                    {% else %}
+                                    <a href="{{ url_for('kick.login', return_to=request.path) }}" 
+                                       class="social-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg shadow-green-500/40 w-full text-center text-sm py-2">
+                                        <i class="fab fa-kickstarter text-lg"></i>
+                                        <span>Ingresar para Participar</span>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="enhanced-card p-8 rounded-3xl h-full flex flex-col items-center justify-center text-center">
+                        <i class="fas fa-gift text-6xl text-gray-600 mb-4 opacity-50"></i>
+                        <h4 class="text-2xl font-bold text-gray-400 mb-2">No hay sorteos activos</h4>
+                        <p class="text-gray-500">¡Mantente atento al stream para próximos sorteos!</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Benefits -->
+                <div class="lg:col-span-1 enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-orange-500/20 fade-in-up delay-200 bg-gradient-to-br from-orange-900/30 to-transparent">
+                    <i class="fas fa-gift text-4xl sm:text-5xl md:text-6xl text-orange-500 mb-4 sm:mb-6 pulse-slow"></i>
+                    <h3 class="text-2xl sm:text-3xl md:text-4xl font-extrabold orbitron mb-4 sm:mb-6 gradient-text tracking-wide">Beneficios Codigo Patrocinador</h3>
+                    <div class="bg-black/70 p-4 sm:p-6 md:p-8 rounded-2xl mb-4 sm:mb-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/30">
+                        <div class="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 tracking-widest">CÓDIGO PROMOCIONAL</div>
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-mono font-extrabold text-orange-500 tracking-wider animate-pulse">{{ (usuario_json.codigo_promocional if usuario_json else '')|default('YANGLEE2024', true) }}</div>
+                    </div>
+                    <ul class="space-y-3 text-gray-300 mb-6">
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-star text-yellow-500"></i>
+                            <span>Primera recarga y apuesta de 21 USD se te devolvera </span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-crown text-yellow-500"></i>
+                            <span>Sorteos todas las semanas</span>
+                        </li>
+                    </ul>
+                    <!-- Botón Stake -->
+                    {% if usuario_json and usuario_json.casino %}
+                    <a href="{{ usuario_json.casino }}" target="_blank" 
+                       class="social-btn bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-400 hover:to-purple-600 text-white shadow-lg shadow-purple-500/40 w-full">
+                        <i class="fas fa-dice text-2xl sm:text-3xl"></i>
+                        <span>Jugar en Stake</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Get Points Section -->
+    <section id="puntos" class="py-16 sm:py-20 px-4 bg-gradient-to-b from-black to-purple-900/20" data-animate="fade">
+        <div class="container mx-auto">
+            <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron text-center mb-12 sm:mb-16 gradient-text tracking-wider fade-in-up">
+                💰 CÓMO GANAR PUNTOS
+            </h2>
+            
+            <div id="pointsInfoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <!-- Sistema 1: Watchtime -->
+                <div class="points-info-card fade-in-up">
+                    <span class="points-info-icon">📺</span>
+                    <h3 class="points-info-title">Ver Stream en Vivo</h3>
+                    <div class="points-info-value" id="pointsPerMinute">...</div>
+                    <p class="points-info-label">puntos/minuto</p>
+                    <p class="text-center text-gray-400 text-xs mt-2">Automático mientras ves</p>
+                </div>
+                
+                <!-- Sistema 2: Visita Diaria -->
+                <div class="points-info-card fade-in-up delay-100">
+                    <span class="points-info-icon">🎁</span>
+                    <h3 class="points-info-title">Visita Diaria</h3>
+                    <div class="points-info-value" id="dailyVisitPoints">...</div>
+                    <p class="points-info-label">puntos/día</p>
+                    <p class="text-center text-gray-400 text-xs mt-2">Al ingresar cada día</p>
+                </div>
+                
+                <!-- Sistema 3: Códigos Canjeables -->
+                <div class="points-info-card fade-in-up delay-200">
+                    <span class="points-info-icon">🎟️</span>
+                    <h3 class="points-info-title">Códigos Especiales</h3>
+                    <p class="text-center text-gray-300 text-lg mt-4 mb-4">Canjea códigos exclusivos durante el stream</p>
+                    <p class="text-center text-gray-400 text-sm">Los códigos se anuncian en vivo con puntos variables</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <p class="text-xl text-gray-300 font-semibold">
+                    <i class="fas fa-info-circle text-purple-500 mr-2"></i>
+                    ¡Gana puntos automáticamente mientras disfrutas del stream!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Metrics Section -->
+    <section class="py-12 sm:py-20 px-4 bg-gradient-to-b from-transparent to-gray-900" data-animate="fade">
+        <div class="container mx-auto">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold orbitron text-center mb-12 sm:mb-20 gradient-text tracking-wider fade-in-up">
+                Estadísticas en Vivo
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
+                <!-- Average Viewers -->
+                <div class="text-center enhanced-card p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-purple-500/30 fade-in-up">
+                    <i class="fas fa-users text-5xl sm:text-6xl md:text-7xl text-purple-500 mb-4 sm:mb-6 pulse-slow"></i>
+                    <div class="counter orbitron text-3xl sm:text-4xl md:text-5xl" data-target="{{ (usuario_json.promedio_viewers|int if usuario_json else 0)|default(2500, true) }}">0</div>
+                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Total de seguidores </div>
+                </div>
+
+                <!-- Schedule -->
+                <div class="text-center enhanced-card p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-orange-500/30 fade-in-up delay-100">
+                    <i class="fas fa-clock text-5xl sm:text-6xl md:text-7xl text-orange-500 mb-4 sm:mb-6 pulse-slow"></i>
+                    {% set horario = (usuario_json.horarios_stream if usuario_json else '')|default('Lunes a Viernes, 20:00 - 02:00', true) %}
+                    {% set horario_partes = horario.split(',') %}
+                    <div class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold orbitron text-orange-500 tracking-wide">{{ horario_partes[0]|trim if horario_partes|length > 0 else 'Lun - Vie' }}</div>
+                    <div class="text-xl sm:text-2xl md:text-3xl mt-2 sm:mt-3 font-bold">{{ horario_partes[1]|trim if horario_partes|length > 1 else '20:00 - 02:00' }}</div>
+                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Horario de Stream</div>
+                </div>
+
+                <!-- Max Win -->
+                <div class="text-center enhanced-card p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-yellow-500/30 fade-in-up delay-200 sm:col-span-2 md:col-span-1">
+                    <i class="fas fa-trophy text-5xl sm:text-6xl md:text-7xl text-yellow-500 mb-4 sm:mb-6 pulse-slow"></i>
+                    <div class="counter orbitron text-3xl sm:text-4xl md:text-5xl" data-target="{{ (usuario_json.victorias_consecutivas|int if usuario_json else 0)|default(47, true) }}">0</div>
+                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Viewers Diarios</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Clips Section -->
+    {% if clips and clips|length > 0 %}
+    <section id="clips" class="py-20 px-4 bg-black" data-animate="fade">
+        <div class="container mx-auto">
+            <h2 class="text-5xl font-bold orbitron text-center mb-16 gradient-text">
+                Mejores Momentos
+            </h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for clip in clips %}
+                <div class="bg-gray-800 rounded-xl overflow-hidden border-2 border-gray-700 hover:border-orange-500 transition-all">
+                    <a href="{{ clip.video_url }}" target="_blank" class="block">
+                        <!-- Imagen del clip -->
+                        <div class="relative" style="padding-bottom: 56.25%; background: #000;">
+                            {% if clip.thumbnail_url %}
+                            <img src="{{ clip.thumbnail_url }}" 
+                                 alt="{{ clip.title or 'Clip' }}" 
+                                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                            {% endif %}
+                            <!-- Botón Play -->
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+                                <div style="width: 80px; height: 80px; background: #ff6600; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid white; box-shadow: 0 4px 20px rgba(255,102,0,0.5);">
+                                    <i class="fas fa-play" style="color: white; font-size: 32px; margin-left: 5px;"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Título -->
+                        <div class="p-4">
+                            <h4 class="text-xl font-bold text-white mb-1">{{ clip.title or 'Clip sin título' }}</h4>
+                            {% if clip.description %}
+                            <p class="text-gray-400 text-sm">{{ clip.description }}</p>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Kick Stats Section (if online) -->
+    {% if kick_data and kick_data.stream and kick_data.stream.is_live %}
+    <section class="py-20 px-4 bg-gradient-to-b from-black via-purple-900/20 to-black" data-animate="fade">
+        <div class="container mx-auto max-w-4xl">
+            <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron text-center mb-12 gradient-text tracking-wider fade-in-up">
+                <i class="fas fa-signal text-green-500 mr-4"></i>STATS EN VIVO
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Viewers -->
+                <div class="enhanced-card p-8 rounded-3xl shadow-2xl shadow-purple-500/30 text-center border-2 border-purple-500/50">
+                    <i class="fas fa-eye text-6xl text-purple-500 mb-6 pulse-slow"></i>
+                    <div class="text-6xl font-extrabold orbitron gradient-text mb-4">
+                        {{ kick_data.stream.viewer_count|default(0) }}
+                    </div>
+                    <div class="text-xl text-gray-300 font-semibold tracking-wide">Viewers en Directo</div>
+                </div>
+
+                <!-- Followers -->
+                <div class="enhanced-card p-8 rounded-3xl shadow-2xl shadow-orange-500/30 text-center border-2 border-orange-500/50">
+                    <i class="fas fa-users text-6xl text-orange-500 mb-6 pulse-slow"></i>
+                    <div class="text-6xl font-extrabold orbitron gradient-text mb-4">
+                        {{ kick_data.channel.followers_count|default(0)|int }}
+                    </div>
+                    <div class="text-xl text-gray-300 font-semibold tracking-wide">Total de Seguidores</div>
+                </div>
+            </div>
+            
+            {% if kick_data.stream.title %}
+            <div class="mt-8 enhanced-card p-6 rounded-2xl shadow-2xl shadow-green-500/20 border-2 border-green-500/30 text-center">
+                <p class="text-sm text-gray-400 mb-2">STREAM ACTUAL</p>
+                <h3 class="text-2xl font-bold text-white">{{ kick_data.stream.title }}</h3>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+
+    <!-- Footer -->
+    <footer id="contacto" class="py-20 px-4 bg-black">
+        <div class="container mx-auto">
+            <!-- Social Links Grid -->
+            <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center mb-12">
+                {% if social_links.kick %}
+                <a href="{{ social_links.kick }}" target="_blank" 
+                   class="social-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg shadow-green-500/40"
+                   style="display: inline-flex !important; align-items: center !important;">
+                    <i class="fas fa-play-circle text-2xl sm:text-3xl" style="margin-right: 0.5rem;"></i>
+                    <span style="font-weight: bold;">Ver en Kick</span>
+                </a>
+                {% endif %}
+                
+                {% if social_links.instagram %}
+                <a href="{{ social_links.instagram }}" target="_blank" 
+                   class="social-btn bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/40">
+                    <i class="fab fa-instagram text-2xl sm:text-3xl"></i>
+                    <span>Instagram</span>
+                </a>
+                {% endif %}
+
+                {% if social_links.tiktok %}
+                <a href="{{ social_links.tiktok }}" target="_blank" 
+                   class="social-btn bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white shadow-lg shadow-gray-500/30 border border-gray-700">
+                    <i class="fab fa-tiktok text-2xl sm:text-3xl"></i>
+                    <span>TikTok</span>
+                </a>
+                {% endif %}
+                
+                {% if social_links.youtube %}
+                <a href="{{ social_links.youtube }}" target="_blank" 
+                   class="social-btn bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-lg shadow-red-500/40">
+                    <i class="fab fa-youtube text-2xl sm:text-3xl"></i>
+                    <span>YouTube</span>
+                </a>
+                {% endif %}
+                
+                {% if social_links.twitter %}
+                <a href="{{ social_links.twitter }}" target="_blank" 
+                   class="social-btn bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-lg shadow-blue-500/40">
+                    <i class="fab fa-twitter text-2xl sm:text-3xl"></i>
+                    <span>Twitter</span>
+                </a>
+                {% endif %}
+                
+                <!-- WhatsApp Button -->
+                {% if social_links.whatsapp %}
+                <a href="https://wa.me/{{ social_links.whatsapp }}?text=Hola,%20vengo%20desde%20Workly" target="_blank"
+                   class="social-btn bg-gradient-to-r from-green-400 to-green-600 hover:from-green-300 hover:to-green-500 text-white shadow-lg shadow-green-500/40">
+                    <i class="fab fa-whatsapp text-2xl sm:text-3xl"></i>
+                    <span>WhatsApp</span>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Contact -->
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <h3 class="text-3xl font-bold orbitron mb-4">¿Colaboraciones?</h3>
+                <p class="text-gray-400 mb-6">Contacto para patrocinios y colaboraciones profesionales</p>
+            </div>
+
+            <!-- Copyright -->
+            <div class="text-center pt-8 border-t border-gray-800">
+                <p class="text-gray-500">
+                    &copy; 2025 {{ page.title or 'YANGLEE' }}. Todos los derechos reservados.
+                </p>
+                <p class="text-gray-600 text-sm mt-2">
+                    Desarrollado con <span class="text-orange-500">♥</span> por Workly
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Username Modal -->
+    <div id="usernameModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 class="modal-title">🎮 BIENVENIDO</h2>
+            <p class="text-center text-gray-300 mb-4">
+                Ingresa tu username de Kick para ganar puntos mientras ves el stream y participar en sorteos
+            </p>
+            <input 
+                type="text" 
+                id="usernameInput" 
+                class="modal-input" 
+                placeholder="Tu username de Kick"
+                maxlength="30"
+            />
+            <div id="usernameError" class="hidden" style="color: #FF6600; text-align: center; margin-top: 10px; font-size: 0.9rem;">
+                <i class="fas fa-exclamation-triangle"></i> <span id="usernameErrorText"></span>
+            </div>
+            <button id="saveUsernameBtn" class="modal-btn">
+                <i class="fas fa-save mr-2"></i> GUARDAR Y COMENZAR
+            </button>
+            <p class="text-center text-gray-500 text-sm mt-4">
+                Verificaremos que tu username exista en Kick
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Particle Generator
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = Math.random() * 4 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Counter Animation
+        function animateCounter(element) {
+            const target = parseInt(element.getAttribute('data-target'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    element.textContent = target.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current).toLocaleString();
+                }
+            }, 16);
+        }
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero animations
+        gsap.from('[data-animate="left"]', {
+            x: -100,
+            opacity: 0,
+            duration: 1,
+            ease: 'power3.out'
+        });
+
+        gsap.from('[data-animate="right"]', {
+            x: 100,
+            opacity: 0,
+            duration: 1,
+            ease: 'power3.out',
+            delay: 0.2
+        });
+
+        // Scroll animations
+        document.querySelectorAll('[data-animate="fade"]').forEach(element => {
+            gsap.from(element, {
+                scrollTrigger: {
+                    trigger: element,
+                    start: 'top 80%',
+                    toggleActions: 'play none none reverse'
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: 'power2.out'
+            });
+        });
+
+        // Counters with ScrollTrigger
+        document.querySelectorAll('.counter').forEach(counter => {
+            ScrollTrigger.create({
+                trigger: counter,
+                start: 'top 80%',
+                onEnter: () => animateCounter(counter),
+                once: true
+            });
+        });
+
+        // Parallax effect
+        gsap.to('.animated-bg', {
+            scrollTrigger: {
+                scrub: 1
+            },
+            y: (i, target) => -ScrollTrigger.maxScroll(window) * 0.3
+        });
+
+        // Clip cards stagger animation
+        gsap.from('.clip-card', {
+            scrollTrigger: {
+                trigger: '.clip-card',
+                start: 'top 85%',
+            },
+            y: 50,
+            opacity: 0,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: 'power2.out'
+        });
+
+        // ===== WAGER RACE FUNCTIONALITY =====
+        {% if wager_race and wager_race.current %}
+        const wagerRaceData = {{ wager_race.current|tojson }};
+        let showingTop100 = false;
+
+        // Search functionality
+        const searchInput = document.getElementById('wagerRaceSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('.wager-race-row');
+                
+                rows.forEach(row => {
+                    const username = row.dataset.username.toLowerCase();
+                    if (username.includes(searchTerm)) {
+                        row.style.display = '';
+                        // Highlight matched row
+                        if (searchTerm && searchTerm.length > 0) {
+                            row.classList.add('bg-purple-900/40');
+                        } else {
+                            row.classList.remove('bg-purple-900/40');
+                        }
+                    } else {
+                        row.style.display = 'none';
+                        row.classList.remove('bg-purple-900/40');
+                    }
+                });
+
+                // If searching and not showing, show all results
+                if (searchTerm && !showingTop100) {
+                    loadTop100();
+                }
+            });
+        }
+
+        // View All / View Top 10 toggle
+        const viewAllBtn = document.getElementById('viewAllBtn');
+        const viewAllText = document.getElementById('viewAllText');
+        if (viewAllBtn) {
+            viewAllBtn.addEventListener('click', function() {
+                if (!showingTop100) {
+                    loadTop100();
+                } else {
+                    loadTop10();
+                }
+            });
+        }
+
+        function loadTop100() {
+            showingTop100 = true;
+            const tableBody = document.getElementById('wagerRaceTableBody');
+            const mobileList = document.getElementById('wagerRaceMobileList');
+            
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                wagerRaceData.forEach(player => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row';
+                    row.dataset.username = player.username;
+                    
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-4">
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold orbitron ${rankClass}">
+                                ${player.rank}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 font-semibold text-white text-lg">${player.username}</td>
+                        <td class="px-4 py-4 text-right">
+                            <span class="text-2xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            if (mobileList) {
+                mobileList.innerHTML = '';
+                wagerRaceData.forEach(player => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row';
+                    card.dataset.username = player.username;
+                    
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron ${rankClass}">
+                                ${player.rank}
+                            </span>
+                            <span class="font-bold text-lg text-white">${player.username}</span>
+                        </div>
+                        <div class="bg-black/50 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                            <div class="text-xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    mobileList.appendChild(card);
+                });
+            }
+            
+            if (viewAllText) {
+                viewAllText.textContent = 'Ver Top 10';
+            }
+        }
+
+        function loadTop10() {
+            console.log('🔍 DEBUG: loadTop10() ejecutándose');
+            console.log('🔍 DEBUG: wagerRaceData tiene', wagerRaceData ? wagerRaceData.length : 'undefined', 'jugadores');
+            
+            showingTop100 = false;
+            const tableBody = document.getElementById('wagerRaceTableBody');
+            const mobileList = document.getElementById('wagerRaceMobileList');
+            
+            console.log('🔍 DEBUG: tableBody encontrado?', tableBody ? 'SÍ' : 'NO');
+            console.log('🔍 DEBUG: mobileList encontrado?', mobileList ? 'SÍ' : 'NO');
+            
+            const top10 = wagerRaceData.slice(0, 10);
+            console.log('🔍 DEBUG: top10 tiene', top10.length, 'jugadores');
+            
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                console.log('🔍 DEBUG: Creando filas de tabla...');
+                top10.forEach(player => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row';
+                    row.dataset.username = player.username;
+                    
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-4">
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold orbitron ${rankClass}">
+                                ${player.rank}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 font-semibold text-white text-lg">${player.username}</td>
+                        <td class="px-4 py-4 text-right">
+                            <span class="text-2xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                console.log('🔍 DEBUG: Se agregaron', top10.length, 'filas a tableBody');
+            } else {
+                console.log('⚠️ DEBUG: tableBody NO encontrado, no se pueden agregar filas');
+            }
+            
+            if (mobileList) {
+                mobileList.innerHTML = '';
+                console.log('🔍 DEBUG: Creando tarjetas móviles...');
+                top10.forEach(player => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row';
+                    card.dataset.username = player.username;
+                    
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron ${rankClass}">
+                                ${player.rank}
+                            </span>
+                            <span class="font-bold text-lg text-white">${player.username}</span>
+                        </div>
+                        <div class="bg-black/50 rounded-lg p-3 text-center">
+                            <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                            <div class="text-xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    mobileList.appendChild(card);
+                });
+                console.log('🔍 DEBUG: Se agregaron', top10.length, 'tarjetas a mobileList');
+            } else {
+                console.log('⚠️ DEBUG: mobileList NO encontrado, no se pueden agregar tarjetas');
+            }
+            
+            if (viewAllText) {
+                viewAllText.textContent = 'Ver Top 100 Completo';
+            }
+            
+            // Clear search
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            console.log('✅ DEBUG: loadTop10() completado');
+        }
+        
+        // Inicializar tabla con Top 10 cuando carga la página
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadTop10);
+        } else {
+            // DOMContentLoaded ya ocurrió, ejecutar inmediatamente
+            loadTop10();
+        }
+        {% endif %}
+
+        // ===== SMOOTH SCROLL NAVIGATION =====
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const navHeight = document.querySelector('.sticky-nav').offsetHeight;
+                    const targetPosition = target.offsetTop - navHeight - 20;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                    // Close mobile menu if open
+                    const mobileMenu = document.getElementById('mobileMenu');
+                    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // ===== MOBILE MENU TOGGLE =====
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        if (mobileMenuToggle && mobileMenu) {
+            mobileMenuToggle.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // ===== KICK POINTS SYSTEM =====
+        let kickUsername = null;
+        let pointsUpdateInterval = null;
+        let watchtimeUpdateInterval = null;
+        let currentPoints = 0;
+        let currentWatchtime = 0;
+
+        function updateUsernameDisplay() {
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            if (usernameDisplay && kickUsername) {
+                usernameDisplay.textContent = '👤 ' + kickUsername;
+            }
+        }
+
+        function updateNavUserWidget() {
+            const navUserWidget = document.getElementById('navUserWidget');
+            const navUserWidgetMobile = document.getElementById('navUserWidgetMobile');
+            const navUsername = document.getElementById('navUsername');
+            const navUsernameMobile = document.getElementById('navUsernameMobile');
+            
+            if (kickUsername) {
+                if (navUserWidget) {
+                    navUserWidget.classList.remove('hidden');
+                }
+                if (navUserWidgetMobile) {
+                    navUserWidgetMobile.classList.remove('hidden');
+                }
+                if (navUsername) {
+                    navUsername.textContent = kickUsername;
+                }
+                if (navUsernameMobile) {
+                    navUsernameMobile.textContent = kickUsername;
+                }
+            }
+        }
+
+        function updateWagerRank() {
+            {% if wager_race and wager_race.current %}
+            if (!kickUsername) return;
+            
+            const wagerRankDisplay = document.getElementById('wagerRankDisplay');
+            const wagerRankNumber = document.getElementById('wagerRankNumber');
+            
+            if (!wagerRankDisplay || !wagerRankNumber) return;
+            
+            // Buscar el usuario en el wager race data
+            const userEntry = wagerRaceData.find(entry => 
+                entry.username.toLowerCase() === kickUsername.toLowerCase()
+            );
+            
+            if (userEntry) {
+                console.log(`🏆 WAGER RACE: Usuario ${kickUsername} encontrado en posición #${userEntry.rank}`);
+                wagerRankNumber.textContent = userEntry.rank;
+                wagerRankDisplay.classList.remove('hidden');
+            } else {
+                console.log(`📊 WAGER RACE: Usuario ${kickUsername} no está en el Top 100`);
+                wagerRankDisplay.classList.add('hidden');
+            }
+            {% endif %}
+        }
+
+        function initPointsSystem() {
+            kickUsername = localStorage.getItem('kick_username');
+            
+            const usernameModal = document.getElementById('usernameModal');
+            const usernameInput = document.getElementById('usernameInput');
+            const saveUsernameBtn = document.getElementById('saveUsernameBtn');
+            const pointsWidget = document.getElementById('pointsWidget');
+            
+            loadPointsConfig();
+            
+            if (!kickUsername && usernameModal) {
+                usernameModal.classList.remove('hidden');
+            } else if (kickUsername) {
+                if (pointsWidget) {
+                    pointsWidget.classList.remove('hidden');
+                }
+                updateUsernameDisplay();
+                updateNavUserWidget();
+                updatePointsCounter();
+                updateWagerRank();
+                checkDailyVisit();
+                startAutoUpdates();
+                loadActiveRaffles();
+            }
+            
+            if (saveUsernameBtn) {
+                saveUsernameBtn.addEventListener('click', function() {
+                    const username = usernameInput.value.trim();
+                    const errorDiv = document.getElementById('usernameError');
+                    const errorText = document.getElementById('usernameErrorText');
+                    
+                    // Ocultar error anterior
+                    if (errorDiv) errorDiv.classList.add('hidden');
+                    
+                    if (!username || username.length === 0) {
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'Por favor ingresa un username';
+                            errorDiv.classList.remove('hidden');
+                        }
+                        return;
+                    }
+                    
+                    // Mostrar estado de verificación
+                    const originalHTML = saveUsernameBtn.innerHTML;
+                    saveUsernameBtn.disabled = true;
+                    saveUsernameBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> VERIFICANDO...';
+                    
+                    // Verificar username con API
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', '/kick/api/verify-username/' + encodeURIComponent(username), true);
+                    
+                    xhr.onload = function() {
+                        saveUsernameBtn.disabled = false;
+                        saveUsernameBtn.innerHTML = originalHTML;
+                        
+                        if (xhr.status === 200) {
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                
+                                if (data.ok && data.exists) {
+                                    // Username válido - guardar y continuar
+                                    localStorage.setItem('kick_username', username);
+                                    kickUsername = username;
+                                    usernameModal.classList.add('hidden');
+                                    if (pointsWidget) {
+                                        pointsWidget.classList.remove('hidden');
+                                    }
+                                    updateUsernameDisplay();
+                                    updateNavUserWidget();
+                                    updatePointsCounter();
+                                    updateWagerRank();
+                                    checkDailyVisit();
+                                    startAutoUpdates();
+                                    loadActiveRaffles();
+                                } else {
+                                    // Username no existe
+                                    if (errorDiv && errorText) {
+                                        errorText.textContent = 'Este username no existe en Kick. Verifica que esté escrito correctamente.';
+                                        errorDiv.classList.remove('hidden');
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing response:', e);
+                                if (errorDiv && errorText) {
+                                    errorText.textContent = 'Error al verificar username. Intenta nuevamente.';
+                                    errorDiv.classList.remove('hidden');
+                                }
+                            }
+                        } else {
+                            if (errorDiv && errorText) {
+                                errorText.textContent = 'Error al verificar username. Intenta nuevamente.';
+                                errorDiv.classList.remove('hidden');
+                            }
+                        }
+                    };
+                    
+                    xhr.onerror = function() {
+                        saveUsernameBtn.disabled = false;
+                        saveUsernameBtn.innerHTML = originalHTML;
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'Error de conexión. Intenta nuevamente.';
+                            errorDiv.classList.remove('hidden');
+                        }
+                    };
+                    
+                    xhr.send();
+                });
+            }
+            
+            if (usernameInput) {
+                usernameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        saveUsernameBtn.click();
+                    }
+                });
+            }
+        }
+
+        function loadPointsConfig() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/kick/api/points/config', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.ok && data.config) {
+                            const config = data.config;
+                            
+                            const pointsPerMinute = document.getElementById('pointsPerMinute');
+                            const dailyVisitPoints = document.getElementById('dailyVisitPoints');
+                            
+                            if (pointsPerMinute) {
+                                pointsPerMinute.textContent = config.points_per_minute_watching || 10;
+                            }
+                            if (dailyVisitPoints) {
+                                dailyVisitPoints.textContent = config.daily_visit_points || 100;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing points config:', e);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('Error loading points config');
+            };
+            
+            xhr.send();
+        }
+
+        function showPointsIncrementAnimation(increment) {
+            const pointsWidget = document.getElementById('pointsWidget');
+            if (!pointsWidget || increment <= 0) return;
+            
+            const widgetRect = pointsWidget.getBoundingClientRect();
+            const animElement = document.createElement('div');
+            animElement.className = 'points-increment-animation';
+            animElement.textContent = '+' + increment;
+            animElement.style.top = (widgetRect.top + 30) + 'px';
+            
+            document.body.appendChild(animElement);
+            
+            gsap.to(animElement, {
+                y: -100,
+                opacity: 0,
+                duration: 1.5,
+                ease: 'power2.out',
+                onComplete: function() {
+                    animElement.remove();
+                }
+            });
+        }
+
+        function animateCounterValue(elementId, newValue) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const oldValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
+            
+            if (oldValue === newValue) return;
+            
+            gsap.to({value: oldValue}, {
+                value: newValue,
+                duration: 0.8,
+                ease: 'power2.out',
+                onUpdate: function() {
+                    const formattedValue = Math.floor(this.targets()[0].value).toLocaleString();
+                    element.textContent = formattedValue;
+                    
+                    // También actualizar nav widgets
+                    if (elementId === 'pointsValueLarge') {
+                        const navPoints = document.getElementById('navPoints');
+                        const navPointsMobile = document.getElementById('navPointsMobile');
+                        if (navPoints) navPoints.textContent = formattedValue;
+                        if (navPointsMobile) navPointsMobile.textContent = formattedValue;
+                    }
+                }
+            });
+        }
+
+        function updatePointsCounter() {
+            if (!kickUsername) return;
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/kick/api/viewer/points/' + encodeURIComponent(kickUsername), true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        
+                        if (data.points !== undefined) {
+                            animateCounterValue('pointsValueLarge', data.points);
+                            currentPoints = data.points;
+                        }
+                        
+                        if (data.watch_time !== undefined) {
+                            const watchtimeDisplay = document.getElementById('watchtimeDisplay');
+                            if (watchtimeDisplay) {
+                                watchtimeDisplay.textContent = data.watch_time + ' min viendo';
+                            }
+                            currentWatchtime = data.watch_time;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing points data:', e);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('Error fetching points');
+            };
+            
+            xhr.send();
+        }
+
+        function updateWatchtime() {
+            if (!kickUsername) {
+                console.warn('[WATCHTIME] No hay username configurado, saltando actualización');
+                return;
+            }
+            
+            console.log(`[WATCHTIME] 🔄 Iniciando actualización para: ${kickUsername} @ ${new Date().toLocaleTimeString()}`);
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/kick/api/watchtime/update', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                console.log(`[WATCHTIME] Respuesta del servidor (status ${xhr.status}):`, xhr.responseText);
+                
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        
+                        if (data.ok && data.points !== undefined) {
+                            const oldPoints = currentPoints;
+                            const newPoints = data.points;
+                            const pointsIncrement = newPoints - oldPoints;
+                            
+                            console.log(`[WATCHTIME] ✅ CANAL EN VIVO - Puntos: ${oldPoints} → ${newPoints} (+${pointsIncrement})`);
+                            console.log(`[WATCHTIME] ⏱️ Watch time: ${data.watch_time} minutos`);
+                            
+                            if (pointsIncrement > 0) {
+                                showPointsIncrementAnimation(pointsIncrement);
+                            }
+                            
+                            animateCounterValue('pointsValueLarge', newPoints);
+                            currentPoints = newPoints;
+                            
+                            if (data.watch_time !== undefined) {
+                                const watchtimeDisplay = document.getElementById('watchtimeDisplay');
+                                if (watchtimeDisplay) {
+                                    watchtimeDisplay.textContent = data.watch_time + ' min viendo';
+                                }
+                                currentWatchtime = data.watch_time;
+                            }
+                        } else {
+                            console.warn(`[WATCHTIME] ⚠️ CANAL OFFLINE o error: ${data.message || 'Sin mensaje'}`);
+                        }
+                    } catch (e) {
+                        console.error('[WATCHTIME] ❌ Error parsing watchtime data:', e);
+                    }
+                } else {
+                    console.error(`[WATCHTIME] ❌ Error HTTP ${xhr.status}`);
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('[WATCHTIME] ❌ Error de conexión al actualizar watchtime');
+            };
+            
+            const payload = JSON.stringify({
+                username_kick: kickUsername,
+                channel_name: 'yanglee'
+            });
+            
+            console.log('[WATCHTIME] 📤 Enviando payload:', payload);
+            xhr.send(payload);
+        }
+
+        function startAutoUpdates() {
+            if (pointsUpdateInterval) clearInterval(pointsUpdateInterval);
+            if (watchtimeUpdateInterval) clearInterval(watchtimeUpdateInterval);
+            
+            // Ejecutar inmediatamente la primera actualización
+            updateWatchtime();
+            
+            // Luego configurar las actualizaciones periódicas cada 60 segundos
+            pointsUpdateInterval = setInterval(updatePointsCounter, 60000);
+            watchtimeUpdateInterval = setInterval(updateWatchtime, 60000);
+        }
+
+        function loadActiveRaffles() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/kick/api/raffles/active', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayRaffles(data.raffles || []);
+                    } catch (e) {
+                        console.error('Error parsing raffles data:', e);
+                        displayRaffles([]);
+                    }
+                } else {
+                    displayRaffles([]);
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('Error fetching raffles');
+                displayRaffles([]);
+            };
+            
+            xhr.send();
+        }
+
+        function displayRaffles(raffles) {
+            const container = document.getElementById('rafflesContainer');
+            const noRafflesMessage = document.getElementById('noRafflesMessage');
+            
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (raffles.length === 0) {
+                if (noRafflesMessage) {
+                    noRafflesMessage.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            if (noRafflesMessage) {
+                noRafflesMessage.classList.add('hidden');
+            }
+            
+            raffles.forEach(function(raffle) {
+                const card = document.createElement('div');
+                card.className = 'raffle-card';
+                
+                const hasJoined = raffle.has_joined || false;
+                const canAfford = kickUsername && raffle.entry_cost <= (raffle.user_points || 0);
+                
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="text-2xl font-bold orbitron text-white">${escapeHtml(raffle.title)}</h3>
+                        <span class="raffle-badge">
+                            <i class="fas fa-users"></i>
+                            ${raffle.entry_count || 0}
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-300 mb-4 text-lg">${escapeHtml(raffle.description)}</p>
+                    
+                    <div class="bg-black/50 rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">PREMIO</span>
+                        </div>
+                        <div class="text-xl font-bold text-orange-500">${escapeHtml(raffle.prize)}</div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-star text-yellow-500"></i>
+                            <span class="text-xl font-bold orbitron text-yellow-500">${raffle.entry_cost}</span>
+                            <span class="text-gray-400">puntos</span>
+                        </div>
+                    </div>
+                    
+                    ${hasJoined ? 
+                        '<button class="raffle-btn" disabled><i class="fas fa-check mr-2"></i>YA PARTICIPAS</button>' :
+                        '<button class="raffle-btn" onclick="joinRaffle(' + raffle.id + ', ' + raffle.entry_cost + ')" ' + 
+                        (kickUsername ? '' : 'disabled') + '>' +
+                        '<i class="fas fa-ticket-alt mr-2"></i>PARTICIPAR</button>'
+                    }
+                    
+                    ${!kickUsername ? '<p class="text-center text-gray-500 text-sm mt-2">Ingresa tu username para participar</p>' : ''}
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function joinRaffle(raffleId, pointsCost) {
+            if (!kickUsername) {
+                alert('Por favor ingresa tu username de Kick primero');
+                return;
+            }
+            
+            if (!confirm('¿Quieres participar en este sorteo por ' + pointsCost + ' puntos?')) {
+                return;
+            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/kick/api/raffle/join', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.ok) {
+                            alert('✅ ¡Participación exitosa! Entrada #' + (data.entry_number || ''));
+                            updatePointsCounter();
+                            loadActiveRaffles();
+                        } else {
+                            alert('❌ ' + (data.message || 'Error al participar en el sorteo'));
+                        }
+                    } catch (e) {
+                        alert('❌ Error al procesar la respuesta');
+                    }
+                } else {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        alert('❌ ' + (data.message || 'Error al participar en el sorteo'));
+                    } catch (e) {
+                        alert('❌ Error al participar en el sorteo');
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                alert('❌ Error de conexión. Intenta de nuevo.');
+            };
+            
+            const payload = JSON.stringify({
+                raffle_id: raffleId,
+                username_kick: kickUsername
+            });
+            
+            xhr.send(payload);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        // ===== SISTEMA DE NOTIFICACIONES =====
+        function showToast(title, message, icon = 'fa-check-circle') {
+            const toast = document.getElementById('toastNotification');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            if (!toast || !toastTitle || !toastMessage || !toastIcon) return;
+            
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            toastIcon.className = `fas ${icon} text-2xl`;
+            
+            toast.classList.remove('hidden');
+            toast.style.transform = 'translateX(0)';
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 4000);
+        }
+
+        // ===== SISTEMA DE VISITA DIARIA =====
+        function checkDailyVisit() {
+            console.log('[DAILY-VISIT] 🔄 Verificando visita diaria...');
+            console.log('[DAILY-VISIT] 👤 kickUsername:', kickUsername);
+            
+            if (!kickUsername) {
+                console.log('[DAILY-VISIT] ⚠️ No hay kickUsername, abortando');
+                return;
+            }
+            
+            console.log('[DAILY-VISIT] 📤 Enviando request a /kick/api/daily-visit');
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/kick/api/daily-visit', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                console.log('[DAILY-VISIT] 📥 Respuesta recibida (status ' + xhr.status + '):', xhr.responseText);
+                
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        console.log('[DAILY-VISIT] 📊 Data parseada:', data);
+                        
+                        if (data.ok && data.points_awarded) {
+                            console.log('[DAILY-VISIT] ✅ Puntos otorgados:', data.points_awarded);
+                            showToast('¡Puntos de Bienvenida!', data.message, 'fa-gift');
+                            updatePointsCounter();
+                        } else {
+                            console.log('[DAILY-VISIT] ℹ️ Ya visitó hoy o no se otorgaron puntos');
+                        }
+                    } catch (e) {
+                        console.error('[DAILY-VISIT] ❌ Error procesando visita diaria:', e);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('[DAILY-VISIT] ❌ Error de red');
+            };
+            
+            const payload = {
+                username_kick: kickUsername
+            };
+            console.log('[DAILY-VISIT] 📦 Payload:', JSON.stringify(payload));
+            xhr.send(JSON.stringify(payload));
+        }
+
+        // ===== SISTEMA DE CANJE DE CÓDIGOS =====
+        function openRedeemModal() {
+            const modal = document.getElementById('redeemCodeModal');
+            const input = document.getElementById('redeemCodeInput');
+            const errorDiv = document.getElementById('redeemErrorDiv');
+            
+            if (!modal) return;
+            
+            modal.classList.remove('hidden');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            if (errorDiv) {
+                errorDiv.classList.add('hidden');
+            }
+        }
+
+        function closeRedeemModal() {
+            const modal = document.getElementById('redeemCodeModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function submitRedeemCode() {
+            if (!kickUsername) {
+                showToast('Error', 'Debes ingresar tu username primero', 'fa-exclamation-circle');
+                return;
+            }
+            
+            const input = document.getElementById('redeemCodeInput');
+            const errorDiv = document.getElementById('redeemErrorDiv');
+            const errorText = document.getElementById('redeemErrorText');
+            const submitBtn = document.getElementById('submitRedeemBtn');
+            
+            if (!input) return;
+            
+            const code = input.value.trim().toUpperCase();
+            
+            if (!code) {
+                if (errorDiv && errorText) {
+                    errorText.textContent = 'Por favor ingresa un código';
+                    errorDiv.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            // Ocultar errores previos
+            if (errorDiv) errorDiv.classList.add('hidden');
+            
+            // Deshabilitar botón
+            const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Canjeando...';
+            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/kick/api/redeem-code', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                }
+                
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.ok) {
+                            closeRedeemModal();
+                            showToast('¡Código Canjeado!', data.message, 'fa-gift');
+                            updatePointsCounter();
+                        } else {
+                            if (errorDiv && errorText) {
+                                errorText.textContent = data.message || 'Error al canjear código';
+                                errorDiv.classList.remove('hidden');
+                            }
+                        }
+                    } catch (e) {
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'Error al procesar respuesta';
+                            errorDiv.classList.remove('hidden');
+                        }
+                    }
+                } else {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (errorDiv && errorText) {
+                            errorText.textContent = data.message || 'Error al canjear código';
+                            errorDiv.classList.remove('hidden');
+                        }
+                    } catch (e) {
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'Error de conexión';
+                            errorDiv.classList.remove('hidden');
+                        }
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                }
+                if (errorDiv && errorText) {
+                    errorText.textContent = 'Error de conexión. Intenta nuevamente.';
+                    errorDiv.classList.remove('hidden');
+                }
+            };
+            
+            xhr.send(JSON.stringify({
+                username_kick: kickUsername,
+                code: code
+            }));
+        }
+
+        // Permitir Enter para canjear código
+        document.addEventListener('DOMContentLoaded', function() {
+            const redeemInput = document.getElementById('redeemCodeInput');
+            if (redeemInput) {
+                redeemInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        submitRedeemCode();
+                    }
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initPointsSystem();
+        });
+    </script>
+</body>
+</html>
