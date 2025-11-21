@@ -40,6 +40,7 @@ The Workly platform is built with Flask, utilizing Flask-SQLAlchemy for ORM, Fla
 - **Dashboard Analytics**: Integration with Chart.js for visualizing sales trends, low stock alerts, and task distribution, using dynamic backend data.
 - **Mercado Pago Integration**: Multi-tenant OAuth for connecting company-specific Mercado Pago accounts. Supports secure OAuth flow, token management, and various payment methods for the Chilean market.
 - **Kick Integration System**: Multi-streamer raffle system allowing viewers to use Kick loyalty points. Features OAuth login, multi-streamer support via JSON config, public raffle pages, streamer admin panel, and real-time Kick API integration for channel stats and point verification.
+- **Demos Module**: Super admin-only blueprint (`/demos`) providing non-interactive, visual-only demonstrations of all module functionality using hardcoded sample data. Perfect for video presentations and showcasing platform capabilities without affecting production data. JavaScript AJAX calls are completely disabled in demo mode to prevent any database interactions.
 
 ## External Dependencies
 
