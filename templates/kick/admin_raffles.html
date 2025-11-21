@@ -109,15 +109,14 @@
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         
-                                        <!-- Botón Sortear Ganador -->
-                                        <form method="POST" action="{{ url_for('kick.draw_winner', raffle_id=raffle.id) }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas seleccionar un ganador? Esta acción no se puede deshacer.');">
-                                            <button type="submit" class="btn btn-success btn-sm mb-1" {% if raffle.entry_count == 0 %}disabled title="No hay participantes"{% endif %} title="Sortear ganador">
-                                                <i class="fas fa-random"></i>
-                                            </button>
-                                        </form>
+                                        <!-- Botón Ver Participantes y Sortear -->
+                                        <a href="{{ url_for('kick.raffle_draw_view', raffle_id=raffle.id) }}" class="btn btn-info btn-sm mb-1" title="Ver participantes y sortear">
+                                            <i class="fas fa-users me-1"></i>Ver
+                                        </a>
                                         
                                         <!-- Botón Finalizar -->
                                         <form method="POST" action="{{ url_for('kick.finalize_raffle', raffle_id=raffle.id) }}" class="d-inline" onsubmit="return confirm('¿Finalizar este sorteo sin ganador?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-warning btn-sm mb-1" title="Finalizar sin ganador">
                                                 <i class="fas fa-flag-checkered"></i>
                                             </button>
@@ -125,6 +124,7 @@
                                         
                                         <!-- Botón Cancelar -->
                                         <form method="POST" action="{{ url_for('kick.cancel_raffle', raffle_id=raffle.id) }}" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas cancelar este sorteo?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-secondary btn-sm mb-1" title="Cancelar sorteo">
                                                 <i class="fas fa-times"></i>
                                             </button>
@@ -132,6 +132,7 @@
                                         
                                         <!-- Botón Borrar -->
                                         <form method="POST" action="{{ url_for('kick.delete_raffle', raffle_id=raffle.id) }}" class="d-inline" onsubmit="return confirm('¿ELIMINAR PERMANENTEMENTE este sorteo? Esta acción NO se puede deshacer.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-danger btn-sm mb-1" title="Eliminar permanentemente">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -143,6 +144,7 @@
                                         </span>
                                         <!-- Botón Borrar para completados -->
                                         <form method="POST" action="{{ url_for('kick.delete_raffle', raffle_id=raffle.id) }}" class="d-inline" onsubmit="return confirm('¿ELIMINAR PERMANENTEMENTE este sorteo? Esta acción NO se puede deshacer.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-danger btn-sm" title="Eliminar permanentemente">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -154,6 +156,7 @@
                                         </span>
                                         <!-- Botón Borrar para cancelados -->
                                         <form method="POST" action="{{ url_for('kick.delete_raffle', raffle_id=raffle.id) }}" class="d-inline" onsubmit="return confirm('¿ELIMINAR PERMANENTEMENTE este sorteo? Esta acción NO se puede deshacer.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-danger btn-sm" title="Eliminar permanentemente">
                                                 <i class="fas fa-trash"></i>
                                             </button>
