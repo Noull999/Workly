@@ -521,35 +521,6 @@
                     {% endif %}
                 </ul>
                 
-                <!-- Widget de Sorteo para yangprroo@gmail.com -->
-                {% if current_user.is_authenticated and current_user.email == 'yangprroo@gmail.com' and kick_widget_raffle %}
-                <ul class="navbar-nav mx-2">
-                    <li class="nav-item">
-                        <a class="nav-link kick-widget-link" href="{{ url_for('kick.raffle_draw_view', raffle_id=kick_widget_raffle.id) }}" title="{% if kick_widget_raffle.is_active %}Sorteo Activo{% else %}Último Ganador{% endif %}">
-                            <div class="kick-widget d-flex align-items-center">
-                                {% if kick_widget_raffle.is_active %}
-                                    <i class="fas fa-gift fa-lg me-2 text-warning kick-widget-icon"></i>
-                                    <div class="kick-widget-content">
-                                        <small class="d-block text-muted" style="font-size: 0.65rem; line-height: 1;">SORTEO</small>
-                                        <strong class="d-block text-truncate" style="max-width: 150px; font-size: 0.85rem;">{{ kick_widget_raffle.prize }}</strong>
-                                        <small class="text-warning" style="font-size: 0.7rem;">
-                                            <i class="fas fa-users me-1"></i>{{ kick_widget_raffle.entry_count }} participantes
-                                        </small>
-                                    </div>
-                                {% else %}
-                                    <i class="fas fa-crown fa-lg me-2 text-success kick-widget-icon-winner"></i>
-                                    <div class="kick-widget-content">
-                                        <small class="d-block text-muted" style="font-size: 0.65rem; line-height: 1;">GANADOR</small>
-                                        <strong class="d-block text-success text-truncate" style="max-width: 150px; font-size: 0.85rem;">{{ kick_widget_raffle.winner_viewer.username_kick }}</strong>
-                                        <small class="text-muted" style="font-size: 0.7rem;">{{ kick_widget_raffle.prize }}</small>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-                {% endif %}
-                
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">
