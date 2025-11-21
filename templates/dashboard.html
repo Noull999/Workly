@@ -297,12 +297,15 @@
                 <div class="card-body">
                     {% if stats.kick.active_raffles %}
                         {% for raffle in stats.kick.active_raffles %}
-                        <div class="card mb-3 bg-dark border-warning">
+                        <div class="card mb-3 bg-dark {% if raffle.is_active %}border-warning{% else %}border-success{% endif %}">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-8">
-                                        <h5 class="text-warning mb-2">
-                                            <i class="fas fa-gift me-2"></i>{{ raffle.title }}
+                                        <h5 class="{% if raffle.is_active %}text-warning{% else %}text-success{% endif %} mb-2">
+                                            <i class="fas {% if raffle.is_active %}fa-gift{% else %}fa-crown{% endif %} me-2"></i>{{ raffle.title }}
+                                            {% if not raffle.is_active and raffle.winner_viewer %}
+                                            <span class="badge bg-success ms-2">COMPLETADO</span>
+                                            {% endif %}
                                         </h5>
                                         <p class="text-muted mb-2">{{ raffle.description or 'Sin descripción' }}</p>
                                         <div class="row">
@@ -318,6 +321,12 @@
                                                 </p>
                                             </div>
                                         </div>
+                                        {% if not raffle.is_active and raffle.winner_viewer %}
+                                        <div class="mt-3 p-2 bg-success bg-opacity-10 border border-success rounded">
+                                            <small class="text-success d-block mb-1"><i class="fas fa-trophy me-1"></i>GANADOR:</small>
+                                            <strong class="text-success fs-5">{{ raffle.winner_viewer.username_kick }}</strong>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-4 text-end">
                                         <div class="mb-2">
@@ -325,9 +334,15 @@
                                                 {{ raffle.entry_count }} participantes
                                             </span>
                                         </div>
+                                        {% if raffle.is_active %}
                                         <a href="{{ url_for('kick.raffle_draw_view', raffle_id=raffle.id) }}" class="btn btn-success w-100 mb-2">
                                             <i class="fas fa-random me-2"></i>Ver y Sortear
                                         </a>
+                                        {% else %}
+                                        <a href="{{ url_for('kick.raffle_draw_view', raffle_id=raffle.id) }}" class="btn btn-outline-success w-100 mb-2">
+                                            <i class="fas fa-eye me-2"></i>Ver Detalles
+                                        </a>
+                                        {% endif %}
                                         <small class="text-muted d-block">Creado: {{ raffle.created_at.strftime('%d/%m/%Y') }}</small>
                                     </div>
                                 </div>

@@ -164,28 +164,41 @@ def dashboard():
             kick_stats = None
             if current_user.email == 'yangprroo@gmail.com':
                 from models import Raffle, PageVisit
-                from sqlalchemy import func, distinct
+                from sqlalchemy import func, distinct, or_
                 
-                # Sorteos activos
-                active_raffles = Raffle.query.filter_by(user_id=current_user.id, is_active=True).all()
+                # Sorteos: activos + completados (últimos 5, priorizando activos)
+                active_raffles = Raffle.query.filter_by(user_id=current_user.id, is_active=True).order_by(Raffle.created_at.desc()).all()
+                completed_raffles = Raffle.query.filter_by(user_id=current_user.id, is_active=False).filter(Raffle.winner_viewer_id.isnot(None)).order_by(Raffle.created_at.desc()).limit(5).all()
                 
-                # Estadísticas de visitas
-                total_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').count()
-                today_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').filter(
-                    PageVisit.created_at >= datetime.combine(today, datetime.min.time())
-                ).count()
+                # Combinar activos + completados, máximo 5 total
+                all_raffles = active_raffles + completed_raffles
+                all_raffles = all_raffles[:5]
                 
-                week_ago = today - timedelta(days=7)
-                week_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').filter(
-                    PageVisit.created_at >= datetime.combine(week_ago, datetime.min.time())
-                ).count()
+                # Estadísticas de visitas (con manejo de error si tabla no existe)
+                total_visits = 0
+                today_visits = 0
+                week_visits = 0
+                unique_visitors = 0
                 
-                unique_visitors = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').with_entities(
-                    func.count(distinct(PageVisit.ip_address))
-                ).scalar() or 0
+                try:
+                    total_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').count()
+                    today_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').filter(
+                        PageVisit.created_at >= datetime.combine(today, datetime.min.time())
+                    ).count()
+                    
+                    week_ago = today - timedelta(days=7)
+                    week_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').filter(
+                        PageVisit.created_at >= datetime.combine(week_ago, datetime.min.time())
+                    ).count()
+                    
+                    unique_visitors = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').with_entities(
+                        func.count(distinct(PageVisit.ip_address))
+                    ).scalar() or 0
+                except Exception as e:
+                    print(f"Error al cargar estadísticas de visitas: {e}")
                 
                 kick_stats = {
-                    'active_raffles': active_raffles,
+                    'active_raffles': all_raffles,
                     'total_visits': total_visits,
                     'today_visits': today_visits,
                     'week_visits': week_visits,
