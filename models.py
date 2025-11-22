@@ -776,6 +776,10 @@ class Viewer(db.Model):
     last_seen = db.Column(db.DateTime, nullable=True)  # Última vez activo
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Tracking de límite diario (para max_points_per_day)
+    points_today = db.Column(db.Integer, default=0, nullable=False)  # Puntos ganados hoy
+    last_reset_date = db.Column(db.Date, nullable=True)  # Fecha del último reset diario
+    
     # Relationships
     raffle_entries = db.relationship('RaffleEntry', backref='viewer', lazy=True, cascade='all, delete-orphan')
     

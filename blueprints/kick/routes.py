@@ -43,6 +43,49 @@ def generate_code_challenge(code_verifier):
     challenge = base64.urlsafe_b64encode(digest).decode('utf-8').rstrip('=')
     return challenge
 
+def reset_daily_points_if_needed(viewer):
+    """
+    Verifica si cambió el día y resetea el contador de puntos diarios.
+    Retorna True si se reseteó, False si no.
+    """
+    from datetime import date
+    today = date.today()
+    
+    # Si es None o fecha diferente, resetear
+    if viewer.last_reset_date is None or viewer.last_reset_date != today:
+        viewer.points_today = 0
+        viewer.last_reset_date = today
+        return True
+    return False
+
+def can_award_points(viewer, points_to_award, max_points_per_day):
+    """
+    Verifica si se pueden otorgar puntos sin exceder el límite diario.
+    
+    Args:
+        viewer: Objeto Viewer
+        points_to_award: Puntos que se quieren otorgar
+        max_points_per_day: Límite diario (None o 0 = ilimitado)
+    
+    Returns:
+        tuple: (can_award: bool, points_allowed: int, message: str)
+    """
+    # Si no hay límite (None o 0), permitir todos los puntos
+    if max_points_per_day is None or max_points_per_day == 0:
+        return (True, points_to_award, '')
+    
+    # Verificar cuántos puntos quedan disponibles hoy
+    remaining_points = max_points_per_day - viewer.points_today
+    
+    if remaining_points <= 0:
+        return (False, 0, f'Límite diario alcanzado ({max_points_per_day} pts/día)')
+    
+    # Si los puntos a otorgar exceden el límite, ajustar
+    if points_to_award > remaining_points:
+        return (True, remaining_points, f'Límite diario: solo se otorgan {remaining_points} pts de {points_to_award} pts solicitados')
+    
+    return (True, points_to_award, '')
+
 @kick_bp.route('/login')
 def login():
     """Inicia el flujo OAuth de Kick con PKCE"""
@@ -663,17 +706,35 @@ def update_watchtime():
         viewer = Viewer.query.filter_by(username_kick=username_kick).with_for_update().first()
         
         if not viewer:
-            # Nuevo viewer - crear y permitir primera asignación de puntos
+            # Nuevo viewer - crear y verificar límite diario
+            points_to_award = config.points_per_minute_watching
+            
+            # Verificar límite diario (si está configurado)
+            can_award, points_allowed, message = can_award_points(
+                type('obj', (), {'points_today': 0, 'last_reset_date': None})(),  # Viewer temporal
+                points_to_award,
+                config.max_points_per_day
+            )
+            
+            if not can_award:
+                return jsonify({'ok': False, 'message': message}), 403
+            
             viewer = Viewer(
                 username_kick=username_kick, 
-                points=config.points_per_minute_watching, 
+                points=points_allowed, 
                 watch_time=1, 
                 messages_sent=0, 
-                last_seen=datetime.utcnow()
+                last_seen=datetime.utcnow(),
+                points_today=points_allowed,
+                last_reset_date=datetime.utcnow().date()
             )
             db.session.add(viewer)
             db.session.commit()
-            return jsonify({'ok': True, 'points': viewer.points, 'watch_time': viewer.watch_time})
+            
+            response = {'ok': True, 'points': viewer.points, 'watch_time': viewer.watch_time}
+            if message:
+                response['message'] = message
+            return jsonify(response)
         
         # COOLDOWN: Verificar cooldown configurable
         if viewer.last_seen:
@@ -689,17 +750,40 @@ def update_watchtime():
                     'watch_time': viewer.watch_time
                 }), 429  # Too Many Requests
         
-        # TODO: Implementar max_points_per_day cuando se agregue daily_points tracking a Viewer model
-        # Por ahora el límite diario no se enforces (requiere campos adicionales en DB)
+        # Resetear contador diario si cambió el día (dentro de transacción bloqueada)
+        was_reset = reset_daily_points_if_needed(viewer)
+        if was_reset:
+            db.session.flush()  # Persistir reset antes de verificar límite
+        
+        # Verificar límite diario antes de otorgar puntos
+        points_to_award = config.points_per_minute_watching
+        can_award, points_allowed, message = can_award_points(
+            viewer,
+            points_to_award,
+            config.max_points_per_day
+        )
+        
+        if not can_award:
+            db.session.commit()  # Liberar lock
+            return jsonify({
+                'ok': False,
+                'message': message,
+                'points': viewer.points,
+                'watch_time': viewer.watch_time
+            }), 403
         
         # Sumar puntos y tiempo (fila bloqueada - seguro contra concurrencia)
-        viewer.points += config.points_per_minute_watching
+        viewer.points += points_allowed
+        viewer.points_today += points_allowed  # Incrementar contador diario
         viewer.watch_time += 1
         viewer.last_seen = datetime.utcnow()
         
         db.session.commit()
         
-        return jsonify({'ok': True, 'points': viewer.points, 'watch_time': viewer.watch_time})
+        response = {'ok': True, 'points': viewer.points, 'watch_time': viewer.watch_time}
+        if message:
+            response['message'] = message
+        return jsonify(response)
         
     except Exception as e:
         db.session.rollback()
@@ -1131,13 +1215,26 @@ def daily_visit():
         # Buscar o crear viewer
         viewer = Viewer.query.filter_by(username_kick=username_kick).first()
         if not viewer:
-            # Nuevo viewer - crear con puntos de bienvenida (desde config)
+            # Nuevo viewer - crear con puntos de bienvenida (verificando límite diario)
             daily_points = config.daily_visit_points
+            
+            # Verificar límite diario (si está configurado)
+            can_award, points_allowed, limit_message = can_award_points(
+                type('obj', (), {'points_today': 0, 'last_reset_date': None})(),  # Viewer temporal
+                daily_points,
+                config.max_points_per_day
+            )
+            
+            if not can_award:
+                return jsonify({'ok': False, 'message': limit_message}), 403
+            
             viewer = Viewer(
                 username_kick=username_kick,
-                points=daily_points,
+                points=points_allowed,
                 watch_time=0,
-                messages_sent=0
+                messages_sent=0,
+                points_today=points_allowed,
+                last_reset_date=date.today()
             )
             db.session.add(viewer)
             db.session.flush()
@@ -1146,18 +1243,21 @@ def daily_visit():
             visit = DailyVisit(
                 viewer_id=viewer.id,
                 visit_date=date.today(),
-                points_awarded=daily_points
+                points_awarded=points_allowed
             )
             db.session.add(visit)
             db.session.commit()
             
-            return jsonify({
+            response = {
                 'ok': True,
                 'first_visit': True,
-                'points_awarded': daily_points,
+                'points_awarded': points_allowed,
                 'total_points': viewer.points,
-                'message': f'¡Bienvenido! +{daily_points} puntos por tu primera visita'
-            })
+                'message': f'¡Bienvenido! +{points_allowed} puntos por tu primera visita'
+            }
+            if limit_message:
+                response['message'] += f' ({limit_message})'
+            return jsonify(response)
         
         # Verificar si ya visitó hoy
         today = date.today()
@@ -1175,24 +1275,44 @@ def daily_visit():
                 'message': 'Ya recibiste tus puntos de visita diaria'
             })
         
-        # Primera visita del día - dar puntos (desde config)
+        # Primera visita del día - verificar límite y dar puntos
+        # Resetear contador diario si cambió el día
+        was_reset = reset_daily_points_if_needed(viewer)
+        if was_reset:
+            db.session.flush()  # Persistir reset antes de verificar límite
+        
         daily_points = config.daily_visit_points
-        viewer.points += daily_points
+        
+        # Verificar límite diario antes de otorgar puntos
+        can_award, points_allowed, limit_message = can_award_points(
+            viewer,
+            daily_points,
+            config.max_points_per_day
+        )
+        
+        if not can_award:
+            return jsonify({'ok': False, 'message': limit_message}), 403
+        
+        viewer.points += points_allowed
+        viewer.points_today += points_allowed  # Incrementar contador diario
         visit = DailyVisit(
             viewer_id=viewer.id,
             visit_date=today,
-            points_awarded=daily_points
+            points_awarded=points_allowed
         )
         db.session.add(visit)
         db.session.commit()
         
-        return jsonify({
+        response = {
             'ok': True,
             'first_visit': False,
-            'points_awarded': daily_points,
+            'points_awarded': points_allowed,
             'total_points': viewer.points,
-            'message': f'¡Bienvenido de nuevo! +{daily_points} puntos por visitar hoy'
-        })
+            'message': f'¡Bienvenido de nuevo! +{points_allowed} puntos por visitar hoy'
+        }
+        if limit_message:
+            response['message'] += f' ({limit_message})'
+        return jsonify(response)
         
     except Exception as e:
         db.session.rollback()
@@ -1251,25 +1371,44 @@ def redeem_code():
         if existing_redemption:
             return jsonify({'ok': False, 'message': 'Ya canjeaste este código anteriormente'}), 400
         
-        # Canjear código - otorgar puntos
-        viewer.points += code.points
+        # Resetear contador diario si cambió el día
+        was_reset = reset_daily_points_if_needed(viewer)
+        if was_reset:
+            db.session.flush()  # Persistir reset antes de verificar límite
+        
+        # Verificar límite diario antes de otorgar puntos
+        can_award, points_allowed, limit_message = can_award_points(
+            viewer,
+            code.points,
+            config.max_points_per_day
+        )
+        
+        if not can_award:
+            return jsonify({'ok': False, 'message': limit_message}), 403
+        
+        # Canjear código - otorgar puntos (permitidos por límite diario)
+        viewer.points += points_allowed
+        viewer.points_today += points_allowed  # Incrementar contador diario
         code.current_uses += 1
         
         redemption = CodeRedemption(
             code_id=code.id,
             viewer_id=viewer.id,
-            points_awarded=code.points
+            points_awarded=points_allowed
         )
         db.session.add(redemption)
         db.session.commit()
         
-        return jsonify({
+        response = {
             'ok': True,
-            'points_awarded': code.points,
+            'points_awarded': points_allowed,
             'total_points': viewer.points,
             'code': code.code,
-            'message': f'¡Código canjeado! +{code.points} puntos'
-        })
+            'message': f'¡Código canjeado! +{points_allowed} puntos'
+        }
+        if limit_message:
+            response['message'] += f' ({limit_message})'
+        return jsonify(response)
         
     except Exception as e:
         db.session.rollback()
