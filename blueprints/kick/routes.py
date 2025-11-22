@@ -910,8 +910,8 @@ def points_config():
         flash('No tienes permisos para acceder a esta página.', 'danger')
         return redirect(url_for('main.dashboard'))
     
-    # Obtener o crear configuración para la empresa del usuario
-    config = PointsConfig.get_or_create_default(company_id=current_user.company_id)
+    # Obtener o crear configuración pública (company_id=None) para sistema de Kick
+    config = PointsConfig.get_or_create_default(company_id=None)
     db.session.commit()  # Commit si se creó
     
     form = PointsConfigForm(obj=config)
