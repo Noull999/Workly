@@ -407,6 +407,16 @@
 
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Ayer:</span>
+                            <h4 class="mb-0 text-secondary">{{ stats.kick.yesterday_visits }}</h4>
+                        </div>
+                        <div class="progress mb-3" style="height: 5px;">
+                            <div class="progress-bar bg-secondary" role="progressbar" style="width: {{ (stats.kick.yesterday_visits / (stats.kick.total_visits if stats.kick.total_visits > 0 else 1) * 100) }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-muted">Esta Semana:</span>
                             <h4 class="mb-0 text-warning">{{ stats.kick.week_visits }}</h4>
                         </div>

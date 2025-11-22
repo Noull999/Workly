@@ -215,6 +215,7 @@ def dashboard():
                 # Estadísticas de visitas (con manejo de error si tabla no existe)
                 total_visits = 0
                 today_visits = 0
+                yesterday_visits = 0
                 week_visits = 0
                 unique_visitors = 0
                 
@@ -222,6 +223,13 @@ def dashboard():
                     total_visits = PageVisit.query.filter_by(page_name=current_user.email).count()
                     today_visits = PageVisit.query.filter_by(page_name=current_user.email).filter(
                         PageVisit.created_at >= datetime.combine(today, datetime.min.time())
+                    ).count()
+                    
+                    # Visitas de ayer
+                    yesterday = today - timedelta(days=1)
+                    yesterday_visits = PageVisit.query.filter_by(page_name=current_user.email).filter(
+                        PageVisit.created_at >= datetime.combine(yesterday, datetime.min.time()),
+                        PageVisit.created_at < datetime.combine(today, datetime.min.time())
                     ).count()
                     
                     week_ago = today - timedelta(days=7)
@@ -239,6 +247,7 @@ def dashboard():
                     'active_raffles': all_raffles,
                     'total_visits': total_visits,
                     'today_visits': today_visits,
+                    'yesterday_visits': yesterday_visits,
                     'week_visits': week_visits,
                     'unique_visitors': unique_visitors
                 }
