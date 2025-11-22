@@ -195,11 +195,14 @@ def dashboard():
             recent_pages = company_query(NotionPage).order_by(NotionPage.updated_at.desc()).limit(5).all()
             active_checklists = company_query(NotionChecklistItem).filter_by(is_completed=False).count()
             
-            # Estadísticas de Kick (solo para yangprroo@gmail.com)
+            # Estadísticas de Kick (para usuarios con sorteos o página de streamer)
             kick_stats = None
-            if current_user.email == 'yangprroo@gmail.com':
-                from models import Raffle, PageVisit
-                from sqlalchemy import func, distinct, or_
+            # Verificar si el usuario tiene sorteos creados (es streamer)
+            from models import Raffle, PageVisit
+            from sqlalchemy import func, distinct, or_
+            has_raffles = Raffle.query.filter_by(user_id=current_user.id).first() is not None
+            
+            if has_raffles:
                 
                 # Sorteos: activos + completados (últimos 5, priorizando activos)
                 active_raffles = Raffle.query.filter_by(user_id=current_user.id, is_active=True).order_by(Raffle.created_at.desc()).all()
@@ -216,17 +219,17 @@ def dashboard():
                 unique_visitors = 0
                 
                 try:
-                    total_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').count()
-                    today_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').filter(
+                    total_visits = PageVisit.query.filter_by(page_name=current_user.email).count()
+                    today_visits = PageVisit.query.filter_by(page_name=current_user.email).filter(
                         PageVisit.created_at >= datetime.combine(today, datetime.min.time())
                     ).count()
                     
                     week_ago = today - timedelta(days=7)
-                    week_visits = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').filter(
+                    week_visits = PageVisit.query.filter_by(page_name=current_user.email).filter(
                         PageVisit.created_at >= datetime.combine(week_ago, datetime.min.time())
                     ).count()
                     
-                    unique_visitors = PageVisit.query.filter_by(page_name='yangprroo@gmail.com').with_entities(
+                    unique_visitors = PageVisit.query.filter_by(page_name=current_user.email).with_entities(
                         func.count(distinct(PageVisit.ip_address))
                     ).scalar() or 0
                 except Exception as e:
