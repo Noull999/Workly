@@ -2906,11 +2906,10 @@
             const targetSection = document.getElementById(sectionId);
             if (targetSection) {
                 targetSection.classList.add('active');
-                console.log('Sección activada:', sectionId);
-                // Scroll al inicio de la página
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                console.log('Sección no encontrada:', sectionId);
+                // Scroll hacia la sección (debajo del navbar)
+                const navHeight = document.querySelector('.sticky-nav') ? document.querySelector('.sticky-nav').offsetHeight : 80;
+                const sectionTop = targetSection.offsetTop - navHeight - 10;
+                window.scrollTo({ top: sectionTop, behavior: 'smooth' });
             }
             
             // Actualizar estado activo en la navegación
