@@ -435,6 +435,7 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <form action="{{ url_for('kick.save_rank_period') }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-warning btn-lg">
                                     <i class="fas fa-save me-2"></i>Guardar Período Actual
                                 </button>
