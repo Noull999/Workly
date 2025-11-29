@@ -331,13 +331,68 @@ def dashboard():
                 'global': global_stats
             }
         else:
+            # Estadísticas globales para admin_global sin empresa
+            global_stats = None
+            if current_user.is_admin_global():
+                try:
+                    global_total_visits = PageVisit.query.count()
+                    global_today_visits = PageVisit.query.filter(
+                        PageVisit.created_at >= datetime.combine(today, datetime.min.time())
+                    ).count()
+                    
+                    yesterday = today - timedelta(days=1)
+                    global_yesterday_visits = PageVisit.query.filter(
+                        PageVisit.created_at >= datetime.combine(yesterday, datetime.min.time()),
+                        PageVisit.created_at < datetime.combine(today, datetime.min.time())
+                    ).count()
+                    
+                    week_ago = today - timedelta(days=7)
+                    global_week_visits = PageVisit.query.filter(
+                        PageVisit.created_at >= datetime.combine(week_ago, datetime.min.time())
+                    ).count()
+                    
+                    global_unique_visitors = PageVisit.query.with_entities(
+                        func.count(distinct(PageVisit.ip_address))
+                    ).scalar() or 0
+                    
+                    top_pages = db.session.query(
+                        PageVisit.page_name,
+                        func.count(PageVisit.id).label('visit_count')
+                    ).group_by(PageVisit.page_name).order_by(func.count(PageVisit.id).desc()).limit(5).all()
+                    
+                    visits_by_day = []
+                    labels_days_visits = []
+                    for i in range(6, -1, -1):
+                        day = today - timedelta(days=i)
+                        day_visits = PageVisit.query.filter(
+                            PageVisit.created_at >= datetime.combine(day, datetime.min.time()),
+                            PageVisit.created_at < datetime.combine(day + timedelta(days=1), datetime.min.time())
+                        ).count()
+                        visits_by_day.append(day_visits)
+                        labels_days_visits.append(day.strftime('%d/%m'))
+                    
+                    global_stats = {
+                        'total_visits': global_total_visits,
+                        'today_visits': global_today_visits,
+                        'yesterday_visits': global_yesterday_visits,
+                        'week_visits': global_week_visits,
+                        'unique_visitors': global_unique_visitors,
+                        'top_pages': top_pages,
+                        'visits_by_day': visits_by_day,
+                        'labels_days': labels_days_visits
+                    }
+                except Exception as e:
+                    print(f"Error al cargar estadísticas globales: {e}")
+            
             stats = {
                 'inventory': {'total_items': 0, 'low_stock_items': 0, 'low_stock_products': []},
                 'pos': {'today_sales': 0, 'total_sales': 0},
                 'appointments': {'upcoming_appointments': 0},
                 'scrum': {'total_boards': 0, 'pending_tasks': 0, 'my_tasks': []},
                 'notion': {'total_pages': 0, 'recent_pages': [], 'active_checklists': 0},
-                'portfolio': {'page_views': 0, 'contact_requests': 0}
+                'portfolio': {'page_views': 0, 'contact_requests': 0},
+                'kick': {},
+                'global': global_stats
             }
         
         # URLs públicas para los módulos
