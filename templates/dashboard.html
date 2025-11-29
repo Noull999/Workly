@@ -14,6 +14,77 @@
         </div>
     </div>
 
+    <!-- Estadísticas Globales (solo para admin_global) -->
+    {% if current_user.is_admin_global() and stats.global %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow mb-4 border-left-danger">
+                <div class="card-header py-3 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-globe me-2"></i>Estadísticas Globales de Visitas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="font-weight-bold text-primary mb-1">{{ stats.global.today_visits }}</h4>
+                                <small class="text-muted">Hoy</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="font-weight-bold text-info mb-1">{{ stats.global.yesterday_visits }}</h4>
+                                <small class="text-muted">Ayer</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="font-weight-bold text-success mb-1">{{ stats.global.week_visits }}</h4>
+                                <small class="text-muted">Esta Semana</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="font-weight-bold text-warning mb-1">{{ stats.global.total_visits }}</h4>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="font-weight-bold text-danger mb-1">{{ stats.global.unique_visitors }}</h4>
+                                <small class="text-muted">Visitantes Únicos</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if stats.global.top_pages and stats.global.top_pages|length > 0 %}
+                    <hr>
+                    <h6 class="font-weight-bold text-gray-800 mb-3"><i class="fas fa-chart-bar me-2"></i>Páginas Más Visitadas</h6>
+                    <div class="row">
+                        {% for page in stats.global.top_pages %}
+                        <div class="col-md-2 col-6 mb-2">
+                            <div class="p-2 bg-light rounded text-center">
+                                <small class="d-block text-truncate text-primary font-weight-bold">{{ page.page_name }}</small>
+                                <span class="text-muted">{{ page.visit_count }} visitas</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Gráfico de visitas por día -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <canvas id="globalVisitsChart" style="height: 200px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Tarjetas de estadísticas principales -->
     <div class="row mb-4">
         <!-- Inventario (si está activo) -->
@@ -1160,6 +1231,73 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 {% endif %}
+{% endif %}
+
+// Gráfico de visitas globales
+{% if current_user.is_admin_global() and stats.global and stats.global.visits_by_day %}
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('globalVisitsChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ stats.global.labels_days | tojson }},
+                datasets: [{
+                    label: 'Visitas por Día',
+                    data: {{ stats.global.visits_by_day | tojson }},
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#FF6B35',
+                    pointBorderColor: '#FF6B35',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#FFFFFF'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 28, 28, 0.9)',
+                        titleColor: '#a855f7',
+                        bodyColor: '#FFFFFF',
+                        borderColor: '#a855f7',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#FFFFFF'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#FFFFFF'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
 {% endif %}
 </script>
 
