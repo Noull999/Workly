@@ -353,6 +353,63 @@
 
     <!-- Paneles de Kick para yangprroo@gmail.com -->
     {% if current_user.email == 'yangprroo@gmail.com' and stats.kick %}
+    
+    <!-- Panel de Configuración de Streamer -->
+    <div class="row mb-4">
+        <div class="col-lg-4 mb-3">
+            <div class="card shadow h-100">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #FF1493, #FF69B4);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-palette me-2"></i>Personalizar Página
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Colores, código Stake y beneficios.</p>
+                    <a href="{{ url_for('kick.streamer_config') }}" class="btn btn-primary w-100">
+                        <i class="fas fa-cog me-2"></i>Configurar Página
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-3">
+            <div class="card shadow h-100">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                    <h6 class="m-0 font-weight-bold text-dark">
+                        <i class="fas fa-medal me-2"></i>Sistema de Rangos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-2">
+                        <div class="col-3"><i class="fas fa-shield-alt" style="color: #C0C0C0;"></i></div>
+                        <div class="col-3"><i class="fas fa-medal" style="color: #FFD700;"></i></div>
+                        <div class="col-3"><i class="fas fa-crown" style="color: #E5E4E2;"></i></div>
+                        <div class="col-3"><i class="fas fa-gem" style="color: #00BFFF;"></i></div>
+                    </div>
+                    <a href="{{ url_for('kick.streamer_config') }}" class="btn btn-warning w-100 text-dark">
+                        <i class="fas fa-sliders-h me-2"></i>Configurar Rangos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-3">
+            <div class="card shadow h-100">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #00CED1, #20B2AA);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-coins me-2"></i>Sistema de Puntos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Watchtime, login diario y códigos.</p>
+                    <a href="{{ url_for('kick.points_config') }}" class="btn btn-info w-100">
+                        <i class="fas fa-cog me-2"></i>Configurar Puntos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <!-- Panel de Sorteos Activos -->
         <div class="col-lg-8 mb-4">
