@@ -516,6 +516,59 @@
             </div>
         </div>
     </div>
+
+    <!-- Panel de Configuración de Streamer -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #FF1493, #FF69B4);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-sliders-h me-2"></i>Configuración de Página
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Personaliza tu página pública, colores, código Stake y beneficios.</p>
+                    <a href="{{ url_for('kick.streamer_config') }}" class="btn btn-primary w-100">
+                        <i class="fas fa-cog me-2"></i>Configurar Página
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                    <h6 class="m-0 font-weight-bold text-dark">
+                        <i class="fas fa-medal me-2"></i>Sistema de Rangos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Configura los rangos de wager para tus viewers:</p>
+                    <div class="row text-center mb-3">
+                        <div class="col-3">
+                            <i class="fas fa-shield-alt fa-2x" style="color: #C0C0C0;"></i>
+                            <small class="d-block text-muted">Plata</small>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-medal fa-2x" style="color: #FFD700;"></i>
+                            <small class="d-block text-muted">Oro</small>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-crown fa-2x" style="color: #E5E4E2;"></i>
+                            <small class="d-block text-muted">Platino</small>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-gem fa-2x" style="color: #00BFFF;"></i>
+                            <small class="d-block text-muted">Diamante</small>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('kick.streamer_config') }}#rangos" class="btn btn-warning w-100 text-dark">
+                        <i class="fas fa-sliders-h me-2"></i>Configurar Rangos y Premios
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     <!-- Contenido específico por módulos -->
