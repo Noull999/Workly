@@ -2892,8 +2892,12 @@
 
         // ===== SISTEMA DE NAVEGACIÓN POR SECCIONES =====
         function navigateToSection(sectionId) {
+            console.log('Navegando a sección:', sectionId);
+            
             // Ocultar todas las secciones
             const allSections = document.querySelectorAll('.page-section');
+            console.log('Secciones encontradas:', allSections.length);
+            
             allSections.forEach(section => {
                 section.classList.remove('active');
             });
@@ -2902,8 +2906,11 @@
             const targetSection = document.getElementById(sectionId);
             if (targetSection) {
                 targetSection.classList.add('active');
+                console.log('Sección activada:', sectionId);
                 // Scroll al inicio de la página
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                console.log('Sección no encontrada:', sectionId);
             }
             
             // Actualizar estado activo en la navegación
@@ -2922,34 +2929,50 @@
             }
         }
 
-        // Vincular clicks a los nav-links
-        document.addEventListener('DOMContentLoaded', function() {
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const href = this.getAttribute('href');
-                    if (href && href.startsWith('#')) {
-                        const sectionId = href.substring(1);
-                        navigateToSection(sectionId);
+        // Vincular clicks a los nav-links inmediatamente
+        (function() {
+            function initNavigation() {
+                const navLinks = document.querySelectorAll('.nav-link');
+                console.log('Nav links encontrados:', navLinks.length);
+                
+                navLinks.forEach(link => {
+                    link.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const href = this.getAttribute('href');
+                        console.log('Click en:', href);
+                        if (href && href.startsWith('#')) {
+                            const sectionId = href.substring(1);
+                            navigateToSection(sectionId);
+                        }
+                        return false;
+                    };
+                });
+                
+                // Asegurar que solo inicio esté visible al cargar
+                const allSections = document.querySelectorAll('.page-section');
+                allSections.forEach(section => {
+                    if (section.id !== 'inicio') {
+                        section.classList.remove('active');
                     }
                 });
-            });
-            
-            // Asegurar que solo inicio esté visible al cargar
-            const allSections = document.querySelectorAll('.page-section');
-            allSections.forEach(section => {
-                if (section.id !== 'inicio') {
-                    section.classList.remove('active');
+                
+                // Marcar inicio como activo
+                const inicioSection = document.getElementById('inicio');
+                if (inicioSection) {
+                    inicioSection.classList.add('active');
                 }
-            });
-            
-            // Marcar inicio como activo
-            const inicioSection = document.getElementById('inicio');
-            if (inicioSection) {
-                inicioSection.classList.add('active');
+                
+                console.log('Navegación inicializada correctamente');
             }
-        });
+            
+            // Ejecutar cuando DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initNavigation);
+            } else {
+                initNavigation();
+            }
+        })();
     </script>
 </body>
 </html>
