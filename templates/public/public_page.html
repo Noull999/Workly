@@ -1406,34 +1406,6 @@
                     </div>
                     {% endif %}
                 </div>
-
-                <!-- Benefits -->
-                <div class="lg:col-span-1 enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-orange-500/20 fade-in-up delay-200 bg-gradient-to-br from-orange-900/30 to-transparent">
-                    <i class="fas fa-gift text-4xl sm:text-5xl md:text-6xl text-orange-500 mb-4 sm:mb-6 pulse-slow"></i>
-                    <h3 class="text-2xl sm:text-3xl md:text-4xl font-extrabold orbitron mb-4 sm:mb-6 gradient-text tracking-wide">Beneficios Codigo Patrocinador</h3>
-                    <div class="bg-black/70 p-4 sm:p-6 md:p-8 rounded-2xl mb-4 sm:mb-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/30">
-                        <div class="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 tracking-widest">CÓDIGO PROMOCIONAL</div>
-                        <div class="text-2xl sm:text-3xl md:text-4xl font-mono font-extrabold text-orange-500 tracking-wider animate-pulse">{{ (usuario_json.codigo_promocional if usuario_json else '')|default('YANGLEE2024', true) }}</div>
-                    </div>
-                    <ul class="space-y-3 text-gray-300 mb-6">
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-star text-yellow-500"></i>
-                            <span>Primera recarga y apuesta de 21 USD se te devolvera </span>
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-crown text-yellow-500"></i>
-                            <span>Sorteos todas las semanas</span>
-                        </li>
-                    </ul>
-                    <!-- Botón Stake -->
-                    {% if usuario_json and usuario_json.casino %}
-                    <a href="{{ usuario_json.casino }}" target="_blank" 
-                       class="social-btn bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-400 hover:to-purple-600 text-white shadow-lg shadow-purple-500/40 w-full">
-                        <i class="fas fa-dice text-2xl sm:text-3xl"></i>
-                        <span>Jugar en Stake</span>
-                    </a>
-                    {% endif %}
-                </div>
             </div>
         </div>
     </section>
@@ -1478,41 +1450,6 @@
                     <i class="fas fa-info-circle text-purple-500 mr-2"></i>
                     ¡Gana puntos automáticamente mientras disfrutas del stream!
                 </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Metrics Section -->
-    <section class="py-12 sm:py-20 px-4 bg-gradient-to-b from-transparent to-gray-900" data-animate="fade">
-        <div class="container mx-auto">
-            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold orbitron text-center mb-12 sm:mb-20 gradient-text tracking-wider fade-in-up">
-                Estadísticas en Vivo
-            </h2>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
-                <!-- Average Viewers -->
-                <div class="text-center enhanced-card p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-purple-500/30 fade-in-up">
-                    <i class="fas fa-users text-5xl sm:text-6xl md:text-7xl text-purple-500 mb-4 sm:mb-6 pulse-slow"></i>
-                    <div class="counter orbitron text-3xl sm:text-4xl md:text-5xl" data-target="{{ (usuario_json.promedio_viewers|int if usuario_json else 0)|default(2500, true) }}">0</div>
-                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Total de seguidores </div>
-                </div>
-
-                <!-- Schedule -->
-                <div class="text-center enhanced-card p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-orange-500/30 fade-in-up delay-100">
-                    <i class="fas fa-clock text-5xl sm:text-6xl md:text-7xl text-orange-500 mb-4 sm:mb-6 pulse-slow"></i>
-                    {% set horario = (usuario_json.horarios_stream if usuario_json else '')|default('Lunes a Viernes, 20:00 - 02:00', true) %}
-                    {% set horario_partes = horario.split(',') %}
-                    <div class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold orbitron text-orange-500 tracking-wide">{{ horario_partes[0]|trim if horario_partes|length > 0 else 'Lun - Vie' }}</div>
-                    <div class="text-xl sm:text-2xl md:text-3xl mt-2 sm:mt-3 font-bold">{{ horario_partes[1]|trim if horario_partes|length > 1 else '20:00 - 02:00' }}</div>
-                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Horario de Stream</div>
-                </div>
-
-                <!-- Max Win -->
-                <div class="text-center enhanced-card p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-yellow-500/30 fade-in-up delay-200 sm:col-span-2 md:col-span-1">
-                    <i class="fas fa-trophy text-5xl sm:text-6xl md:text-7xl text-yellow-500 mb-4 sm:mb-6 pulse-slow"></i>
-                    <div class="counter orbitron text-3xl sm:text-4xl md:text-5xl" data-target="{{ (usuario_json.victorias_consecutivas|int if usuario_json else 0)|default(47, true) }}">0</div>
-                    <div class="text-base sm:text-lg md:text-xl text-gray-400 mt-3 sm:mt-4 font-semibold tracking-wide">Viewers Diarios</div>
-                </div>
             </div>
         </div>
     </section>
