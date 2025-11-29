@@ -1496,9 +1496,21 @@ def save_rank_period():
         return redirect(url_for('admin.dashboard'))
     
     # Obtener datos actuales del wager race
-    wager_data = get_wager_race_data()
+    try:
+        wager_data = get_wager_race_data()
+    except Exception as e:
+        flash(f'Error al obtener datos de Stake: {str(e)}', 'danger')
+        return redirect(url_for('kick.admin_rank_periods'))
+    
     if not wager_data or not wager_data.get('current'):
-        flash('No hay datos de wager race disponibles para guardar.', 'danger')
+        flash('No hay datos de wager race disponibles para guardar. Verifica la conexión con Stake.', 'danger')
+        return redirect(url_for('kick.admin_rank_periods'))
+    
+    wager_users = wager_data.get('current', [])
+    
+    # Validar que hay usuarios para guardar
+    if len(wager_users) == 0:
+        flash('El wager race está vacío. No se puede guardar un período sin usuarios.', 'warning')
         return redirect(url_for('kick.admin_rank_periods'))
     
     # Obtener configuración de rangos
@@ -1522,7 +1534,6 @@ def save_rank_period():
     db.session.flush()
     
     # Guardar usuarios con sus rangos
-    wager_users = wager_data.get('current', [])
     for idx, user in enumerate(wager_users, 1):
         username = user.get('username', '')
         wagered = float(user.get('wagered', 0))
