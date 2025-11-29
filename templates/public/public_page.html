@@ -157,6 +157,21 @@
             animation: pulse 3s ease-in-out infinite;
         }
 
+        /* Section Navigation */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         /* Gradient Text - Streamer Name */
         .gradient-text {
             color: #FF1493;
@@ -953,7 +968,7 @@
     </div>
 
     <!-- Hero Section -->
-    <section id="inicio" class="min-h-screen flex items-center justify-center px-4 py-20 pt-32">
+    <section id="inicio" class="page-section active min-h-screen flex items-center justify-center px-4 py-20 pt-32">
         <div class="container mx-auto">
             <div class="grid lg:grid-cols-2 gap-12 items-center">
                 <!-- Left: Streamer Profile -->
@@ -1118,7 +1133,7 @@
     </section>
 
     <!-- Sorteos Activos Section -->
-    <section id="sorteos-activos" class="py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
+    <section id="sorteos-activos" class="page-section py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
         <div class="container mx-auto">
             <!-- Header -->
             <div class="text-center mb-16 fade-in-up">
@@ -1515,59 +1530,6 @@
         </div>
     </section>
 
-    <!-- Código Stake Section -->
-    {% if streamer_config and streamer_config.stake_code %}
-    <section id="codigo-stake" class="py-20 px-4" style="background: linear-gradient(135deg, var(--primary-color), #FF1493);" data-animate="fade">
-        <div class="container mx-auto">
-            <div class="grid md:grid-cols-2 gap-12 items-center">
-                <!-- Código -->
-                <div class="text-center md:text-left">
-                    <h2 class="text-4xl sm:text-5xl font-bold orbitron text-white mb-6">
-                        {{ streamer_config.stake_benefits_title or 'Beneficios Exclusivos' }}
-                    </h2>
-                    <div class="bg-black/30 backdrop-blur-sm rounded-2xl p-8 mb-8 inline-block">
-                        <p class="text-white/80 text-lg mb-2">Usa el código:</p>
-                        <div class="text-5xl sm:text-6xl font-black orbitron text-white tracking-widest">
-                            {{ streamer_config.stake_code }}
-                        </div>
-                    </div>
-                    <a href="https://stake.com/?c={{ streamer_config.stake_code }}" target="_blank" 
-                       class="inline-block bg-white text-black font-bold py-4 px-8 rounded-xl text-xl hover:bg-gray-200 transition-all shadow-lg">
-                        <i class="fas fa-external-link-alt mr-2"></i>Registrarse en Stake
-                    </a>
-                </div>
-                
-                <!-- Beneficios -->
-                <div class="space-y-4">
-                    {% if streamer_config.stake_benefit_1 %}
-                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-4">
-                        <i class="fas fa-check-circle text-2xl text-white"></i>
-                        <span class="text-white text-lg">{{ streamer_config.stake_benefit_1 }}</span>
-                    </div>
-                    {% endif %}
-                    {% if streamer_config.stake_benefit_2 %}
-                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-4">
-                        <i class="fas fa-check-circle text-2xl text-white"></i>
-                        <span class="text-white text-lg">{{ streamer_config.stake_benefit_2 }}</span>
-                    </div>
-                    {% endif %}
-                    {% if streamer_config.stake_benefit_3 %}
-                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-4">
-                        <i class="fas fa-check-circle text-2xl text-white"></i>
-                        <span class="text-white text-lg">{{ streamer_config.stake_benefit_3 }}</span>
-                    </div>
-                    {% endif %}
-                    {% if streamer_config.stake_benefit_4 %}
-                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-4">
-                        <i class="fas fa-check-circle text-2xl text-white"></i>
-                        <span class="text-white text-lg">{{ streamer_config.stake_benefit_4 }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </section>
-    {% endif %}
 
     <!-- Featured Clips Section -->
     {% if clips and clips|length > 0 %}
