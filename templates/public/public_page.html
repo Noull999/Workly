@@ -79,7 +79,7 @@
         .animated-border {
             position: relative;
             border-radius: 50%;
-            background: linear-gradient(45deg, var(--primary-color), #a855f7, var(--primary-color));
+            background: linear-gradient(45deg, var(--primary-color), #FF1493, var(--primary-color));
             background-size: 300% 300%;
             animation: gradientRotate 3s ease infinite;
             padding: 6px;
@@ -159,9 +159,9 @@
 
         /* Gradient Text - Streamer Name */
         .gradient-text {
-            color: #a855f7;
-            text-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 
-                         0 0 40px rgba(168, 85, 247, 0.5);
+            color: #FF1493;
+            text-shadow: 0 0 20px rgba(255, 20, 147, 0.8), 
+                         0 0 40px rgba(255, 20, 147, 0.5);
             font-weight: 700;
             font-size: 1.5rem;
             letter-spacing: 0.1em;
@@ -295,8 +295,8 @@
             z-index: 10000;
             background: rgba(15, 10, 30, 0.98);
             backdrop-filter: blur(10px);
-            border-bottom: 3px solid #a855f7;
-            box-shadow: 0 4px 30px rgba(168, 85, 247, 0.6), 0 0 60px rgba(168, 85, 247, 0.3);
+            border-bottom: 3px solid #FF1493;
+            box-shadow: 0 4px 30px rgba(255, 20, 147, 0.6), 0 0 60px rgba(255, 20, 147, 0.3);
             transition: all 0.3s ease;
         }
 
@@ -353,7 +353,7 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            color: #a855f7;
+            color: #FF1493;
             font-weight: 700;
         }
 
@@ -817,7 +817,7 @@
                     </div>
                     
                     <!-- Login Button (Shown when not logged in) -->
-                    <button id="navLoginBtn" onclick="openUsernameModal()" class="nav-social-btn" style="background: linear-gradient(135deg, var(--primary-color), #a855f7); border: none;">
+                    <button id="navLoginBtn" onclick="openUsernameModal()" class="nav-social-btn" style="background: linear-gradient(135deg, var(--primary-color), #FF1493); border: none;">
                         <i class="fas fa-user-plus"></i>
                         <span>Iniciar Sesión</span>
                     </button>
@@ -865,7 +865,7 @@
                     {% endif %}
                     
                     <!-- Login Button (Mobile) -->
-                    <button id="navLoginBtnMobile" onclick="openUsernameModal()" class="nav-social-btn w-full justify-center" style="background: linear-gradient(135deg, var(--primary-color), #a855f7); border: none;">
+                    <button id="navLoginBtnMobile" onclick="openUsernameModal()" class="nav-social-btn w-full justify-center" style="background: linear-gradient(135deg, var(--primary-color), #FF1493); border: none;">
                         <i class="fas fa-user-plus"></i>
                         <span>Iniciar Sesión</span>
                     </button>
@@ -904,7 +904,7 @@
         <span class="watchtime-display" id="watchtimeDisplay">0 min viendo</span>
         <div id="wagerRankDisplay" class="hidden" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 2px solid rgba(124, 58, 237, 0.5);">
             <i class="fas fa-trophy" style="color: #FFD700; margin-right: 0.5rem;"></i>
-            <span style="font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 700; color: #a855f7;">#<span id="wagerRankNumber">0</span></span>
+            <span style="font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 700; color: #FF1493;">#<span id="wagerRankNumber">0</span></span>
             <span style="display: block; font-size: 0.75rem; color: #a78bfa; margin-top: 0.25rem;">Wager Race</span>
         </div>
         <button id="redeemCodeBtn" onclick="openRedeemModal()" style="margin-top: 0.75rem; width: 100%; padding: 0.5rem; background: linear-gradient(135deg, #7C3AED, #FF6600); border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease;">
@@ -914,7 +914,7 @@
     
     <!-- Redeem Code Modal -->
     <div id="redeemCodeModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 border-2 border-purple-500 shadow-2xl shadow-purple-500/50">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 border-2 border-pink-500 shadow-2xl shadow-pink-500/50">
             <h2 class="text-3xl font-extrabold orbitron text-center mb-6 gradient-text">
                 <i class="fas fa-gift"></i> Canjear Código
             </h2>
@@ -922,7 +922,7 @@
             
             <div class="mb-6">
                 <input type="text" id="redeemCodeInput" placeholder="Ingresa el código..." 
-                    class="w-full bg-gray-700/50 border-2 border-purple-500/50 rounded-xl px-4 py-3 text-white text-center text-lg font-bold orbitron focus:outline-none focus:border-purple-500 uppercase"
+                    class="w-full bg-gray-700/50 border-2 border-pink-500/50 rounded-xl px-4 py-3 text-white text-center text-lg font-bold orbitron focus:outline-none focus:border-pink-500 uppercase"
                     style="letter-spacing: 2px;">
             </div>
             
@@ -934,7 +934,7 @@
                 <button onclick="closeRedeemModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all">
                     Cancelar
                 </button>
-                <button onclick="submitRedeemCode()" id="submitRedeemBtn" class="flex-1 bg-gradient-to-r from-purple-500 to-orange-500 hover:from-purple-400 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-purple-500/40">
+                <button onclick="submitRedeemCode()" id="submitRedeemBtn" class="flex-1 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-400 hover:to-pink-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-pink-500/40">
                     <i class="fas fa-check"></i> Canjear
                 </button>
             </div>
@@ -942,7 +942,7 @@
     </div>
     
     <!-- Toast Notification -->
-    <div id="toastNotification" class="fixed top-24 right-6 bg-gradient-to-r from-purple-500 to-orange-500 text-white px-6 py-4 rounded-xl shadow-2xl shadow-purple-500/50 hidden z-50 transform transition-all duration-300 orbitron">
+    <div id="toastNotification" class="fixed top-24 right-6 bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4 rounded-xl shadow-2xl shadow-pink-500/50 hidden z-50 transform transition-all duration-300 orbitron">
         <div class="flex items-center gap-3">
             <i id="toastIcon" class="fas fa-check-circle text-2xl"></i>
             <div>
@@ -1011,7 +1011,7 @@
                             {% endif %}
                             {% if social_links.instagram %}
                             <a href="{{ social_links.instagram }}" target="_blank" 
-                               class="social-btn bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/40">
+                               class="social-btn bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-400 hover:to-pink-500 text-white shadow-lg shadow-pink-500/40">
                                 <i class="fab fa-instagram text-xl"></i>
                             </a>
                             {% endif %}
@@ -1052,14 +1052,14 @@
                         </h2>
                         
                         <!-- Código Stake destacado -->
-                        <div class="bg-gradient-to-r from-primary/20 to-purple-900/20 rounded-2xl p-6 mb-6 border border-gray-600">
+                        <div class="bg-gradient-to-r from-primary/20 to-pink-900/20 rounded-2xl p-6 mb-6 border border-gray-600">
                             <p class="text-gray-400 text-sm mb-2">Código de Stake:</p>
                             <div class="text-4xl sm:text-5xl font-black orbitron tracking-widest" style="color: var(--primary-color);">
                                 {{ streamer_config.stake_code }}
                             </div>
                             <a href="https://stake.com/?c={{ streamer_config.stake_code }}" target="_blank" 
                                class="inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105"
-                               style="background: linear-gradient(135deg, var(--primary-color), #a855f7);">
+                               style="background: linear-gradient(135deg, var(--primary-color), #FF1493);">
                                 <i class="fas fa-external-link-alt"></i>
                                 Registrarse en Stake
                             </a>
@@ -1105,7 +1105,7 @@
                         <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
                             <button onclick="openUsernameModal()" 
                                     class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105"
-                                    style="background: linear-gradient(135deg, var(--primary-color), #a855f7);">
+                                    style="background: linear-gradient(135deg, var(--primary-color), #FF1493);">
                                 <i class="fab fa-kickstarter"></i>
                                 Vincular Kick
                             </button>
@@ -1118,7 +1118,7 @@
     </section>
 
     <!-- Sorteos Activos Section -->
-    <section id="sorteos-activos" class="py-20 px-4 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent" data-animate="fade">
+    <section id="sorteos-activos" class="py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
         <div class="container mx-auto">
             <!-- Header -->
             <div class="text-center mb-16 fade-in-up">
@@ -1147,7 +1147,7 @@
 
     <!-- Wager Race Section -->
     {% if wager_race and wager_race.current %}
-    <section id="wager-race" class="py-20 px-4 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent" data-animate="fade">
+    <section id="wager-race" class="py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
         <div class="container mx-auto">
             <!-- Header -->
             <div class="text-center mb-16 fade-in-up">
@@ -1206,7 +1206,7 @@
             </div>
 
             <!-- Top 10 Leaderboard -->
-            <div class="enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-purple-500/30 max-w-6xl mx-auto fade-in-up delay-200">
+            <div class="enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-pink-500/30 max-w-6xl mx-auto fade-in-up delay-200">
                 <h3 class="text-2xl sm:text-3xl font-extrabold orbitron text-center mb-8 gradient-text flex items-center justify-center gap-3">
                     <i class="fas fa-list-ol"></i>
                     Top 10 Completo
@@ -1216,7 +1216,7 @@
                 <div class="hidden md:block overflow-x-auto">
                     <table class="w-full">
                         <thead>
-                            <tr class="border-b-2 border-purple-500/50">
+                            <tr class="border-b-2 border-pink-500/50">
                                 <th class="px-4 py-3 text-left text-orange-500 font-bold orbitron">Rank</th>
                                 <th class="px-4 py-3 text-left text-orange-500 font-bold orbitron">Jugador</th>
                                 <th class="px-4 py-3 text-right text-orange-500 font-bold orbitron">Monto Apostado</th>
@@ -1224,10 +1224,10 @@
                         </thead>
                         <tbody id="wagerRaceTableBody">
                             {% for player in wager_race.current[:10] %}
-                            <tr class="border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row" data-username="{{ player.username }}">
+                            <tr class="border-b border-gray-700/50 hover:bg-pink-900/20 transition-colors wager-race-row" data-username="{{ player.username }}">
                                 <td class="px-4 py-4">
                                     <span class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold orbitron
-                                        {% if player.rank <= 3 %}bg-gradient-to-r from-purple-500 to-orange-500 text-white{% else %}bg-gray-700 text-gray-300{% endif %}">
+                                        {% if player.rank <= 3 %}bg-gradient-to-r from-pink-500 to-pink-600 text-white{% else %}bg-gray-700 text-gray-300{% endif %}">
                                         {{ player.rank }}
                                     </span>
                                 </td>
@@ -1244,10 +1244,10 @@
                 <!-- Mobile Cards -->
                 <div class="md:hidden space-y-4" id="wagerRaceMobileList">
                     {% for player in wager_race.current[:10] %}
-                    <div class="bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row" data-username="{{ player.username }}">
+                    <div class="bg-gray-800/80 rounded-xl p-4 border border-pink-500/30 wager-race-row" data-username="{{ player.username }}">
                         <div class="flex items-center justify-between mb-3">
                             <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron
-                                {% if player.rank <= 3 %}bg-gradient-to-r from-purple-500 to-orange-500 text-white{% else %}bg-gray-700 text-gray-300{% endif %}">
+                                {% if player.rank <= 3 %}bg-gradient-to-r from-pink-500 to-pink-600 text-white{% else %}bg-gray-700 text-gray-300{% endif %}">
                                 {{ player.rank }}
                             </span>
                             <span class="font-bold text-lg text-white">{{ player.username }}</span>
@@ -1265,13 +1265,13 @@
                     <!-- Search Box -->
                     <div class="relative w-full sm:w-auto">
                         <input type="text" id="wagerRaceSearch" placeholder="Buscar jugador..." 
-                            class="bg-gray-800/80 border-2 border-purple-500/50 rounded-full px-6 py-3 pl-12 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 w-full sm:w-80">
-                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500"></i>
+                            class="bg-gray-800/80 border-2 border-pink-500/50 rounded-full px-6 py-3 pl-12 text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 w-full sm:w-80">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-pink-500"></i>
                     </div>
                     
                     <!-- View All Button -->
                     <button id="viewAllBtn" 
-                        class="social-btn bg-gradient-to-r from-purple-500 to-orange-500 hover:from-purple-400 hover:to-orange-400 text-white shadow-lg shadow-purple-500/40">
+                        class="social-btn bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-400 hover:to-pink-500 text-white shadow-lg shadow-pink-500/40">
                         <i class="fas fa-trophy"></i>
                         <span id="viewAllText">Ver Top 100 Completo</span>
                     </button>
@@ -1286,7 +1286,7 @@
         <div class="container mx-auto">
             <div class="grid lg:grid-cols-3 gap-8">
                 <!-- Social Networks -->
-                <div class="lg:col-span-1 enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-purple-500/20 fade-in-up">
+                <div class="lg:col-span-1 enhanced-card p-6 sm:p-8 rounded-3xl shadow-2xl shadow-pink-500/20 fade-in-up">
                     <i class="fas fa-share-alt text-4xl sm:text-5xl md:text-6xl text-orange-500 mb-4 sm:mb-6 pulse-slow"></i>
                     <h3 class="text-2xl sm:text-3xl md:text-4xl font-extrabold orbitron mb-4 sm:mb-6 gradient-text tracking-wide">Sígueme</h3>
                     <p class="text-gray-300 text-lg leading-relaxed mb-6">
@@ -1321,7 +1321,7 @@
                         
                         {% if social_links.instagram %}
                         <a href="{{ social_links.instagram }}" target="_blank" 
-                           class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white rounded-xl font-bold shadow-lg shadow-pink-500/40 transition-all transform hover:scale-105">
+                           class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-400 hover:to-pink-500 text-white rounded-xl font-bold shadow-lg shadow-pink-500/40 transition-all transform hover:scale-105">
                             <i class="fab fa-instagram text-2xl"></i>
                             <span>Instagram</span>
                         </a>
@@ -1382,7 +1382,7 @@
                                 <div>
                                     {% if kick_user_authenticated %}
                                     <a href="{{ url_for('public.raffle_entry', raffle_id=sorteo.id) }}" 
-                                       class="social-btn bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white shadow-lg shadow-purple-500/50 w-full text-center text-sm py-2">
+                                       class="social-btn bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white shadow-lg shadow-pink-500/50 w-full text-center text-sm py-2">
                                         <i class="fas fa-ticket-alt text-lg"></i>
                                         <span>Participar Ahora</span>
                                     </a>
@@ -1411,7 +1411,7 @@
     </section>
 
     <!-- How to Get Points Section -->
-    <section id="puntos" class="py-16 sm:py-20 px-4 bg-gradient-to-b from-black to-purple-900/20" data-animate="fade">
+    <section id="puntos" class="py-16 sm:py-20 px-4 bg-gradient-to-b from-black to-pink-900/20" data-animate="fade">
         <div class="container mx-auto">
             <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron text-center mb-12 sm:mb-16 gradient-text tracking-wider fade-in-up">
                 💰 CÓMO GANAR PUNTOS
@@ -1447,7 +1447,7 @@
             
             <div class="mt-12 text-center">
                 <p class="text-xl text-gray-300 font-semibold">
-                    <i class="fas fa-info-circle text-purple-500 mr-2"></i>
+                    <i class="fas fa-info-circle text-pink-500 mr-2"></i>
                     ¡Gana puntos automáticamente mientras disfrutas del stream!
                 </p>
             </div>
@@ -1517,7 +1517,7 @@
 
     <!-- Código Stake Section -->
     {% if streamer_config and streamer_config.stake_code %}
-    <section id="codigo-stake" class="py-20 px-4" style="background: linear-gradient(135deg, var(--primary-color), #a855f7);" data-animate="fade">
+    <section id="codigo-stake" class="py-20 px-4" style="background: linear-gradient(135deg, var(--primary-color), #FF1493);" data-animate="fade">
         <div class="container mx-auto">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <!-- Código -->
@@ -1612,7 +1612,7 @@
 
     <!-- Kick Stats Section (if online) -->
     {% if kick_data and kick_data.stream and kick_data.stream.is_live %}
-    <section class="py-20 px-4 bg-gradient-to-b from-black via-purple-900/20 to-black" data-animate="fade">
+    <section class="py-20 px-4 bg-gradient-to-b from-black via-pink-900/20 to-black" data-animate="fade">
         <div class="container mx-auto max-w-4xl">
             <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron text-center mb-12 gradient-text tracking-wider fade-in-up">
                 <i class="fas fa-signal text-green-500 mr-4"></i>STATS EN VIVO
@@ -1620,8 +1620,8 @@
             
             <div class="grid md:grid-cols-2 gap-8">
                 <!-- Viewers -->
-                <div class="enhanced-card p-8 rounded-3xl shadow-2xl shadow-purple-500/30 text-center border-2 border-purple-500/50">
-                    <i class="fas fa-eye text-6xl text-purple-500 mb-6 pulse-slow"></i>
+                <div class="enhanced-card p-8 rounded-3xl shadow-2xl shadow-pink-500/30 text-center border-2 border-pink-500/50">
+                    <i class="fas fa-eye text-6xl text-pink-500 mb-6 pulse-slow"></i>
                     <div class="text-6xl font-extrabold orbitron gradient-text mb-4">
                         {{ kick_data.stream.viewer_count|default(0) }}
                     </div>
@@ -1665,7 +1665,7 @@
                 
                 {% if social_links.instagram %}
                 <a href="{{ social_links.instagram }}" target="_blank" 
-                   class="social-btn bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/40">
+                   class="social-btn bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-400 hover:to-pink-500 text-white shadow-lg shadow-pink-500/40">
                     <i class="fab fa-instagram text-2xl sm:text-3xl"></i>
                     <span>Instagram</span>
                 </a>
@@ -1869,13 +1869,13 @@
                         row.style.display = '';
                         // Highlight matched row
                         if (searchTerm && searchTerm.length > 0) {
-                            row.classList.add('bg-purple-900/40');
+                            row.classList.add('bg-pink-900/40');
                         } else {
-                            row.classList.remove('bg-purple-900/40');
+                            row.classList.remove('bg-pink-900/40');
                         }
                     } else {
                         row.style.display = 'none';
-                        row.classList.remove('bg-purple-900/40');
+                        row.classList.remove('bg-pink-900/40');
                     }
                 });
 
@@ -1908,10 +1908,10 @@
                 tableBody.innerHTML = '';
                 wagerRaceData.forEach(player => {
                     const row = document.createElement('tr');
-                    row.className = 'border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row';
+                    row.className = 'border-b border-gray-700/50 hover:bg-pink-900/20 transition-colors wager-race-row';
                     row.dataset.username = player.username;
                     
-                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' : 'bg-gray-700 text-gray-300';
                     
                     row.innerHTML = `
                         <td class="px-4 py-4">
@@ -1932,10 +1932,10 @@
                 mobileList.innerHTML = '';
                 wagerRaceData.forEach(player => {
                     const card = document.createElement('div');
-                    card.className = 'bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row';
+                    card.className = 'bg-gray-800/80 rounded-xl p-4 border border-pink-500/30 wager-race-row';
                     card.dataset.username = player.username;
                     
-                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' : 'bg-gray-700 text-gray-300';
                     
                     card.innerHTML = `
                         <div class="flex items-center justify-between mb-3">
@@ -1977,10 +1977,10 @@
                 console.log('🔍 DEBUG: Creando filas de tabla...');
                 top10.forEach(player => {
                     const row = document.createElement('tr');
-                    row.className = 'border-b border-gray-700/50 hover:bg-purple-900/20 transition-colors wager-race-row';
+                    row.className = 'border-b border-gray-700/50 hover:bg-pink-900/20 transition-colors wager-race-row';
                     row.dataset.username = player.username;
                     
-                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' : 'bg-gray-700 text-gray-300';
                     
                     row.innerHTML = `
                         <td class="px-4 py-4">
@@ -2005,10 +2005,10 @@
                 console.log('🔍 DEBUG: Creando tarjetas móviles...');
                 top10.forEach(player => {
                     const card = document.createElement('div');
-                    card.className = 'bg-gray-800/80 rounded-xl p-4 border border-purple-500/30 wager-race-row';
+                    card.className = 'bg-gray-800/80 rounded-xl p-4 border border-pink-500/30 wager-race-row';
                     card.dataset.username = player.username;
                     
-                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white' : 'bg-gray-700 text-gray-300';
+                    const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' : 'bg-gray-700 text-gray-300';
                     
                     card.innerHTML = `
                         <div class="flex items-center justify-between mb-3">
