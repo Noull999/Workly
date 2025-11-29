@@ -1162,7 +1162,7 @@
 
     <!-- Wager Race Section -->
     {% if wager_race and wager_race.current %}
-    <section id="wager-race" class="py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
+    <section id="wager-race" class="page-section py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
         <div class="container mx-auto">
             <!-- Header -->
             <div class="text-center mb-16 fade-in-up">
@@ -1297,7 +1297,7 @@
     {% endif %}
 
     <!-- Central Section: Social Links, Raffle, Benefits -->
-    <section id="redes-sociales" class="py-20 px-4" data-animate="fade">
+    <section id="redes-sociales" class="page-section py-20 px-4" data-animate="fade">
         <div class="container mx-auto">
             <div class="grid lg:grid-cols-3 gap-8">
                 <!-- Social Networks -->
@@ -1426,7 +1426,7 @@
     </section>
 
     <!-- How to Get Points Section -->
-    <section id="puntos" class="py-16 sm:py-20 px-4 bg-gradient-to-b from-black to-pink-900/20" data-animate="fade">
+    <section id="puntos" class="page-section py-16 sm:py-20 px-4 bg-gradient-to-b from-black to-pink-900/20" data-animate="fade">
         <div class="container mx-auto">
             <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron text-center mb-12 sm:mb-16 gradient-text tracking-wider fade-in-up">
                 💰 CÓMO GANAR PUNTOS
@@ -1470,7 +1470,7 @@
     </section>
 
     <!-- Rangos Section -->
-    <section id="rangos" class="py-20 px-4" style="background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));" data-animate="fade">
+    <section id="rangos" class="page-section py-20 px-4" style="background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));" data-animate="fade">
         <div class="container mx-auto">
             <h2 class="text-4xl sm:text-5xl font-bold orbitron text-center mb-6 gradient-text">
                 Sistema de Rangos
@@ -1533,7 +1533,7 @@
 
     <!-- Featured Clips Section -->
     {% if clips and clips|length > 0 %}
-    <section id="clips" class="py-20 px-4 bg-black" data-animate="fade">
+    <section id="clips" class="page-section py-20 px-4 bg-black" data-animate="fade">
         <div class="container mx-auto">
             <h2 class="text-5xl font-bold orbitron text-center mb-16 gradient-text">
                 Mejores Momentos
@@ -2888,6 +2888,67 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             initPointsSystem();
+        });
+
+        // ===== SISTEMA DE NAVEGACIÓN POR SECCIONES =====
+        function navigateToSection(sectionId) {
+            // Ocultar todas las secciones
+            const allSections = document.querySelectorAll('.page-section');
+            allSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar la sección seleccionada
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                // Scroll al inicio de la página
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            // Actualizar estado activo en la navegación
+            const allNavLinks = document.querySelectorAll('.nav-link');
+            allNavLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + sectionId) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Cerrar menú móvil si está abierto
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu && mobileMenu.classList.contains('active')) {
+                mobileMenu.classList.remove('active');
+            }
+        }
+
+        // Vincular clicks a los nav-links
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    if (href && href.startsWith('#')) {
+                        const sectionId = href.substring(1);
+                        navigateToSection(sectionId);
+                    }
+                });
+            });
+            
+            // Asegurar que solo inicio esté visible al cargar
+            const allSections = document.querySelectorAll('.page-section');
+            allSections.forEach(section => {
+                if (section.id !== 'inicio') {
+                    section.classList.remove('active');
+                }
+            });
+            
+            // Marcar inicio como activo
+            const inicioSection = document.getElementById('inicio');
+            if (inicioSection) {
+                inicioSection.classList.add('active');
+            }
         });
     </script>
 </body>
