@@ -1016,6 +1016,50 @@ def points_config():
     return render_template('kick/points_config.html', form=form, config=config)
 
 
+@kick_bp.route('/admin/streamer-config', methods=['GET', 'POST'])
+@login_required
+def streamer_config():
+    """Configurar página de streamer (colores, rangos, beneficios Stake)"""
+    from flask_login import current_user
+    from forms import StreamerConfigForm
+    from models import StreamerConfig
+    from app import db
+    
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para acceder a esta página.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    config = StreamerConfig.get_or_create(user_id=current_user.id)
+    db.session.commit()
+    
+    form = StreamerConfigForm(obj=config)
+    
+    if form.validate_on_submit():
+        config.primary_color = form.primary_color.data
+        config.background_color = form.background_color.data
+        config.stake_code = form.stake_code.data
+        config.stake_benefits_title = form.stake_benefits_title.data
+        config.stake_benefit_1 = form.stake_benefit_1.data
+        config.stake_benefit_2 = form.stake_benefit_2.data
+        config.stake_benefit_3 = form.stake_benefit_3.data
+        config.stake_benefit_4 = form.stake_benefit_4.data
+        config.rank_silver_min = form.rank_silver_min.data
+        config.rank_gold_min = form.rank_gold_min.data
+        config.rank_platinum_min = form.rank_platinum_min.data
+        config.rank_diamond_min = form.rank_diamond_min.data
+        config.rank_silver_name = form.rank_silver_name.data
+        config.rank_gold_name = form.rank_gold_name.data
+        config.rank_platinum_name = form.rank_platinum_name.data
+        config.rank_diamond_name = form.rank_diamond_name.data
+        
+        db.session.commit()
+        
+        flash('Configuración de streamer actualizada exitosamente.', 'success')
+        return redirect(url_for('kick.streamer_config'))
+    
+    return render_template('kick/streamer_config.html', form=form, config=config)
+
+
 @kick_bp.route('/admin/redeem-codes', methods=['GET', 'POST'])
 @login_required
 def admin_redeem_codes():

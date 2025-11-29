@@ -18,8 +18,8 @@
     
     <style>
         :root {
-            --primary-color: {{ page.primary_color or '#ff6600' }};
-            --secondary-color: {{ page.secondary_color or '#1a1a1a' }};
+            --primary-color: {{ streamer_config.primary_color if streamer_config else '#FF1493' }};
+            --secondary-color: {{ streamer_config.background_color if streamer_config else '#0a0a0a' }};
             --neon-glow: 0 0 20px var(--primary-color), 0 0 40px var(--primary-color);
         }
 
@@ -796,16 +796,18 @@
                     <a href="#sorteos-activos" class="nav-link orbitron">Sorteos</a>
                     {% endif %}
                     {% if wager_race %}
-                    <a href="#wager-race" class="nav-link orbitron">Wager Race</a>
+                    <a href="#wager-race" class="nav-link orbitron">Leaderboard</a>
                     {% endif %}
-                    <a href="#puntos" class="nav-link orbitron">Puntos</a>
+                    <a href="#rangos" class="nav-link orbitron">Rangos</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
-                    <a href="#redes-sociales" class="nav-link orbitron">Redes</a>
+                    {% if streamer_config and streamer_config.stake_code %}
+                    <a href="#codigo-stake" class="nav-link orbitron">Código Stake</a>
+                    {% endif %}
                 </div>
 
-                <!-- Right Side: User Widget + Social Buttons -->
+                <!-- Right Side: User Widget + Login Button -->
                 <div class="hidden lg:flex items-center gap-3">
-                    <!-- User & Points Widget -->
+                    <!-- User & Points Widget (Shown when logged in) -->
                     <div id="navUserWidget" class="nav-user-widget hidden">
                         <span class="nav-username" id="navUsername">Usuario</span>
                         <div class="nav-points">
@@ -813,6 +815,12 @@
                             <span id="navPoints">0</span>
                         </div>
                     </div>
+                    
+                    <!-- Login Button (Shown when not logged in) -->
+                    <button id="navLoginBtn" onclick="openUsernameModal()" class="nav-social-btn" style="background: linear-gradient(135deg, var(--primary-color), #a855f7); border: none;">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Iniciar Sesión</span>
+                    </button>
 
                     <!-- Social Buttons -->
                     {% if page.social_links %}
@@ -820,16 +828,6 @@
                         <a href="{{ page.social_links.kick }}" target="_blank" class="nav-social-btn">
                             <i class="fab fa-kickstarter"></i>
                             <span class="hidden xl:inline">Ver en Kick</span>
-                        </a>
-                        {% endif %}
-                        {% if page.social_links.instagram %}
-                        <a href="{{ page.social_links.instagram }}" target="_blank" class="nav-social-btn">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        {% endif %}
-                        {% if page.social_links.tiktok %}
-                        <a href="{{ page.social_links.tiktok }}" target="_blank" class="nav-social-btn">
-                            <i class="fab fa-tiktok"></i>
                         </a>
                         {% endif %}
                     {% endif %}
@@ -858,11 +856,19 @@
                     <a href="#sorteos-activos" class="nav-link orbitron">Sorteos</a>
                     {% endif %}
                     {% if wager_race %}
-                    <a href="#wager-race" class="nav-link orbitron">Wager Race</a>
+                    <a href="#wager-race" class="nav-link orbitron">Leaderboard</a>
                     {% endif %}
-                    <a href="#puntos" class="nav-link orbitron">Puntos</a>
+                    <a href="#rangos" class="nav-link orbitron">Rangos</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
-                    <a href="#redes-sociales" class="nav-link orbitron">Redes</a>
+                    {% if streamer_config and streamer_config.stake_code %}
+                    <a href="#codigo-stake" class="nav-link orbitron">Código Stake</a>
+                    {% endif %}
+                    
+                    <!-- Login Button (Mobile) -->
+                    <button id="navLoginBtnMobile" onclick="openUsernameModal()" class="nav-social-btn w-full justify-center" style="background: linear-gradient(135deg, var(--primary-color), #a855f7); border: none;">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Iniciar Sesión</span>
+                    </button>
                     
                     <!-- Social Links (Mobile) -->
                     {% if page.social_links %}
@@ -1459,6 +1465,103 @@
         </div>
     </section>
 
+    <!-- Rangos Section -->
+    <section id="rangos" class="py-20 px-4" style="background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));" data-animate="fade">
+        <div class="container mx-auto">
+            <h2 class="text-4xl sm:text-5xl font-bold orbitron text-center mb-6 gradient-text">
+                Sistema de Rangos
+            </h2>
+            <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">
+                Sube de rango apostando en Stake con el código <strong style="color: var(--primary-color);">{{ streamer_config.stake_code if streamer_config and streamer_config.stake_code else 'YANGLEE' }}</strong>. 
+                Tu rango se actualiza automáticamente basado en tu wager total.
+            </p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Plata -->
+                <div class="text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(100,100,100,0.05)); border-color: #C0C0C0;">
+                    <i class="fas fa-shield-alt text-5xl mb-4" style="color: #C0C0C0;"></i>
+                    <h3 class="text-2xl font-bold orbitron mb-2" style="color: #C0C0C0;">{{ streamer_config.rank_silver_name if streamer_config else 'Plata' }}</h3>
+                    <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_silver_min if streamer_config else 0) }} USD</p>
+                </div>
+                
+                <!-- Oro -->
+                <div class="text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(200,150,0,0.05)); border-color: #FFD700;">
+                    <i class="fas fa-medal text-5xl mb-4" style="color: #FFD700;"></i>
+                    <h3 class="text-2xl font-bold orbitron mb-2" style="color: #FFD700;">{{ streamer_config.rank_gold_name if streamer_config else 'Oro' }}</h3>
+                    <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_gold_min if streamer_config else 1000) }} USD</p>
+                </div>
+                
+                <!-- Platino -->
+                <div class="text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(229,228,226,0.1), rgba(180,180,180,0.05)); border-color: #E5E4E2;">
+                    <i class="fas fa-crown text-5xl mb-4" style="color: #E5E4E2;"></i>
+                    <h3 class="text-2xl font-bold orbitron mb-2" style="color: #E5E4E2;">{{ streamer_config.rank_platinum_name if streamer_config else 'Platino' }}</h3>
+                    <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_platinum_min if streamer_config else 10000) }} USD</p>
+                </div>
+                
+                <!-- Diamante -->
+                <div class="text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(0,191,255,0.1), rgba(0,100,200,0.05)); border-color: #00BFFF;">
+                    <i class="fas fa-gem text-5xl mb-4" style="color: #00BFFF;"></i>
+                    <h3 class="text-2xl font-bold orbitron mb-2" style="color: #00BFFF;">{{ streamer_config.rank_diamond_name if streamer_config else 'Diamante' }}</h3>
+                    <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_diamond_min if streamer_config else 50000) }} USD</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Código Stake Section -->
+    {% if streamer_config and streamer_config.stake_code %}
+    <section id="codigo-stake" class="py-20 px-4" style="background: linear-gradient(135deg, var(--primary-color), #a855f7);" data-animate="fade">
+        <div class="container mx-auto">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Código -->
+                <div class="text-center md:text-left">
+                    <h2 class="text-4xl sm:text-5xl font-bold orbitron text-white mb-6">
+                        {{ streamer_config.stake_benefits_title or 'Beneficios Exclusivos' }}
+                    </h2>
+                    <div class="bg-black/30 backdrop-blur-sm rounded-2xl p-8 mb-8 inline-block">
+                        <p class="text-white/80 text-lg mb-2">Usa el código:</p>
+                        <div class="text-5xl sm:text-6xl font-black orbitron text-white tracking-widest">
+                            {{ streamer_config.stake_code }}
+                        </div>
+                    </div>
+                    <a href="https://stake.com/?c={{ streamer_config.stake_code }}" target="_blank" 
+                       class="inline-block bg-white text-black font-bold py-4 px-8 rounded-xl text-xl hover:bg-gray-200 transition-all shadow-lg">
+                        <i class="fas fa-external-link-alt mr-2"></i>Registrarse en Stake
+                    </a>
+                </div>
+                
+                <!-- Beneficios -->
+                <div class="space-y-4">
+                    {% if streamer_config.stake_benefit_1 %}
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-4">
+                        <i class="fas fa-check-circle text-2xl text-white"></i>
+                        <span class="text-white text-lg">{{ streamer_config.stake_benefit_1 }}</span>
+                    </div>
+                    {% endif %}
+                    {% if streamer_config.stake_benefit_2 %}
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-4">
+                        <i class="fas fa-check-circle text-2xl text-white"></i>
+                        <span class="text-white text-lg">{{ streamer_config.stake_benefit_2 }}</span>
+                    </div>
+                    {% endif %}
+                    {% if streamer_config.stake_benefit_3 %}
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-4">
+                        <i class="fas fa-check-circle text-2xl text-white"></i>
+                        <span class="text-white text-lg">{{ streamer_config.stake_benefit_3 }}</span>
+                    </div>
+                    {% endif %}
+                    {% if streamer_config.stake_benefit_4 %}
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-4">
+                        <i class="fas fa-check-circle text-2xl text-white"></i>
+                        <span class="text-white text-lg">{{ streamer_config.stake_benefit_4 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- Featured Clips Section -->
     {% if clips and clips|length > 0 %}
     <section id="clips" class="py-20 px-4 bg-black" data-animate="fade">
@@ -2032,6 +2135,33 @@
             {% endif %}
         }
 
+        function openUsernameModal() {
+            const usernameModal = document.getElementById('usernameModal');
+            if (usernameModal) {
+                usernameModal.classList.remove('hidden');
+            }
+        }
+        
+        function closeUsernameModal() {
+            const usernameModal = document.getElementById('usernameModal');
+            if (usernameModal) {
+                usernameModal.classList.add('hidden');
+            }
+        }
+        
+        function updateLoginButtonVisibility() {
+            const navLoginBtn = document.getElementById('navLoginBtn');
+            const navLoginBtnMobile = document.getElementById('navLoginBtnMobile');
+            
+            if (kickUsername) {
+                if (navLoginBtn) navLoginBtn.style.display = 'none';
+                if (navLoginBtnMobile) navLoginBtnMobile.style.display = 'none';
+            } else {
+                if (navLoginBtn) navLoginBtn.style.display = 'flex';
+                if (navLoginBtnMobile) navLoginBtnMobile.style.display = 'flex';
+            }
+        }
+
         function initPointsSystem() {
             kickUsername = localStorage.getItem('kick_username');
             
@@ -2041,10 +2171,9 @@
             const pointsWidget = document.getElementById('pointsWidget');
             
             loadPointsConfig();
+            updateLoginButtonVisibility();
             
-            if (!kickUsername && usernameModal) {
-                usernameModal.classList.remove('hidden');
-            } else if (kickUsername) {
+            if (kickUsername) {
                 if (pointsWidget) {
                     pointsWidget.classList.remove('hidden');
                 }
@@ -2101,6 +2230,7 @@
                                     }
                                     updateUsernameDisplay();
                                     updateNavUserWidget();
+                                    updateLoginButtonVisibility();
                                     updatePointsCounter();
                                     updateWagerRank();
                                     checkDailyVisit();

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, SelectField, PasswordField, EmailField, DateTimeLocalField, DecimalField, BooleanField, HiddenField, SubmitField, FieldList, FormField
+from wtforms import StringField, TextAreaField, IntegerField, SelectField, PasswordField, EmailField, DateTimeLocalField, DecimalField, BooleanField, HiddenField, SubmitField, FieldList, FormField, FloatField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange, Optional, ValidationError
 from models import Category, Warehouse, Service
 from flask_login import current_user
@@ -449,3 +449,99 @@ class RedeemCodeForm(FlaskForm):
     )
     is_active = BooleanField('Código Activo', default=True)
     submit = SubmitField('Guardar Código')
+
+
+class StreamerConfigForm(FlaskForm):
+    """Formulario para configurar página de streamer (rangos, beneficios Stake, colores)"""
+    
+    # Tema de colores
+    primary_color = StringField(
+        'Color Principal (Neón)',
+        validators=[DataRequired(), Length(max=7)],
+        default='#FF1493',
+        render_kw={'type': 'color'}
+    )
+    background_color = StringField(
+        'Color de Fondo',
+        validators=[DataRequired(), Length(max=7)],
+        default='#0a0a0a',
+        render_kw={'type': 'color'}
+    )
+    
+    # Código de patrocinador Stake
+    stake_code = StringField(
+        'Código de Stake',
+        validators=[Optional(), Length(max=50)],
+        render_kw={'placeholder': 'ej: YANGLEE'}
+    )
+    stake_benefits_title = StringField(
+        'Título de Beneficios',
+        validators=[Optional(), Length(max=200)],
+        default='Beneficios Exclusivos'
+    )
+    stake_benefit_1 = StringField(
+        'Beneficio 1',
+        validators=[Optional(), Length(max=300)],
+        default='Bono de bienvenida del 200%'
+    )
+    stake_benefit_2 = StringField(
+        'Beneficio 2',
+        validators=[Optional(), Length(max=300)],
+        default='Rakeback instantáneo'
+    )
+    stake_benefit_3 = StringField(
+        'Beneficio 3',
+        validators=[Optional(), Length(max=300)],
+        default='Acceso a promociones VIP'
+    )
+    stake_benefit_4 = StringField(
+        'Beneficio 4',
+        validators=[Optional(), Length(max=300)],
+        default='Soporte prioritario 24/7'
+    )
+    
+    # Umbrales de rangos
+    rank_silver_min = FloatField(
+        'Mínimo Plata ($)',
+        validators=[DataRequired()],
+        default=0
+    )
+    rank_gold_min = FloatField(
+        'Mínimo Oro ($)',
+        validators=[DataRequired()],
+        default=1000
+    )
+    rank_platinum_min = FloatField(
+        'Mínimo Platino ($)',
+        validators=[DataRequired()],
+        default=10000
+    )
+    rank_diamond_min = FloatField(
+        'Mínimo Diamante ($)',
+        validators=[DataRequired()],
+        default=50000
+    )
+    
+    # Nombres de rangos
+    rank_silver_name = StringField(
+        'Nombre Rango Plata',
+        validators=[DataRequired(), Length(max=50)],
+        default='Plata'
+    )
+    rank_gold_name = StringField(
+        'Nombre Rango Oro',
+        validators=[DataRequired(), Length(max=50)],
+        default='Oro'
+    )
+    rank_platinum_name = StringField(
+        'Nombre Rango Platino',
+        validators=[DataRequired(), Length(max=50)],
+        default='Platino'
+    )
+    rank_diamond_name = StringField(
+        'Nombre Rango Diamante',
+        validators=[DataRequired(), Length(max=50)],
+        default='Diamante'
+    )
+    
+    submit = SubmitField('Guardar Configuración')

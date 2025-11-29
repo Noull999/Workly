@@ -316,6 +316,16 @@ def perfil_dinamico(email):
         else:
             print("⚠️ PERFIL: Wager Race no disponible (None)")
     
+    # ===== CONFIGURACIÓN DE STREAMER (Colores, Rangos, Beneficios Stake) =====
+    streamer_config = None
+    if db_user:
+        from models import StreamerConfig
+        streamer_config = StreamerConfig.query.filter_by(user_id=db_user.id).first()
+        if not streamer_config:
+            streamer_config = StreamerConfig(user_id=db_user.id)
+            db.session.add(streamer_config)
+            db.session.commit()
+    
     # Pasar todos los datos del JSON al template
     return render_template('public/public_page.html', 
                          user=user_obj,
@@ -331,6 +341,7 @@ def perfil_dinamico(email):
                          kick_user_authenticated=kick_user_authenticated,
                          kick_username_authenticated=kick_username_authenticated,
                          wager_race=wager_race_data,
+                         streamer_config=streamer_config,
                          request=request)
 
 

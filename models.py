@@ -1019,3 +1019,64 @@ class PageVisit(db.Model):
     
     def __repr__(self):
         return f'<PageVisit {self.page_name} from {self.ip_address} at {self.created_at}>'
+
+
+class StreamerConfig(db.Model):
+    """Configuración completa de streamer para página pública"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    
+    # Tema de colores
+    primary_color = db.Column(db.String(7), default='#FF1493')  # Rosa neón por defecto
+    background_color = db.Column(db.String(7), default='#0a0a0a')  # Negro por defecto
+    
+    # Código de patrocinador Stake
+    stake_code = db.Column(db.String(50), nullable=True)  # Ej: "YANGLEE"
+    stake_benefits_title = db.Column(db.String(200), default='Beneficios Exclusivos')
+    stake_benefit_1 = db.Column(db.String(300), default='Bono de bienvenida del 200%')
+    stake_benefit_2 = db.Column(db.String(300), default='Rakeback instantáneo')
+    stake_benefit_3 = db.Column(db.String(300), default='Acceso a promociones VIP')
+    stake_benefit_4 = db.Column(db.String(300), default='Soporte prioritario 24/7')
+    
+    # Umbrales de rangos (basados en wager total en USD)
+    rank_silver_min = db.Column(db.Float, default=0)  # Plata: desde 0
+    rank_gold_min = db.Column(db.Float, default=1000)  # Oro: desde $1,000
+    rank_platinum_min = db.Column(db.Float, default=10000)  # Platino: desde $10,000
+    rank_diamond_min = db.Column(db.Float, default=50000)  # Diamante: desde $50,000
+    
+    # Nombres personalizables de rangos
+    rank_silver_name = db.Column(db.String(50), default='Plata')
+    rank_gold_name = db.Column(db.String(50), default='Oro')
+    rank_platinum_name = db.Column(db.String(50), default='Platino')
+    rank_diamond_name = db.Column(db.String(50), default='Diamante')
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('streamer_config', uselist=False))
+    
+    def __repr__(self):
+        return f'<StreamerConfig User {self.user_id}>'
+    
+    def get_rank_for_wager(self, wager_amount):
+        """Determina el rango basado en el monto apostado"""
+        if wager_amount >= self.rank_diamond_min:
+            return {'name': self.rank_diamond_name, 'level': 4, 'color': '#00BFFF', 'icon': 'gem'}
+        elif wager_amount >= self.rank_platinum_min:
+            return {'name': self.rank_platinum_name, 'level': 3, 'color': '#E5E4E2', 'icon': 'crown'}
+        elif wager_amount >= self.rank_gold_min:
+            return {'name': self.rank_gold_name, 'level': 2, 'color': '#FFD700', 'icon': 'medal'}
+        else:
+            return {'name': self.rank_silver_name, 'level': 1, 'color': '#C0C0C0', 'icon': 'shield'}
+    
+    @classmethod
+    def get_or_create(cls, user_id):
+        """Obtiene o crea configuración para un usuario"""
+        config = cls.query.filter_by(user_id=user_id).first()
+        if not config:
+            config = cls(user_id=user_id)
+            db.session.add(config)
+            db.session.flush()
+        return config
