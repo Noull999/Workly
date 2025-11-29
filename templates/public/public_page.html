@@ -1523,35 +1523,53 @@
             <h2 class="text-4xl sm:text-5xl font-bold orbitron text-center mb-6 gradient-text">
                 Sistema de Rangos
             </h2>
-            <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">
+            <p class="text-gray-400 text-center mb-8 max-w-2xl mx-auto">
                 Sube de rango apostando en Stake con el código <strong style="color: var(--primary-color);">{{ streamer_config.stake_code if streamer_config and streamer_config.stake_code else 'YANGLEE' }}</strong>. 
                 Tu rango se actualiza automáticamente basado en tu wager total.
             </p>
             
+            <!-- User Rank Display -->
+            <div id="userRankSection" class="hidden mb-12">
+                <div class="bg-black/60 backdrop-blur-lg rounded-2xl p-6 max-w-md mx-auto border-2 border-gray-700 text-center">
+                    <p class="text-gray-400 text-sm mb-2">Tu rango actual</p>
+                    <div class="flex items-center justify-center gap-4">
+                        <i id="userRankIcon" class="fas fa-shield-alt text-4xl"></i>
+                        <div>
+                            <h3 id="userRankName" class="text-2xl font-bold orbitron">Sin Rango</h3>
+                            <p id="userRankWager" class="text-gray-400 text-sm">Wager: $0</p>
+                        </div>
+                    </div>
+                    <div id="nextRankInfo" class="mt-4 text-gray-400 text-sm hidden">
+                        <p>Siguiente rango: <span id="nextRankName" class="font-bold"></span></p>
+                        <p>Necesitas: $<span id="nextRankAmount">0</span> más</p>
+                    </div>
+                </div>
+            </div>
+            
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <!-- Plata -->
-                <div class="text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(100,100,100,0.05)); border-color: #C0C0C0;">
+                <div id="rankCard_silver" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(100,100,100,0.05)); border-color: #C0C0C0;">
                     <i class="fas fa-shield-alt text-5xl mb-4" style="color: #C0C0C0;"></i>
                     <h3 class="text-2xl font-bold orbitron mb-2" style="color: #C0C0C0;">{{ streamer_config.rank_silver_name if streamer_config else 'Plata' }}</h3>
                     <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_silver_min if streamer_config else 0) }} USD</p>
                 </div>
                 
                 <!-- Oro -->
-                <div class="text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(200,150,0,0.05)); border-color: #FFD700;">
+                <div id="rankCard_gold" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(200,150,0,0.05)); border-color: #FFD700;">
                     <i class="fas fa-medal text-5xl mb-4" style="color: #FFD700;"></i>
                     <h3 class="text-2xl font-bold orbitron mb-2" style="color: #FFD700;">{{ streamer_config.rank_gold_name if streamer_config else 'Oro' }}</h3>
                     <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_gold_min if streamer_config else 1000) }} USD</p>
                 </div>
                 
                 <!-- Platino -->
-                <div class="text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(229,228,226,0.1), rgba(180,180,180,0.05)); border-color: #E5E4E2;">
+                <div id="rankCard_platinum" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(229,228,226,0.1), rgba(180,180,180,0.05)); border-color: #E5E4E2;">
                     <i class="fas fa-crown text-5xl mb-4" style="color: #E5E4E2;"></i>
                     <h3 class="text-2xl font-bold orbitron mb-2" style="color: #E5E4E2;">{{ streamer_config.rank_platinum_name if streamer_config else 'Platino' }}</h3>
                     <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_platinum_min if streamer_config else 10000) }} USD</p>
                 </div>
                 
                 <!-- Diamante -->
-                <div class="text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(0,191,255,0.1), rgba(0,100,200,0.05)); border-color: #00BFFF;">
+                <div id="rankCard_diamond" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(0,191,255,0.1), rgba(0,100,200,0.05)); border-color: #00BFFF;">
                     <i class="fas fa-gem text-5xl mb-4" style="color: #00BFFF;"></i>
                     <h3 class="text-2xl font-bold orbitron mb-2" style="color: #00BFFF;">{{ streamer_config.rank_diamond_name if streamer_config else 'Diamante' }}</h3>
                     <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_diamond_min if streamer_config else 50000) }} USD</p>
@@ -2162,6 +2180,91 @@
             }
         }
 
+        // Rank thresholds from streamer config
+        const rankThresholds = {
+            silver: { min: {{ streamer_config.rank_silver_min if streamer_config else 0 }}, name: '{{ streamer_config.rank_silver_name if streamer_config else "Plata" }}', icon: 'fa-shield-alt', color: '#C0C0C0' },
+            gold: { min: {{ streamer_config.rank_gold_min if streamer_config else 1000 }}, name: '{{ streamer_config.rank_gold_name if streamer_config else "Oro" }}', icon: 'fa-medal', color: '#FFD700' },
+            platinum: { min: {{ streamer_config.rank_platinum_min if streamer_config else 10000 }}, name: '{{ streamer_config.rank_platinum_name if streamer_config else "Platino" }}', icon: 'fa-crown', color: '#E5E4E2' },
+            diamond: { min: {{ streamer_config.rank_diamond_min if streamer_config else 50000 }}, name: '{{ streamer_config.rank_diamond_name if streamer_config else "Diamante" }}', icon: 'fa-gem', color: '#00BFFF' }
+        };
+        
+        function getUserRankFromWager(wager) {
+            if (wager >= rankThresholds.diamond.min) {
+                return { current: 'diamond', next: null };
+            } else if (wager >= rankThresholds.platinum.min) {
+                return { current: 'platinum', next: 'diamond', needed: rankThresholds.diamond.min - wager };
+            } else if (wager >= rankThresholds.gold.min) {
+                return { current: 'gold', next: 'platinum', needed: rankThresholds.platinum.min - wager };
+            } else if (wager >= rankThresholds.silver.min) {
+                return { current: 'silver', next: 'gold', needed: rankThresholds.gold.min - wager };
+            } else {
+                return { current: null, next: 'silver', needed: rankThresholds.silver.min - wager };
+            }
+        }
+        
+        function updateUserRankDisplay() {
+            {% if wager_race and wager_race.current %}
+            if (!kickUsername) return;
+            
+            const userEntry = wagerRaceData.find(entry => 
+                entry.username.toLowerCase() === kickUsername.toLowerCase()
+            );
+            
+            const userRankSection = document.getElementById('userRankSection');
+            const userRankIcon = document.getElementById('userRankIcon');
+            const userRankName = document.getElementById('userRankName');
+            const userRankWager = document.getElementById('userRankWager');
+            const nextRankInfo = document.getElementById('nextRankInfo');
+            const nextRankName = document.getElementById('nextRankName');
+            const nextRankAmount = document.getElementById('nextRankAmount');
+            
+            if (!userRankSection) return;
+            
+            if (userEntry) {
+                const wager = userEntry.wagered || 0;
+                const rankInfo = getUserRankFromWager(wager);
+                
+                userRankSection.classList.remove('hidden');
+                userRankWager.textContent = `Wager: $${wager.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                
+                if (rankInfo.current) {
+                    const rank = rankThresholds[rankInfo.current];
+                    userRankIcon.className = `fas ${rank.icon} text-4xl`;
+                    userRankIcon.style.color = rank.color;
+                    userRankName.textContent = rank.name;
+                    userRankName.style.color = rank.color;
+                    
+                    // Highlight current rank card
+                    document.querySelectorAll('.rank-card').forEach(card => {
+                        card.style.transform = '';
+                        card.style.boxShadow = '';
+                    });
+                    const currentCard = document.getElementById(`rankCard_${rankInfo.current}`);
+                    if (currentCard) {
+                        currentCard.style.transform = 'scale(1.05)';
+                        currentCard.style.boxShadow = `0 0 30px ${rank.color}50`;
+                    }
+                } else {
+                    userRankIcon.className = 'fas fa-user text-4xl';
+                    userRankIcon.style.color = '#6b7280';
+                    userRankName.textContent = 'Sin Rango';
+                    userRankName.style.color = '#9ca3af';
+                }
+                
+                if (rankInfo.next && rankInfo.needed > 0) {
+                    nextRankInfo.classList.remove('hidden');
+                    nextRankName.textContent = rankThresholds[rankInfo.next].name;
+                    nextRankName.style.color = rankThresholds[rankInfo.next].color;
+                    nextRankAmount.textContent = rankInfo.needed.toLocaleString('en-US', {minimumFractionDigits: 2});
+                } else {
+                    nextRankInfo.classList.add('hidden');
+                }
+            } else {
+                userRankSection.classList.add('hidden');
+            }
+            {% endif %}
+        }
+        
         function updateWagerRank() {
             {% if wager_race and wager_race.current %}
             if (!kickUsername) return;
@@ -2184,6 +2287,9 @@
                 console.log(`📊 WAGER RACE: Usuario ${kickUsername} no está en el Top 100`);
                 wagerRankDisplay.classList.add('hidden');
             }
+            
+            // Also update the rank display
+            updateUserRankDisplay();
             {% endif %}
         }
 
