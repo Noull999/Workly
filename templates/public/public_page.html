@@ -1492,33 +1492,86 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
                 <!-- Plata -->
-                <div id="rankCard_silver" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(100,100,100,0.05)); border-color: #C0C0C0;">
+                <div id="rankCard_silver" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105 cursor-pointer" onclick="showRankUsers('silver')" style="background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(100,100,100,0.05)); border-color: #C0C0C0;">
                     <i class="fas fa-shield-alt text-5xl mb-4" style="color: #C0C0C0;"></i>
                     <h3 class="text-2xl font-bold orbitron mb-2" style="color: #C0C0C0;">{{ streamer_config.rank_silver_name if streamer_config else 'Plata' }}</h3>
                     <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_silver_min if streamer_config else 0) }} USD</p>
+                    {% if streamer_config and streamer_config.rank_silver_reward > 0 %}
+                    <p class="text-green-400 text-sm font-bold mt-2"><i class="fas fa-gift mr-1"></i>Premio: ${{ '{:,.0f}'.format(streamer_config.rank_silver_reward) }}</p>
+                    {% endif %}
+                    <p class="text-xs text-gray-500 mt-2" id="silverCount">0 usuarios</p>
                 </div>
                 
                 <!-- Oro -->
-                <div id="rankCard_gold" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(200,150,0,0.05)); border-color: #FFD700;">
+                <div id="rankCard_gold" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105 cursor-pointer" onclick="showRankUsers('gold')" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(200,150,0,0.05)); border-color: #FFD700;">
                     <i class="fas fa-medal text-5xl mb-4" style="color: #FFD700;"></i>
                     <h3 class="text-2xl font-bold orbitron mb-2" style="color: #FFD700;">{{ streamer_config.rank_gold_name if streamer_config else 'Oro' }}</h3>
                     <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_gold_min if streamer_config else 1000) }} USD</p>
+                    {% if streamer_config and streamer_config.rank_gold_reward > 0 %}
+                    <p class="text-green-400 text-sm font-bold mt-2"><i class="fas fa-gift mr-1"></i>Premio: ${{ '{:,.0f}'.format(streamer_config.rank_gold_reward) }}</p>
+                    {% endif %}
+                    <p class="text-xs text-gray-500 mt-2" id="goldCount">0 usuarios</p>
                 </div>
                 
                 <!-- Platino -->
-                <div id="rankCard_platinum" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(229,228,226,0.1), rgba(180,180,180,0.05)); border-color: #E5E4E2;">
+                <div id="rankCard_platinum" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105 cursor-pointer" onclick="showRankUsers('platinum')" style="background: linear-gradient(135deg, rgba(229,228,226,0.1), rgba(180,180,180,0.05)); border-color: #E5E4E2;">
                     <i class="fas fa-crown text-5xl mb-4" style="color: #E5E4E2;"></i>
                     <h3 class="text-2xl font-bold orbitron mb-2" style="color: #E5E4E2;">{{ streamer_config.rank_platinum_name if streamer_config else 'Platino' }}</h3>
                     <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_platinum_min if streamer_config else 10000) }} USD</p>
+                    {% if streamer_config and streamer_config.rank_platinum_reward > 0 %}
+                    <p class="text-green-400 text-sm font-bold mt-2"><i class="fas fa-gift mr-1"></i>Premio: ${{ '{:,.0f}'.format(streamer_config.rank_platinum_reward) }}</p>
+                    {% endif %}
+                    <p class="text-xs text-gray-500 mt-2" id="platinumCount">0 usuarios</p>
                 </div>
                 
                 <!-- Diamante -->
-                <div id="rankCard_diamond" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(0,191,255,0.1), rgba(0,100,200,0.05)); border-color: #00BFFF;">
+                <div id="rankCard_diamond" class="rank-card text-center p-6 rounded-2xl border-2 transition-all hover:scale-105 cursor-pointer" onclick="showRankUsers('diamond')" style="background: linear-gradient(135deg, rgba(0,191,255,0.1), rgba(0,100,200,0.05)); border-color: #00BFFF;">
                     <i class="fas fa-gem text-5xl mb-4" style="color: #00BFFF;"></i>
                     <h3 class="text-2xl font-bold orbitron mb-2" style="color: #00BFFF;">{{ streamer_config.rank_diamond_name if streamer_config else 'Diamante' }}</h3>
                     <p class="text-gray-400 text-sm">Desde ${{ '{:,.0f}'.format(streamer_config.rank_diamond_min if streamer_config else 50000) }} USD</p>
+                    {% if streamer_config and streamer_config.rank_diamond_reward > 0 %}
+                    <p class="text-green-400 text-sm font-bold mt-2"><i class="fas fa-gift mr-1"></i>Premio: ${{ '{:,.0f}'.format(streamer_config.rank_diamond_reward) }}</p>
+                    {% endif %}
+                    <p class="text-xs text-gray-500 mt-2" id="diamondCount">0 usuarios</p>
+                </div>
+            </div>
+
+            <!-- Panel de Usuarios por Rango -->
+            <div id="rankUsersPanel" class="bg-black/60 backdrop-blur-lg rounded-2xl p-6 border-2 border-gray-700">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold orbitron gradient-text">
+                        <i class="fas fa-users mr-2"></i>Usuarios por Rango
+                    </h3>
+                    <p class="text-gray-400 text-sm">Datos de Wager Race</p>
+                </div>
+                
+                <!-- Tabs de Rangos -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button onclick="showRankUsers('all')" class="rank-tab active px-4 py-2 rounded-full text-sm font-bold transition-all" data-rank="all" style="background: linear-gradient(135deg, #FF1493, #FF69B4); color: white;">
+                        Todos
+                    </button>
+                    <button onclick="showRankUsers('diamond')" class="rank-tab px-4 py-2 rounded-full text-sm font-bold transition-all" data-rank="diamond" style="background: rgba(0,191,255,0.2); color: #00BFFF; border: 1px solid #00BFFF;">
+                        <i class="fas fa-gem mr-1"></i>Diamante
+                    </button>
+                    <button onclick="showRankUsers('platinum')" class="rank-tab px-4 py-2 rounded-full text-sm font-bold transition-all" data-rank="platinum" style="background: rgba(229,228,226,0.2); color: #E5E4E2; border: 1px solid #E5E4E2;">
+                        <i class="fas fa-crown mr-1"></i>Platino
+                    </button>
+                    <button onclick="showRankUsers('gold')" class="rank-tab px-4 py-2 rounded-full text-sm font-bold transition-all" data-rank="gold" style="background: rgba(255,215,0,0.2); color: #FFD700; border: 1px solid #FFD700;">
+                        <i class="fas fa-medal mr-1"></i>Oro
+                    </button>
+                    <button onclick="showRankUsers('silver')" class="rank-tab px-4 py-2 rounded-full text-sm font-bold transition-all" data-rank="silver" style="background: rgba(192,192,192,0.2); color: #C0C0C0; border: 1px solid #C0C0C0;">
+                        <i class="fas fa-shield-alt mr-1"></i>Plata
+                    </button>
+                </div>
+                
+                <!-- Lista de Usuarios -->
+                <div id="rankUsersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                    <div class="text-center text-gray-400 col-span-full py-8">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
+                        <p>Cargando usuarios...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1868,6 +1921,7 @@
                     row.dataset.username = player.username;
                     
                     const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' : 'bg-gray-700 text-gray-300';
+                    const playerRankInfo = getPlayerRank(player.wagered);
                     
                     row.innerHTML = `
                         <td class="px-4 py-4">
@@ -1875,7 +1929,12 @@
                                 ${player.rank}
                             </span>
                         </td>
-                        <td class="px-4 py-4 font-semibold text-white text-lg">${player.username}</td>
+                        <td class="px-4 py-4">
+                            <div class="flex items-center gap-2">
+                                <i class="fas ${playerRankInfo.icon}" style="color: ${playerRankInfo.color};" title="${playerRankInfo.name}"></i>
+                                <span class="font-semibold text-white text-lg">${player.username}</span>
+                            </div>
+                        </td>
                         <td class="px-4 py-4 text-right">
                             <span class="text-2xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                         </td>
@@ -1892,13 +1951,17 @@
                     card.dataset.username = player.username;
                     
                     const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' : 'bg-gray-700 text-gray-300';
+                    const playerRankInfo = getPlayerRank(player.wagered);
                     
                     card.innerHTML = `
                         <div class="flex items-center justify-between mb-3">
                             <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron ${rankClass}">
                                 ${player.rank}
                             </span>
-                            <span class="font-bold text-lg text-white">${player.username}</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fas ${playerRankInfo.icon}" style="color: ${playerRankInfo.color};" title="${playerRankInfo.name}"></i>
+                                <span class="font-bold text-lg text-white">${player.username}</span>
+                            </div>
                         </div>
                         <div class="bg-black/50 rounded-lg p-3 text-center">
                             <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
@@ -1915,28 +1978,21 @@
         }
 
         function loadTop10() {
-            console.log('🔍 DEBUG: loadTop10() ejecutándose');
-            console.log('🔍 DEBUG: wagerRaceData tiene', wagerRaceData ? wagerRaceData.length : 'undefined', 'jugadores');
-            
             showingTop100 = false;
             const tableBody = document.getElementById('wagerRaceTableBody');
             const mobileList = document.getElementById('wagerRaceMobileList');
             
-            console.log('🔍 DEBUG: tableBody encontrado?', tableBody ? 'SÍ' : 'NO');
-            console.log('🔍 DEBUG: mobileList encontrado?', mobileList ? 'SÍ' : 'NO');
-            
             const top10 = wagerRaceData.slice(0, 10);
-            console.log('🔍 DEBUG: top10 tiene', top10.length, 'jugadores');
             
             if (tableBody) {
                 tableBody.innerHTML = '';
-                console.log('🔍 DEBUG: Creando filas de tabla...');
                 top10.forEach(player => {
                     const row = document.createElement('tr');
                     row.className = 'border-b border-gray-700/50 hover:bg-pink-900/20 transition-colors wager-race-row';
                     row.dataset.username = player.username;
                     
                     const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' : 'bg-gray-700 text-gray-300';
+                    const playerRankInfo = getPlayerRank(player.wagered);
                     
                     row.innerHTML = `
                         <td class="px-4 py-4">
@@ -1944,34 +2000,39 @@
                                 ${player.rank}
                             </span>
                         </td>
-                        <td class="px-4 py-4 font-semibold text-white text-lg">${player.username}</td>
+                        <td class="px-4 py-4">
+                            <div class="flex items-center gap-2">
+                                <i class="fas ${playerRankInfo.icon}" style="color: ${playerRankInfo.color};" title="${playerRankInfo.name}"></i>
+                                <span class="font-semibold text-white text-lg">${player.username}</span>
+                            </div>
+                        </td>
                         <td class="px-4 py-4 text-right">
                             <span class="text-2xl font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                         </td>
                     `;
                     tableBody.appendChild(row);
                 });
-                console.log('🔍 DEBUG: Se agregaron', top10.length, 'filas a tableBody');
-            } else {
-                console.log('⚠️ DEBUG: tableBody NO encontrado, no se pueden agregar filas');
             }
             
             if (mobileList) {
                 mobileList.innerHTML = '';
-                console.log('🔍 DEBUG: Creando tarjetas móviles...');
                 top10.forEach(player => {
                     const card = document.createElement('div');
                     card.className = 'bg-gray-800/80 rounded-xl p-4 border border-pink-500/30 wager-race-row';
                     card.dataset.username = player.username;
                     
                     const rankClass = player.rank <= 3 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' : 'bg-gray-700 text-gray-300';
+                    const playerRankInfo = getPlayerRank(player.wagered);
                     
                     card.innerHTML = `
                         <div class="flex items-center justify-between mb-3">
                             <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron ${rankClass}">
                                 ${player.rank}
                             </span>
-                            <span class="font-bold text-lg text-white">${player.username}</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fas ${playerRankInfo.icon}" style="color: ${playerRankInfo.color};" title="${playerRankInfo.name}"></i>
+                                <span class="font-bold text-lg text-white">${player.username}</span>
+                            </div>
                         </div>
                         <div class="bg-black/50 rounded-lg p-3 text-center">
                             <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
@@ -1980,9 +2041,6 @@
                     `;
                     mobileList.appendChild(card);
                 });
-                console.log('🔍 DEBUG: Se agregaron', top10.length, 'tarjetas a mobileList');
-            } else {
-                console.log('⚠️ DEBUG: mobileList NO encontrado, no se pueden agregar tarjetas');
             }
             
             if (viewAllText) {
@@ -1997,12 +2055,109 @@
             console.log('✅ DEBUG: loadTop10() completado');
         }
         
+        // Función para obtener rango de un jugador
+        function getPlayerRank(wager) {
+            if (wager >= {{ streamer_config.rank_diamond_min if streamer_config else 50000 }}) {
+                return { key: 'diamond', name: '{{ streamer_config.rank_diamond_name if streamer_config else "Diamante" }}', icon: 'fa-gem', color: '#00BFFF' };
+            } else if (wager >= {{ streamer_config.rank_platinum_min if streamer_config else 10000 }}) {
+                return { key: 'platinum', name: '{{ streamer_config.rank_platinum_name if streamer_config else "Platino" }}', icon: 'fa-crown', color: '#E5E4E2' };
+            } else if (wager >= {{ streamer_config.rank_gold_min if streamer_config else 1000 }}) {
+                return { key: 'gold', name: '{{ streamer_config.rank_gold_name if streamer_config else "Oro" }}', icon: 'fa-medal', color: '#FFD700' };
+            } else {
+                return { key: 'silver', name: '{{ streamer_config.rank_silver_name if streamer_config else "Plata" }}', icon: 'fa-shield-alt', color: '#C0C0C0' };
+            }
+        }
+
+        // Generar icono de rango HTML
+        function getRankIcon(wager) {
+            const rank = getPlayerRank(wager);
+            return `<i class="fas ${rank.icon}" style="color: ${rank.color};" title="${rank.name}"></i>`;
+        }
+
+        // Mostrar usuarios por rango
+        function showRankUsers(rankFilter) {
+            const listContainer = document.getElementById('rankUsersList');
+            if (!listContainer || !wagerRaceData) return;
+
+            // Actualizar tabs activos
+            document.querySelectorAll('.rank-tab').forEach(tab => {
+                if (tab.dataset.rank === rankFilter) {
+                    tab.classList.add('active');
+                    tab.style.opacity = '1';
+                } else {
+                    tab.classList.remove('active');
+                    tab.style.opacity = '0.7';
+                }
+            });
+
+            // Filtrar usuarios
+            let filteredUsers = wagerRaceData.filter(player => {
+                if (rankFilter === 'all') return true;
+                const playerRank = getPlayerRank(player.wagered);
+                return playerRank.key === rankFilter;
+            });
+
+            // Generar HTML
+            if (filteredUsers.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center text-gray-400 col-span-full py-8">
+                        <i class="fas fa-user-slash text-3xl mb-4 opacity-50"></i>
+                        <p>No hay usuarios en este rango</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = filteredUsers.map(player => {
+                const rank = getPlayerRank(player.wagered);
+                return `
+                    <div class="bg-gray-800/80 rounded-xl p-4 border border-gray-700 hover:border-pink-500/50 transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, ${rank.color}33, ${rank.color}11); border: 2px solid ${rank.color};">
+                                <i class="fas ${rank.icon}" style="color: ${rank.color};"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-white">${player.username}</div>
+                                <div class="text-sm text-gray-400">Pos #${player.rank}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-mono font-bold text-purple-400">$${player.wagered.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                                <div class="text-xs" style="color: ${rank.color};">${rank.name}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Contar usuarios por rango y actualizar contadores
+        function updateRankCounts() {
+            if (!wagerRaceData) return;
+            
+            const counts = { silver: 0, gold: 0, platinum: 0, diamond: 0 };
+            wagerRaceData.forEach(player => {
+                const rank = getPlayerRank(player.wagered);
+                counts[rank.key]++;
+            });
+
+            document.getElementById('silverCount').textContent = counts.silver + ' usuarios';
+            document.getElementById('goldCount').textContent = counts.gold + ' usuarios';
+            document.getElementById('platinumCount').textContent = counts.platinum + ' usuarios';
+            document.getElementById('diamondCount').textContent = counts.diamond + ' usuarios';
+        }
+
         // Inicializar tabla con Top 10 cuando carga la página
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadTop10);
+            document.addEventListener('DOMContentLoaded', function() {
+                loadTop10();
+                updateRankCounts();
+                showRankUsers('all');
+            });
         } else {
             // DOMContentLoaded ya ocurrió, ejecutar inmediatamente
             loadTop10();
+            updateRankCounts();
+            showRankUsers('all');
         }
         {% endif %}
 
