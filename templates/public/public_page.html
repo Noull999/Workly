@@ -956,110 +956,162 @@
     <section id="inicio" class="min-h-screen flex items-center justify-center px-4 py-20 pt-32">
         <div class="container mx-auto">
             <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <!-- Left: Avatar -->
-                <div class="flex justify-center lg:justify-end" data-animate="left">
-                    <div class="animated-border">
-                        <div class="w-72 h-72 rounded-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
-                            {% if page.profile_image_url %}
-                            <img src="{{ page.profile_image_url }}" alt="{{ page.title }}" class="w-full h-full object-cover">
-                            {% else %}
-                            <div class="w-full h-full flex items-center justify-center">
-                                <i class="fas fa-user text-9xl text-gray-600"></i>
+                <!-- Left: Streamer Profile -->
+                <div class="text-center lg:text-left" data-animate="left">
+                    <div class="flex flex-col items-center lg:items-start gap-6">
+                        <!-- Avatar + Name -->
+                        <div class="flex flex-col sm:flex-row items-center gap-6">
+                            <div class="animated-border">
+                                <div class="w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
+                                    {% if page.profile_image_url %}
+                                    <img src="{{ page.profile_image_url }}" alt="{{ page.title }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <i class="fas fa-user text-6xl text-gray-600"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
                             </div>
+                            <div class="text-center sm:text-left">
+                                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron gradient-text mb-2 tracking-wider">
+                                    {{ page.title or 'YANGLEE' }}
+                                </h1>
+                                
+                                <!-- LIVE/OFFLINE Status -->
+                                {% if kick_data and kick_data.stream and kick_data.stream.is_live %}
+                                <div class="flex justify-center sm:justify-start mb-2">
+                                    <div class="live-badge">
+                                        <div class="live-dot"></div>
+                                        <span>EN VIVO</span>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="flex justify-center sm:justify-start mb-2">
+                                    <div class="offline-badge">
+                                        <i class="fas fa-circle text-gray-500"></i>
+                                        <span>OFFLINE</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <p class="text-lg sm:text-xl text-gray-300 max-w-md font-medium leading-relaxed">
+                            {{ page.description or 'Streamer profesional de gaming y entretenimiento' }}
+                        </p>
+                        
+                        <!-- Social Buttons -->
+                        <div class="flex flex-wrap gap-3 justify-center lg:justify-start">
+                            {% if social_links.kick %}
+                            <a href="{{ social_links.kick }}" target="_blank" 
+                               class="social-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg shadow-green-500/40">
+                                <i class="fab fa-kickstarter text-xl"></i>
+                                <span>Kick</span>
+                            </a>
+                            {% endif %}
+                            {% if social_links.instagram %}
+                            <a href="{{ social_links.instagram }}" target="_blank" 
+                               class="social-btn bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/40">
+                                <i class="fab fa-instagram text-xl"></i>
+                            </a>
+                            {% endif %}
+                            {% if social_links.tiktok %}
+                            <a href="{{ social_links.tiktok }}" target="_blank" 
+                               class="social-btn bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white shadow-lg border border-gray-700">
+                                <i class="fab fa-tiktok text-xl"></i>
+                            </a>
+                            {% endif %}
+                            {% if social_links.youtube %}
+                            <a href="{{ social_links.youtube }}" target="_blank" 
+                               class="social-btn bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-lg shadow-red-500/40">
+                                <i class="fab fa-youtube text-xl"></i>
+                            </a>
+                            {% endif %}
+                            {% if social_links.twitter %}
+                            <a href="{{ social_links.twitter }}" target="_blank" 
+                               class="social-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white shadow-lg shadow-blue-500/40">
+                                <i class="fab fa-twitter text-xl"></i>
+                            </a>
+                            {% endif %}
+                            {% if social_links.discord %}
+                            <a href="{{ social_links.discord }}" target="_blank" 
+                               class="social-btn bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white shadow-lg shadow-indigo-500/40">
+                                <i class="fab fa-discord text-xl"></i>
+                            </a>
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <!-- Right: Info -->
+                <!-- Right: Stake Benefits -->
                 <div class="text-center lg:text-left" data-animate="right">
-                    <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold orbitron gradient-text mb-6 fade-in-up tracking-wider">
-                        {{ page.title or 'YANGLEE' }}
-                    </h1>
-                    
-                    <!-- LIVE/OFFLINE Status -->
-                    {% if kick_data and kick_data.stream and kick_data.stream.is_live %}
-                    <div class="mb-6 flex justify-center lg:justify-start">
-                        <div class="live-badge">
-                            <div class="live-dot"></div>
-                            <span>EN VIVO</span>
+                    {% if streamer_config and streamer_config.stake_code %}
+                    <div class="bg-black/40 backdrop-blur-lg rounded-3xl p-8 border-2 border-gray-700 hover:border-primary transition-all">
+                        <h2 class="text-2xl sm:text-3xl font-bold orbitron mb-6" style="color: var(--primary-color);">
+                            {{ streamer_config.stake_benefits_title or 'BENEFICIOS EXCLUSIVOS' }}
+                        </h2>
+                        
+                        <!-- Código Stake destacado -->
+                        <div class="bg-gradient-to-r from-primary/20 to-purple-900/20 rounded-2xl p-6 mb-6 border border-gray-600">
+                            <p class="text-gray-400 text-sm mb-2">Código de Stake:</p>
+                            <div class="text-4xl sm:text-5xl font-black orbitron tracking-widest" style="color: var(--primary-color);">
+                                {{ streamer_config.stake_code }}
+                            </div>
+                            <a href="https://stake.com/?c={{ streamer_config.stake_code }}" target="_blank" 
+                               class="inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105"
+                               style="background: linear-gradient(135deg, var(--primary-color), #a855f7);">
+                                <i class="fas fa-external-link-alt"></i>
+                                Registrarse en Stake
+                            </a>
+                        </div>
+                        
+                        <!-- Lista de beneficios -->
+                        <div class="space-y-3 text-left">
+                            {% if streamer_config.stake_benefit_1 %}
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-xl" style="color: var(--primary-color);"></i>
+                                <span class="text-gray-200">{{ streamer_config.stake_benefit_1 }}</span>
+                            </div>
+                            {% endif %}
+                            {% if streamer_config.stake_benefit_2 %}
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-xl" style="color: var(--primary-color);"></i>
+                                <span class="text-gray-200">{{ streamer_config.stake_benefit_2 }}</span>
+                            </div>
+                            {% endif %}
+                            {% if streamer_config.stake_benefit_3 %}
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-xl" style="color: var(--primary-color);"></i>
+                                <span class="text-gray-200">{{ streamer_config.stake_benefit_3 }}</span>
+                            </div>
+                            {% endif %}
+                            {% if streamer_config.stake_benefit_4 %}
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-xl" style="color: var(--primary-color);"></i>
+                                <span class="text-gray-200">{{ streamer_config.stake_benefit_4 }}</span>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                     {% else %}
-                    <div class="mb-6 flex justify-center lg:justify-start">
-                        <div class="offline-badge">
-                            <i class="fas fa-circle text-gray-500"></i>
-                            <span>OFFLINE</span>
+                    <!-- Fallback si no hay código Stake -->
+                    <div class="bg-black/40 backdrop-blur-lg rounded-3xl p-8 border-2 border-gray-700">
+                        <h2 class="text-2xl sm:text-3xl font-bold orbitron mb-6 gradient-text">
+                            ¡BIENVENIDO!
+                        </h2>
+                        <p class="text-gray-300 text-lg mb-6">
+                            Gana puntos viendo el stream y participa en sorteos exclusivos.
+                        </p>
+                        <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
+                            <button onclick="openUsernameModal()" 
+                                    class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105"
+                                    style="background: linear-gradient(135deg, var(--primary-color), #a855f7);">
+                                <i class="fab fa-kickstarter"></i>
+                                Vincular Kick
+                            </button>
                         </div>
                     </div>
                     {% endif %}
-                    
-                    <p class="text-lg sm:text-xl md:text-2xl text-gray-300 mb-10 max-w-xl font-medium tracking-wide fade-in-up delay-200 leading-relaxed">
-                        {{ page.description or 'Streamer profesional de gaming y entretenimiento' }}
-                    </p>
-                    
-                    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center lg:justify-start mb-8">
-                        {% if social_links.kick %}
-                        <a href="{{ social_links.kick }}" target="_blank" 
-                           class="social-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg shadow-green-500/40"
-                           style="display: inline-flex !important; align-items: center !important;">
-                            <i class="fas fa-play-circle text-2xl sm:text-3xl" style="margin-right: 0.5rem;"></i>
-                            <span style="font-weight: bold;">🎮 Ver en Kick</span>
-                        </a>
-                        {% endif %}
-                        
-                        {% if social_links.instagram %}
-                        <a href="{{ social_links.instagram }}" target="_blank" 
-                           class="social-btn bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/40">
-                            <i class="fab fa-instagram text-2xl sm:text-3xl"></i>
-                            <span>Instagram</span>
-                        </a>
-                        {% endif %}
-
-                        {% if social_links.tiktok %}
-                        <a href="{{ social_links.tiktok }}" target="_blank" 
-                           class="social-btn bg-gradient-to-r from-black to-gray-900 hover:from-gray-900 hover:to-black text-white shadow-lg shadow-gray-500/30 border border-gray-700">
-                            <i class="fab fa-tiktok text-2xl sm:text-3xl"></i>
-                            <span>TikTok</span>
-                        </a>
-                        {% endif %}
-                    </div>
-
-                    <!-- Quick Social Links + Kick Login -->
-                    <div class="flex gap-6 mt-8 justify-center lg:justify-start fade-in-up delay-400 items-center">
-                        {% if social_links.youtube %}
-                        <a href="{{ social_links.youtube }}" target="_blank" class="text-4xl hover:text-red-500 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
-                            <i class="fab fa-youtube"></i>
-                        </a>
-                        {% endif %}
-                        {% if social_links.twitter %}
-                        <a href="{{ social_links.twitter }}" target="_blank" class="text-4xl hover:text-blue-400 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        {% endif %}
-                        {% if social_links.discord %}
-                        <a href="{{ social_links.discord }}" target="_blank" class="text-4xl hover:text-indigo-500 transition-all transform hover:scale-125 hover:-translate-y-2 duration-300">
-                            <i class="fab fa-discord"></i>
-                        </a>
-                        {% endif %}
-                        
-                        <!-- Kick Login Button (Small) -->
-                        {% if sorteos_habilitados and not kick_user_authenticated %}
-                        <a href="{{ url_for('kick.login', return_to=request.path) }}" 
-                           class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white rounded-full font-bold text-sm shadow-lg shadow-green-500/40 transition-all transform hover:scale-105">
-                            <i class="fab fa-kickstarter"></i>
-                            <span>Login Kick</span>
-                        </a>
-                        {% elif kick_user_authenticated %}
-                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-600 rounded-full font-bold text-sm shadow-lg">
-                            <i class="fab fa-kickstarter text-white"></i>
-                            <span class="text-white">{{ kick_username_authenticated }}</span>
-                            <a href="{{ url_for('kick_bp.logout', return_to=request.path) }}" class="text-white hover:text-gray-200 transition-colors">
-                                <i class="fas fa-sign-out-alt text-xs"></i>
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
         </div>
