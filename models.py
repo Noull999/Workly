@@ -1050,6 +1050,12 @@ class StreamerConfig(db.Model):
     rank_platinum_name = db.Column(db.String(50), default='Platino')
     rank_diamond_name = db.Column(db.String(50), default='Diamante')
     
+    # Premios/Recompensas por rango (USD)
+    rank_silver_reward = db.Column(db.Float, default=0)  # Premio para Plata
+    rank_gold_reward = db.Column(db.Float, default=0)  # Premio para Oro
+    rank_platinum_reward = db.Column(db.Float, default=0)  # Premio para Platino
+    rank_diamond_reward = db.Column(db.Float, default=0)  # Premio para Diamante
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

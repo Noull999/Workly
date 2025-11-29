@@ -544,4 +544,26 @@ class StreamerConfigForm(FlaskForm):
         default='Diamante'
     )
     
+    # Premios/Recompensas por rango
+    rank_silver_reward = FloatField(
+        'Premio Plata ($)',
+        validators=[Optional()],
+        default=0
+    )
+    rank_gold_reward = FloatField(
+        'Premio Oro ($)',
+        validators=[Optional()],
+        default=0
+    )
+    rank_platinum_reward = FloatField(
+        'Premio Platino ($)',
+        validators=[Optional()],
+        default=0
+    )
+    rank_diamond_reward = FloatField(
+        'Premio Diamante ($)',
+        validators=[Optional()],
+        default=0
+    )
+    
     submit = SubmitField('Guardar Configuración')

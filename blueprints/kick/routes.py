@@ -1051,6 +1051,10 @@ def streamer_config():
         config.rank_gold_name = form.rank_gold_name.data
         config.rank_platinum_name = form.rank_platinum_name.data
         config.rank_diamond_name = form.rank_diamond_name.data
+        config.rank_silver_reward = form.rank_silver_reward.data or 0
+        config.rank_gold_reward = form.rank_gold_reward.data or 0
+        config.rank_platinum_reward = form.rank_platinum_reward.data or 0
+        config.rank_diamond_reward = form.rank_diamond_reward.data or 0
         
         db.session.commit()
         
