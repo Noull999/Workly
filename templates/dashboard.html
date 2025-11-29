@@ -410,6 +410,42 @@
         </div>
     </div>
 
+    <!-- Panel de Sorteos por Rango -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow" style="border: 2px solid #9B59B6;">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #9B59B6, #8E44AD);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-dice me-2"></i>Sorteos por Rango (Fin de Mes)
+                    </h6>
+                    <a href="{{ url_for('kick.admin_rank_periods') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-calendar-alt me-1"></i>Ver Períodos
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <p class="mb-2">Guarda el estado del wager race antes de que termine el mes para realizar sorteos entre los usuarios de cada rango.</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <span class="badge" style="background-color: #C0C0C0; color: #000;"><i class="fas fa-shield-alt me-1"></i>Plata</span>
+                                <span class="badge" style="background-color: #FFD700; color: #000;"><i class="fas fa-medal me-1"></i>Oro</span>
+                                <span class="badge" style="background-color: #E5E4E2; color: #000;"><i class="fas fa-crown me-1"></i>Platino</span>
+                                <span class="badge" style="background-color: #00BFFF; color: #000;"><i class="fas fa-gem me-1"></i>Diamante</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <form action="{{ url_for('kick.save_rank_period') }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-save me-2"></i>Guardar Período Actual
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <!-- Panel de Sorteos Activos -->
         <div class="col-lg-8 mb-4">

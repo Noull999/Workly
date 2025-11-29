@@ -1086,3 +1086,96 @@ class StreamerConfig(db.Model):
             db.session.add(config)
             db.session.flush()
         return config
+
+
+class RankPeriod(db.Model):
+    """Período guardado de wager race para sorteos de rangos a fin de mes"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Información del período
+    name = db.Column(db.String(100), nullable=False)  # Ej: "Noviembre 2025"
+    period_month = db.Column(db.Integer, nullable=False)  # 1-12
+    period_year = db.Column(db.Integer, nullable=False)  # 2025, 2026, etc.
+    
+    # Estado del período
+    is_active = db.Column(db.Boolean, default=True)  # Si aún se pueden hacer sorteos
+    
+    # Multi-tenant
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    users = db.relationship('RankPeriodUser', backref='period', lazy=True, cascade='all, delete-orphan')
+    raffles = db.relationship('RankRaffle', backref='period', lazy=True, cascade='all, delete-orphan')
+    creator = db.relationship('User', backref='rank_periods_created')
+    
+    def __repr__(self):
+        return f'<RankPeriod {self.name} - Active: {self.is_active}>'
+    
+    def get_users_by_rank(self, rank_key):
+        """Obtiene usuarios de un rango específico"""
+        return [u for u in self.users if u.rank_key == rank_key]
+    
+    def count_by_rank(self):
+        """Cuenta usuarios por rango"""
+        counts = {'silver': 0, 'gold': 0, 'platinum': 0, 'diamond': 0}
+        for user in self.users:
+            if user.rank_key in counts:
+                counts[user.rank_key] += 1
+        return counts
+
+
+class RankPeriodUser(db.Model):
+    """Usuario guardado en un período con su rango calculado"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Referencia al período
+    period_id = db.Column(db.Integer, db.ForeignKey('rank_period.id'), nullable=False)
+    
+    # Datos del usuario del wager race
+    username = db.Column(db.String(100), nullable=False)  # Username de Stake
+    wagered = db.Column(db.Float, nullable=False, default=0)  # Monto apostado
+    position = db.Column(db.Integer, nullable=True)  # Posición en el leaderboard
+    
+    # Rango calculado al momento de guardar
+    rank_key = db.Column(db.String(20), nullable=False)  # silver, gold, platinum, diamond
+    rank_name = db.Column(db.String(50), nullable=False)  # Nombre personalizado del rango
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<RankPeriodUser {self.username} - {self.rank_key} - ${self.wagered}>'
+
+
+class RankRaffle(db.Model):
+    """Sorteo de rango para un período específico"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Referencia al período
+    period_id = db.Column(db.Integer, db.ForeignKey('rank_period.id'), nullable=False)
+    
+    # Configuración del sorteo
+    rank_key = db.Column(db.String(20), nullable=False)  # silver, gold, platinum, diamond
+    rank_name = db.Column(db.String(50), nullable=False)  # Nombre del rango
+    prize = db.Column(db.String(200), nullable=True)  # Premio (ej: "$10 USD")
+    
+    # Ganador
+    winner_username = db.Column(db.String(100), nullable=True)  # Username del ganador
+    winner_wagered = db.Column(db.Float, nullable=True)  # Monto apostado del ganador
+    
+    # Estado
+    is_completed = db.Column(db.Boolean, default=False)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    
+    # Multi-tenant
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    creator = db.relationship('User', backref='rank_raffles_created')
+    
+    def __repr__(self):
+        return f'<RankRaffle {self.rank_name} - Period {self.period_id} - Winner: {self.winner_username}>'

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios {{ rank_name }} - {{ period.name }} - Workly{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>
+                <i class="fas fa-users me-2" style="color: 
+                    {% if rank_key == 'diamond' %}#00BFFF
+                    {% elif rank_key == 'platinum' %}#E5E4E2
+                    {% elif rank_key == 'gold' %}#FFD700
+                    {% else %}#C0C0C0{% endif %};"></i>
+                Usuarios {{ rank_name }}
+            </h2>
+            <p class="text-muted mb-0">{{ period.name }} · {{ users|length }} usuarios en este rango</p>
+        </div>
+        <a href="{{ url_for('kick.rank_period_detail', period_id=period.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver al Período
+        </a>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            {% if users %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Usuario</th>
+                                <th>Wager Total</th>
+                                <th>Posición Original</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users|sort(attribute='wagered', reverse=true) %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <i class="fas fa-user me-2" style="color: 
+                                        {% if rank_key == 'diamond' %}#00BFFF
+                                        {% elif rank_key == 'platinum' %}#E5E4E2
+                                        {% elif rank_key == 'gold' %}#FFD700
+                                        {% else %}#C0C0C0{% endif %};"></i>
+                                    <strong>{{ user.username }}</strong>
+                                </td>
+                                <td>${{ "%.2f"|format(user.wagered) }}</td>
+                                <td>
+                                    {% if user.position %}
+                                        <span class="badge bg-secondary">#{{ user.position }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-user-slash fa-4x mb-3"></i>
+                    <h5>No hay usuarios en el rango {{ rank_name }}</h5>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

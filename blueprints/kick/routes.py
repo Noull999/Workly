@@ -1461,3 +1461,265 @@ def redeem_code():
     except Exception as e:
         db.session.rollback()
         return jsonify({'ok': False, 'message': str(e)}), 500
+
+
+# ===== SORTEOS POR RANGO =====
+
+@kick_bp.route('/admin/rank-periods')
+@login_required
+def admin_rank_periods():
+    """Ver períodos guardados para sorteos por rango"""
+    from flask_login import current_user
+    from models import RankPeriod
+    
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para acceder a esta página.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+    
+    periods = RankPeriod.query.filter_by(user_id=current_user.id).order_by(RankPeriod.created_at.desc()).all()
+    
+    return render_template('kick/rank_periods.html', periods=periods)
+
+
+@kick_bp.route('/admin/rank-periods/save', methods=['POST'])
+@login_required
+def save_rank_period():
+    """Guardar período actual del wager race para sorteos de fin de mes"""
+    from flask_login import current_user
+    from models import RankPeriod, RankPeriodUser, StreamerConfig
+    from app import db
+    from blueprints.public.routes import get_wager_race_data
+    from datetime import datetime
+    
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para realizar esta acción.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+    
+    # Obtener datos actuales del wager race
+    wager_data = get_wager_race_data()
+    if not wager_data or not wager_data.get('current'):
+        flash('No hay datos de wager race disponibles para guardar.', 'danger')
+        return redirect(url_for('kick.admin_rank_periods'))
+    
+    # Obtener configuración de rangos
+    config = StreamerConfig.get_or_create(user_id=current_user.id)
+    db.session.commit()
+    
+    # Crear período
+    now = datetime.now()
+    month_names = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    period_name = f"{month_names[now.month]} {now.year}"
+    
+    period = RankPeriod(
+        name=period_name,
+        period_month=now.month,
+        period_year=now.year,
+        user_id=current_user.id,
+        is_active=True
+    )
+    db.session.add(period)
+    db.session.flush()
+    
+    # Guardar usuarios con sus rangos
+    wager_users = wager_data.get('current', [])
+    for idx, user in enumerate(wager_users, 1):
+        username = user.get('username', '')
+        wagered = float(user.get('wagered', 0))
+        
+        # Calcular rango
+        rank_info = config.get_rank_for_wager(wagered)
+        rank_key = 'silver'
+        if wagered >= config.rank_diamond_min:
+            rank_key = 'diamond'
+        elif wagered >= config.rank_platinum_min:
+            rank_key = 'platinum'
+        elif wagered >= config.rank_gold_min:
+            rank_key = 'gold'
+        
+        period_user = RankPeriodUser(
+            period_id=period.id,
+            username=username,
+            wagered=wagered,
+            position=idx,
+            rank_key=rank_key,
+            rank_name=rank_info['name']
+        )
+        db.session.add(period_user)
+    
+    db.session.commit()
+    
+    flash(f'Período "{period_name}" guardado con {len(wager_users)} usuarios.', 'success')
+    return redirect(url_for('kick.rank_period_detail', period_id=period.id))
+
+
+@kick_bp.route('/admin/rank-periods/<int:period_id>')
+@login_required
+def rank_period_detail(period_id):
+    """Ver detalle de un período y sus sorteos por rango"""
+    from flask_login import current_user
+    from models import RankPeriod, RankRaffle, StreamerConfig
+    
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para acceder a esta página.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+    
+    period = RankPeriod.query.get_or_404(period_id)
+    
+    if period.user_id != current_user.id and not current_user.is_admin_global():
+        flash('No tienes acceso a este período.', 'danger')
+        return redirect(url_for('kick.admin_rank_periods'))
+    
+    # Contar usuarios por rango
+    rank_counts = period.count_by_rank()
+    
+    # Obtener sorteos realizados para este período
+    raffles = {r.rank_key: r for r in period.raffles}
+    
+    # Obtener configuración de rangos para los premios
+    config = StreamerConfig.get_or_create(user_id=current_user.id)
+    
+    rank_data = [
+        {
+            'key': 'silver',
+            'name': config.rank_silver_name or 'Plata',
+            'icon': 'shield',
+            'color': '#C0C0C0',
+            'count': rank_counts.get('silver', 0),
+            'reward': config.rank_silver_reward or 0,
+            'raffle': raffles.get('silver')
+        },
+        {
+            'key': 'gold',
+            'name': config.rank_gold_name or 'Oro',
+            'icon': 'medal',
+            'color': '#FFD700',
+            'count': rank_counts.get('gold', 0),
+            'reward': config.rank_gold_reward or 0,
+            'raffle': raffles.get('gold')
+        },
+        {
+            'key': 'platinum',
+            'name': config.rank_platinum_name or 'Platino',
+            'icon': 'crown',
+            'color': '#E5E4E2',
+            'count': rank_counts.get('platinum', 0),
+            'reward': config.rank_platinum_reward or 0,
+            'raffle': raffles.get('platinum')
+        },
+        {
+            'key': 'diamond',
+            'name': config.rank_diamond_name or 'Diamante',
+            'icon': 'gem',
+            'color': '#00BFFF',
+            'count': rank_counts.get('diamond', 0),
+            'reward': config.rank_diamond_reward or 0,
+            'raffle': raffles.get('diamond')
+        }
+    ]
+    
+    return render_template('kick/rank_period_detail.html', period=period, rank_data=rank_data)
+
+
+@kick_bp.route('/admin/rank-periods/<int:period_id>/draw/<rank_key>', methods=['POST'])
+@login_required
+def draw_rank_raffle(period_id, rank_key):
+    """Ejecutar sorteo para un rango específico"""
+    from flask_login import current_user
+    from models import RankPeriod, RankRaffle, StreamerConfig
+    from app import db
+    from datetime import datetime
+    import random
+    
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para realizar esta acción.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+    
+    period = RankPeriod.query.get_or_404(period_id)
+    
+    if period.user_id != current_user.id and not current_user.is_admin_global():
+        flash('No tienes acceso a este período.', 'danger')
+        return redirect(url_for('kick.admin_rank_periods'))
+    
+    # Verificar que el rango sea válido
+    if rank_key not in ['silver', 'gold', 'platinum', 'diamond']:
+        flash('Rango inválido.', 'danger')
+        return redirect(url_for('kick.rank_period_detail', period_id=period_id))
+    
+    # Verificar que no exista ya un sorteo para este rango
+    existing = RankRaffle.query.filter_by(period_id=period_id, rank_key=rank_key, is_completed=True).first()
+    if existing:
+        flash(f'Ya existe un ganador para el rango {existing.rank_name}.', 'warning')
+        return redirect(url_for('kick.rank_period_detail', period_id=period_id))
+    
+    # Obtener usuarios del rango
+    users = period.get_users_by_rank(rank_key)
+    if not users:
+        flash(f'No hay usuarios en el rango {rank_key}.', 'warning')
+        return redirect(url_for('kick.rank_period_detail', period_id=period_id))
+    
+    # Seleccionar ganador aleatorio
+    winner = random.choice(users)
+    
+    # Obtener configuración para el premio
+    config = StreamerConfig.get_or_create(user_id=current_user.id)
+    reward_map = {
+        'silver': config.rank_silver_reward,
+        'gold': config.rank_gold_reward,
+        'platinum': config.rank_platinum_reward,
+        'diamond': config.rank_diamond_reward
+    }
+    name_map = {
+        'silver': config.rank_silver_name or 'Plata',
+        'gold': config.rank_gold_name or 'Oro',
+        'platinum': config.rank_platinum_name or 'Platino',
+        'diamond': config.rank_diamond_name or 'Diamante'
+    }
+    
+    # Crear registro del sorteo
+    raffle = RankRaffle(
+        period_id=period_id,
+        rank_key=rank_key,
+        rank_name=name_map[rank_key],
+        prize=f"${reward_map[rank_key]} USD" if reward_map[rank_key] else "Premio de rango",
+        winner_username=winner.username,
+        winner_wagered=winner.wagered,
+        is_completed=True,
+        completed_at=datetime.utcnow(),
+        user_id=current_user.id
+    )
+    db.session.add(raffle)
+    db.session.commit()
+    
+    flash(f'¡Sorteo de {name_map[rank_key]} completado! Ganador: {winner.username}', 'success')
+    return redirect(url_for('kick.rank_period_detail', period_id=period_id))
+
+
+@kick_bp.route('/admin/rank-periods/<int:period_id>/users/<rank_key>')
+@login_required
+def rank_period_users(period_id, rank_key):
+    """Ver usuarios de un rango específico en un período"""
+    from flask_login import current_user
+    from models import RankPeriod, StreamerConfig
+    
+    if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        flash('No tienes permisos para acceder a esta página.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+    
+    period = RankPeriod.query.get_or_404(period_id)
+    
+    if period.user_id != current_user.id and not current_user.is_admin_global():
+        flash('No tienes acceso a este período.', 'danger')
+        return redirect(url_for('kick.admin_rank_periods'))
+    
+    users = period.get_users_by_rank(rank_key)
+    config = StreamerConfig.get_or_create(user_id=current_user.id)
+    
+    name_map = {
+        'silver': config.rank_silver_name or 'Plata',
+        'gold': config.rank_gold_name or 'Oro',
+        'platinum': config.rank_platinum_name or 'Platino',
+        'diamond': config.rank_diamond_name or 'Diamante'
+    }
+    
+    return render_template('kick/rank_period_users.html', period=period, users=users, rank_key=rank_key, rank_name=name_map.get(rank_key, rank_key))
