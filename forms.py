@@ -566,4 +566,16 @@ class StreamerConfigForm(FlaskForm):
         default=0
     )
     
+    # Cantidad de ganadores por rango (solo Plata y Oro)
+    rank_silver_winners = IntegerField(
+        'Cantidad de Ganadores Plata',
+        validators=[Optional(), NumberRange(min=1, max=10)],
+        default=1
+    )
+    rank_gold_winners = IntegerField(
+        'Cantidad de Ganadores Oro',
+        validators=[Optional(), NumberRange(min=1, max=10)],
+        default=1
+    )
+    
     submit = SubmitField('Guardar Configuración')

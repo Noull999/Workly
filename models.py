@@ -1056,6 +1056,10 @@ class StreamerConfig(db.Model):
     rank_platinum_reward = db.Column(db.Float, default=0)  # Premio para Platino
     rank_diamond_reward = db.Column(db.Float, default=0)  # Premio para Diamante
     
+    # Cantidad de ganadores por rango (Plata y Oro pueden tener múltiples)
+    rank_silver_winners = db.Column(db.Integer, default=1)  # Cantidad de ganadores Plata
+    rank_gold_winners = db.Column(db.Integer, default=1)  # Cantidad de ganadores Oro
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -1069,13 +1073,15 @@ class StreamerConfig(db.Model):
     def get_rank_for_wager(self, wager_amount):
         """Determina el rango basado en el monto apostado"""
         if wager_amount >= self.rank_diamond_min:
-            return {'name': self.rank_diamond_name, 'level': 4, 'color': '#00BFFF', 'icon': 'gem'}
+            return {'name': self.rank_diamond_name, 'level': 4, 'color': '#00BFFF', 'icon': 'gem', 'key': 'diamond'}
         elif wager_amount >= self.rank_platinum_min:
-            return {'name': self.rank_platinum_name, 'level': 3, 'color': '#E5E4E2', 'icon': 'crown'}
+            return {'name': self.rank_platinum_name, 'level': 3, 'color': '#E5E4E2', 'icon': 'crown', 'key': 'platinum'}
         elif wager_amount >= self.rank_gold_min:
-            return {'name': self.rank_gold_name, 'level': 2, 'color': '#FFD700', 'icon': 'medal'}
+            return {'name': self.rank_gold_name, 'level': 2, 'color': '#FFD700', 'icon': 'medal', 'key': 'gold'}
+        elif wager_amount >= self.rank_silver_min:
+            return {'name': self.rank_silver_name, 'level': 1, 'color': '#C0C0C0', 'icon': 'shield', 'key': 'silver'}
         else:
-            return {'name': self.rank_silver_name, 'level': 1, 'color': '#C0C0C0', 'icon': 'shield'}
+            return None
     
     @classmethod
     def get_or_create(cls, user_id):

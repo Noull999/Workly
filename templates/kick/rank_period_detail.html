@@ -9,7 +9,7 @@
             <h2><i class="fas fa-trophy me-2 text-warning"></i>{{ period.name }}</h2>
             <p class="text-muted mb-0">
                 Guardado el {{ period.created_at.strftime('%d/%m/%Y a las %H:%M') }} · 
-                {{ period.users|length }} usuarios
+                {{ period.users|length }} usuarios con rango
             </p>
         </div>
         <a href="{{ url_for('kick.admin_rank_periods') }}" class="btn btn-outline-secondary">
@@ -45,33 +45,56 @@
                     {% if rank.reward > 0 %}
                     <div class="mb-3">
                         <span class="badge bg-success fs-6">${{ rank.reward }} USD</span>
-                        <small class="text-muted d-block mt-1">Premio</small>
+                        <small class="text-muted d-block mt-1">Premio por ganador</small>
                     </div>
                     {% endif %}
 
-                    {% if rank.raffle and rank.raffle.is_completed %}
-                        <div class="alert alert-success py-2 mb-3">
-                            <i class="fas fa-crown me-1"></i>
-                            <strong>Ganador:</strong><br>
-                            <span class="fs-5">{{ rank.raffle.winner_username }}</span>
+                    {% if rank.max_winners > 1 %}
+                    <div class="mb-3">
+                        <span class="badge bg-info">{{ rank.max_winners }} ganadores</span>
+                        <small class="text-muted d-block mt-1">configurados</small>
+                    </div>
+                    {% endif %}
+
+                    {% if rank.raffles|length > 0 %}
+                        <div class="mb-3">
+                            {% for raffle in rank.raffles %}
+                            <div class="alert alert-success py-2 mb-2">
+                                <i class="fas fa-crown me-1"></i>
+                                <strong>Ganador #{{ loop.index }}:</strong><br>
+                                <span class="fs-6">{{ raffle.winner_username }}</span>
+                            </div>
+                            {% endfor %}
                         </div>
-                        <small class="text-muted">
-                            Sorteado el {{ rank.raffle.completed_at.strftime('%d/%m/%Y') }}
-                        </small>
-                    {% else %}
+                    {% endif %}
+
+                    {% if rank.completed_count < rank.max_winners %}
                         {% if rank.count > 0 %}
                         <form action="{{ url_for('kick.draw_rank_raffle', period_id=period.id, rank_key=rank.key) }}" method="POST">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-lg w-100" style="background-color: {{ rank.color }}; color: #000;" 
-                                    onclick="return confirm('¿Realizar sorteo entre los {{ rank.count }} usuarios de {{ rank.name }}?')">
-                                <i class="fas fa-dice me-2"></i>Sortear
+                                    onclick="return confirm('¿Realizar sorteo #{{ rank.completed_count + 1 }} entre los {{ rank.count }} usuarios de {{ rank.name }}?')">
+                                <i class="fas fa-dice me-2"></i>
+                                {% if rank.completed_count > 0 %}
+                                    Sortear #{{ rank.completed_count + 1 }}
+                                {% else %}
+                                    Sortear
+                                {% endif %}
                             </button>
                         </form>
+                        <small class="text-muted mt-2 d-block">
+                            {{ rank.completed_count }}/{{ rank.max_winners }} sorteados
+                        </small>
                         {% else %}
                         <button class="btn btn-secondary btn-lg w-100" disabled>
                             <i class="fas fa-ban me-2"></i>Sin usuarios
                         </button>
                         {% endif %}
+                    {% else %}
+                        <div class="alert alert-info py-2 mb-0">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Sorteos completados ({{ rank.max_winners }}/{{ rank.max_winners }})
+                        </div>
                     {% endif %}
                 </div>
                 <div class="card-footer text-center">

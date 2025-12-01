@@ -1055,6 +1055,8 @@ def streamer_config():
         config.rank_gold_reward = form.rank_gold_reward.data or 0
         config.rank_platinum_reward = form.rank_platinum_reward.data or 0
         config.rank_diamond_reward = form.rank_diamond_reward.data or 0
+        config.rank_silver_winners = form.rank_silver_winners.data or 1
+        config.rank_gold_winners = form.rank_gold_winners.data or 1
         
         db.session.commit()
         
@@ -1533,34 +1535,33 @@ def save_rank_period():
     db.session.add(period)
     db.session.flush()
     
-    # Guardar usuarios con sus rangos
+    # Guardar usuarios con sus rangos (solo los que tienen rango)
+    saved_count = 0
     for idx, user in enumerate(wager_users, 1):
         username = user.get('username', '')
         wagered = float(user.get('wagered', 0))
         
-        # Calcular rango
+        # Calcular rango - ahora devuelve None si no califica
         rank_info = config.get_rank_for_wager(wagered)
-        rank_key = 'silver'
-        if wagered >= config.rank_diamond_min:
-            rank_key = 'diamond'
-        elif wagered >= config.rank_platinum_min:
-            rank_key = 'platinum'
-        elif wagered >= config.rank_gold_min:
-            rank_key = 'gold'
+        
+        # Solo guardar usuarios que tienen un rango válido
+        if rank_info is None:
+            continue
         
         period_user = RankPeriodUser(
             period_id=period.id,
             username=username,
             wagered=wagered,
             position=idx,
-            rank_key=rank_key,
+            rank_key=rank_info['key'],
             rank_name=rank_info['name']
         )
         db.session.add(period_user)
+        saved_count += 1
     
     db.session.commit()
     
-    flash(f'Período "{period_name}" guardado con {len(wager_users)} usuarios.', 'success')
+    flash(f'Período "{period_name}" guardado con {saved_count} usuarios con rango (de {len(wager_users)} totales).', 'success')
     return redirect(url_for('kick.rank_period_detail', period_id=period.id))
 
 
@@ -1584,8 +1585,12 @@ def rank_period_detail(period_id):
     # Contar usuarios por rango
     rank_counts = period.count_by_rank()
     
-    # Obtener sorteos realizados para este período
-    raffles = {r.rank_key: r for r in period.raffles}
+    # Obtener sorteos realizados para este período (agrupados por rango)
+    raffles_by_rank = {}
+    for r in period.raffles:
+        if r.rank_key not in raffles_by_rank:
+            raffles_by_rank[r.rank_key] = []
+        raffles_by_rank[r.rank_key].append(r)
     
     # Obtener configuración de rangos para los premios
     config = StreamerConfig.get_or_create(user_id=current_user.id)
@@ -1598,7 +1603,9 @@ def rank_period_detail(period_id):
             'color': '#C0C0C0',
             'count': rank_counts.get('silver', 0),
             'reward': config.rank_silver_reward or 0,
-            'raffle': raffles.get('silver')
+            'max_winners': config.rank_silver_winners or 1,
+            'raffles': raffles_by_rank.get('silver', []),
+            'completed_count': len(raffles_by_rank.get('silver', []))
         },
         {
             'key': 'gold',
@@ -1607,7 +1614,9 @@ def rank_period_detail(period_id):
             'color': '#FFD700',
             'count': rank_counts.get('gold', 0),
             'reward': config.rank_gold_reward or 0,
-            'raffle': raffles.get('gold')
+            'max_winners': config.rank_gold_winners or 1,
+            'raffles': raffles_by_rank.get('gold', []),
+            'completed_count': len(raffles_by_rank.get('gold', []))
         },
         {
             'key': 'platinum',
@@ -1616,7 +1625,9 @@ def rank_period_detail(period_id):
             'color': '#E5E4E2',
             'count': rank_counts.get('platinum', 0),
             'reward': config.rank_platinum_reward or 0,
-            'raffle': raffles.get('platinum')
+            'max_winners': 1,
+            'raffles': raffles_by_rank.get('platinum', []),
+            'completed_count': len(raffles_by_rank.get('platinum', []))
         },
         {
             'key': 'diamond',
@@ -1625,7 +1636,9 @@ def rank_period_detail(period_id):
             'color': '#00BFFF',
             'count': rank_counts.get('diamond', 0),
             'reward': config.rank_diamond_reward or 0,
-            'raffle': raffles.get('diamond')
+            'max_winners': 1,
+            'raffles': raffles_by_rank.get('diamond', []),
+            'completed_count': len(raffles_by_rank.get('diamond', []))
         }
     ]
     
@@ -1657,10 +1670,24 @@ def draw_rank_raffle(period_id, rank_key):
         flash('Rango inválido.', 'danger')
         return redirect(url_for('kick.rank_period_detail', period_id=period_id))
     
-    # Verificar que no exista ya un sorteo para este rango
-    existing = RankRaffle.query.filter_by(period_id=period_id, rank_key=rank_key, is_completed=True).first()
-    if existing:
-        flash(f'Ya existe un ganador para el rango {existing.rank_name}.', 'warning')
+    # Obtener configuración para los límites de ganadores
+    config = StreamerConfig.get_or_create(user_id=current_user.id)
+    
+    # Determinar máximo de ganadores según el rango
+    max_winners_map = {
+        'silver': config.rank_silver_winners or 1,
+        'gold': config.rank_gold_winners or 1,
+        'platinum': 1,
+        'diamond': 1
+    }
+    max_winners = max_winners_map[rank_key]
+    
+    # Contar sorteos ya realizados para este rango
+    existing_raffles = RankRaffle.query.filter_by(period_id=period_id, rank_key=rank_key, is_completed=True).all()
+    existing_count = len(existing_raffles)
+    
+    if existing_count >= max_winners:
+        flash(f'Ya se completaron los {max_winners} sorteos para este rango.', 'warning')
         return redirect(url_for('kick.rank_period_detail', period_id=period_id))
     
     # Obtener usuarios del rango
@@ -1669,11 +1696,17 @@ def draw_rank_raffle(period_id, rank_key):
         flash(f'No hay usuarios en el rango {rank_key}.', 'warning')
         return redirect(url_for('kick.rank_period_detail', period_id=period_id))
     
-    # Seleccionar ganador aleatorio
-    winner = random.choice(users)
+    # Excluir usuarios que ya ganaron en este rango
+    previous_winners = [r.winner_username for r in existing_raffles]
+    eligible_users = [u for u in users if u.username not in previous_winners]
     
-    # Obtener configuración para el premio
-    config = StreamerConfig.get_or_create(user_id=current_user.id)
+    if not eligible_users:
+        flash('No hay más usuarios elegibles para sortear (todos ya ganaron).', 'warning')
+        return redirect(url_for('kick.rank_period_detail', period_id=period_id))
+    
+    # Seleccionar ganador aleatorio
+    winner = random.choice(eligible_users)
+    
     reward_map = {
         'silver': config.rank_silver_reward,
         'gold': config.rank_gold_reward,
@@ -1702,7 +1735,11 @@ def draw_rank_raffle(period_id, rank_key):
     db.session.add(raffle)
     db.session.commit()
     
-    flash(f'¡Sorteo de {name_map[rank_key]} completado! Ganador: {winner.username}', 'success')
+    remaining = max_winners - existing_count - 1
+    if remaining > 0:
+        flash(f'¡Ganador #{existing_count + 1}: {winner.username}! Quedan {remaining} sorteo(s) por realizar.', 'success')
+    else:
+        flash(f'¡Sorteo de {name_map[rank_key]} completado! Ganador final: {winner.username}', 'success')
     return redirect(url_for('kick.rank_period_detail', period_id=period_id))
 
 
