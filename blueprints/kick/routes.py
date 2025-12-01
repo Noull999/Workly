@@ -1038,6 +1038,7 @@ def streamer_config():
         config.primary_color = form.primary_color.data
         config.background_color = form.background_color.data
         config.stake_code = form.stake_code.data
+        config.stake_url = form.stake_url.data
         config.stake_benefits_title = form.stake_benefits_title.data
         config.stake_benefit_1 = form.stake_benefit_1.data
         config.stake_benefit_2 = form.stake_benefit_2.data

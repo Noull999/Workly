@@ -75,6 +75,11 @@
                             <div class="form-text">Código que usarán tus viewers al registrarse en Stake</div>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-link me-1"></i>URL del Botón de Registro</label>
+                            {{ form.stake_url(class="form-control") }}
+                            <div class="form-text">URL completa para el botón "Registrarse en Stake" (ej: https://stake.com/?offer=YANGLEE&c=YANGLEE)</div>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label fw-bold">Título de Beneficios</label>
                             {{ form.stake_benefits_title(class="form-control") }}
                         </div>

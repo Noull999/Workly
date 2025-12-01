@@ -474,6 +474,11 @@ class StreamerConfigForm(FlaskForm):
         validators=[Optional(), Length(max=50)],
         render_kw={'placeholder': 'ej: YANGLEE'}
     )
+    stake_url = StringField(
+        'URL del Botón de Registro',
+        validators=[Optional(), Length(max=500)],
+        render_kw={'placeholder': 'https://stake.com/?offer=YANGLEE&c=YANGLEE'}
+    )
     stake_benefits_title = StringField(
         'Título de Beneficios',
         validators=[Optional(), Length(max=200)],

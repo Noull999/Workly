@@ -1066,7 +1066,7 @@
                             <div class="text-4xl sm:text-5xl font-black orbitron tracking-widest" style="color: var(--primary-color);">
                                 {{ streamer_config.stake_code }}
                             </div>
-                            <a href="https://stake.com/?c={{ streamer_config.stake_code }}" target="_blank" 
+                            <a href="{{ streamer_config.stake_url or 'https://stake.com/?c=' ~ streamer_config.stake_code }}" target="_blank" 
                                class="inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105"
                                style="background: linear-gradient(135deg, var(--primary-color), #FF1493);">
                                 <i class="fas fa-external-link-alt"></i>

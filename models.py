@@ -1032,6 +1032,7 @@ class StreamerConfig(db.Model):
     
     # Código de patrocinador Stake
     stake_code = db.Column(db.String(50), nullable=True)  # Ej: "YANGLEE"
+    stake_url = db.Column(db.String(500), nullable=True)  # URL completa del botón de registro
     stake_benefits_title = db.Column(db.String(200), default='Beneficios Exclusivos')
     stake_benefit_1 = db.Column(db.String(300), default='Bono de bienvenida del 200%')
     stake_benefit_2 = db.Column(db.String(300), default='Rakeback instantáneo')
