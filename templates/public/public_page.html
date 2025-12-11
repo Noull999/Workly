@@ -1393,27 +1393,29 @@
         </div>
     </section>
 
-    <!-- DEBUG VISIBLE - SIEMPRE SE MUESTRA -->
-    <section class="py-4 px-4" style="position: relative; z-index: 100; background: rgba(255,0,0,0.3);">
-        <div class="container mx-auto max-w-5xl text-center">
-            <p class="text-white text-2xl font-bold">🔴 DEBUG: Esta sección siempre debe verse 🔴</p>
-            <p class="text-yellow-300 text-lg">kick_data existe: {{ 'SÍ' if kick_data else 'NO' }}</p>
-        </div>
-    </section>
-    
-    <!-- Stream de Kick Embebido - SIN CONDICIONES, HARDCODEADO -->
+    <!-- Stream de Kick Embebido -->
+    {% if kick_data and kick_data['username'] %}
     <section id="stream-live" class="page-section py-16 px-4" style="position: relative; z-index: 10;">
         <div class="container mx-auto max-w-5xl">
             <div class="text-center mb-8">
                 <h2 class="text-3xl sm:text-4xl font-extrabold orbitron gradient-text tracking-wider mb-2">
-                    <i class="fas fa-tv" style="color: var(--primary-color);"></i> STREAM DE YANGLEE
+                    {% if kick_data['stream'] and kick_data['stream']['is_live'] %}
+                    <span class="inline-flex items-center gap-3">
+                        <span class="relative flex h-4 w-4">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                        </span>
+                        EN VIVO AHORA
+                    </span>
+                    {% else %}
+                    <i class="fas fa-tv" style="color: var(--primary-color);"></i> STREAM
+                    {% endif %}
                 </h2>
             </div>
             
             <div class="stream-container" style="position: relative; z-index: 10;">
-                <!-- Stream hardcodeado para prueba -->
                 <iframe 
-                    src="https://player.kick.com/yanglee"
+                    src="https://player.kick.com/{{ kick_data['username'] }}"
                     height="480"
                     width="100%"
                     frameborder="0"
@@ -1422,9 +1424,8 @@
                     style="border-radius: 17px; position: relative; z-index: 10;">
                 </iframe>
                 
-                <!-- Enlace al canal -->
                 <div class="text-center mt-4">
-                    <a href="https://kick.com/yanglee" target="_blank" 
+                    <a href="https://kick.com/{{ kick_data['username'] }}" target="_blank" 
                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 bg-gradient-to-r from-green-500 to-green-600">
                         <i class="fab fa-kickstarter"></i>
                         Ver Canal en Kick
@@ -1433,6 +1434,7 @@
             </div>
         </div>
     </section>
+    {% endif %}
 
     <!-- Sorteos Activos Section -->
     <section id="sorteos-activos" class="page-section py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
