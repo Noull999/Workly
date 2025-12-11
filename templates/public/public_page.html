@@ -243,6 +243,164 @@
         .delay-300 { animation-delay: 0.3s; }
         .delay-400 { animation-delay: 0.4s; }
         .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        .delay-700 { animation-delay: 0.7s; }
+        .delay-800 { animation-delay: 0.8s; }
+
+        /* Stream Embed Container */
+        .stream-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 3px solid var(--primary-color);
+            box-shadow: 0 0 30px rgba(255, 20, 147, 0.4), 0 0 60px rgba(255, 20, 147, 0.2);
+            background: #000;
+        }
+
+        .stream-container::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, var(--primary-color), #00ffff, var(--primary-color));
+            background-size: 400% 400%;
+            animation: gradientBorder 4s ease infinite;
+            border-radius: 23px;
+            z-index: -1;
+        }
+
+        @keyframes gradientBorder {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .stream-offline {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+        }
+
+        /* Podio Animado */
+        @keyframes crownReveal {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes podiumRise {
+            0% { transform: translateY(100px) scale(0.8); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        @keyframes goldGlow {
+            0%, 100% { box-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700, 0 0 60px #FFD700; }
+            50% { box-shadow: 0 0 30px #FFD700, 0 0 60px #FFD700, 0 0 90px #FFD700; }
+        }
+
+        @keyframes silverGlow {
+            0%, 100% { box-shadow: 0 0 15px #C0C0C0, 0 0 30px #C0C0C0; }
+            50% { box-shadow: 0 0 25px #C0C0C0, 0 0 50px #C0C0C0; }
+        }
+
+        @keyframes bronzeGlow {
+            0%, 100% { box-shadow: 0 0 15px #CD7F32, 0 0 30px #CD7F32; }
+            50% { box-shadow: 0 0 25px #CD7F32, 0 0 50px #CD7F32; }
+        }
+
+        @keyframes countUp {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .podium-card {
+            animation: podiumRise 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        .podium-gold { 
+            animation-delay: 0.3s; 
+        }
+        .podium-gold.animated { 
+            animation: goldGlow 2s ease-in-out infinite;
+        }
+
+        .podium-silver { 
+            animation-delay: 0.5s; 
+        }
+        .podium-silver.animated { 
+            animation: silverGlow 2s ease-in-out infinite 0.5s;
+        }
+
+        .podium-bronze { 
+            animation-delay: 0.7s; 
+        }
+        .podium-bronze.animated { 
+            animation: bronzeGlow 2s ease-in-out infinite 1s;
+        }
+
+        .crown-icon {
+            animation: crownReveal 0.8s ease-out forwards;
+            animation-delay: 1s;
+            opacity: 0;
+        }
+
+        .wager-amount {
+            animation: countUp 0.6s ease-out forwards;
+            animation-delay: 1.2s;
+            opacity: 0;
+        }
+
+        /* Sparkle effect */
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            border-radius: 50%;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        /* Slide animations */
+        @keyframes slideInLeft {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            70% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        .slide-left { animation: slideInLeft 0.8s ease-out forwards; }
+        .slide-right { animation: slideInRight 0.8s ease-out forwards; }
+        .bounce-in { animation: bounceIn 0.6s ease-out forwards; }
+
+        /* Pulsing glow for stake code */
+        @keyframes pulseGlow {
+            0%, 100% { text-shadow: 0 0 20px var(--primary-color), 0 0 40px var(--primary-color); }
+            50% { text-shadow: 0 0 30px var(--primary-color), 0 0 60px var(--primary-color), 0 0 80px var(--primary-color); }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
 
         /* Botones de redes mejorados */
         .social-btn {
@@ -1063,7 +1221,7 @@
                         <!-- Código Stake destacado -->
                         <div class="bg-gradient-to-r from-primary/20 to-pink-900/20 rounded-2xl p-6 mb-6 border border-gray-600">
                             <p class="text-gray-400 text-sm mb-2">Código de Stake:</p>
-                            <div class="text-4xl sm:text-5xl font-black orbitron tracking-widest" style="color: var(--primary-color);">
+                            <div class="text-4xl sm:text-5xl font-black orbitron tracking-widest pulse-glow" style="color: var(--primary-color);">
                                 {{ streamer_config.stake_code }}
                             </div>
                             <a href="{{ streamer_config.stake_url or 'https://stake.com/?c=' ~ streamer_config.stake_code }}" target="_blank" 
@@ -1126,6 +1284,62 @@
         </div>
     </section>
 
+    <!-- Stream de Kick Embebido -->
+    {% if kick_data and kick_data.username %}
+    <section id="stream-live" class="page-section py-16 px-4" data-animate="fade">
+        <div class="container mx-auto max-w-5xl">
+            <div class="text-center mb-8 fade-in-up">
+                <h2 class="text-3xl sm:text-4xl font-extrabold orbitron gradient-text tracking-wider mb-2">
+                    {% if kick_data.stream and kick_data.stream.is_live %}
+                    <span class="inline-flex items-center gap-3">
+                        <span class="relative flex h-4 w-4">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                        </span>
+                        EN VIVO AHORA
+                    </span>
+                    {% else %}
+                    <i class="fas fa-tv text-gray-500"></i> STREAM
+                    {% endif %}
+                </h2>
+            </div>
+            
+            <div class="stream-container fade-in-up delay-200">
+                {% if kick_data.stream and kick_data.stream.is_live %}
+                <!-- Stream en vivo -->
+                <iframe 
+                    src="https://player.kick.com/{{ kick_data.username }}"
+                    height="480"
+                    width="100%"
+                    frameborder="0"
+                    scrolling="no"
+                    allowfullscreen="true"
+                    style="border-radius: 17px;">
+                </iframe>
+                {% else %}
+                <!-- Offline - Mostrar imagen y enlace -->
+                <div class="stream-offline">
+                    <div class="text-center p-8">
+                        {% if page.profile_image_url %}
+                        <img src="{{ page.profile_image_url }}" alt="{{ page.title }}" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-gray-600">
+                        {% else %}
+                        <i class="fas fa-broadcast-tower text-6xl text-gray-600 mb-6"></i>
+                        {% endif %}
+                        <h3 class="text-2xl font-bold orbitron text-gray-300 mb-2">STREAM OFFLINE</h3>
+                        <p class="text-gray-500 mb-6">¡Activa las notificaciones para saber cuándo empiece!</p>
+                        <a href="https://kick.com/{{ kick_data.username }}" target="_blank" 
+                           class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 bg-gradient-to-r from-green-500 to-green-600">
+                            <i class="fab fa-kickstarter"></i>
+                            Ver Canal en Kick
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- Sorteos Activos Section -->
     <section id="sorteos-activos" class="page-section py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
         <div class="container mx-auto">
@@ -1167,50 +1381,113 @@
                 <p class="text-sm text-gray-400 mt-2">Actualizado cada 5 minutos</p>
             </div>
 
-            <!-- Podio Top 3 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto fade-in-up delay-100">
+            <!-- Podio Animado Top 3 -->
+            <div class="flex flex-col md:flex-row items-end justify-center gap-4 mb-12 max-w-5xl mx-auto" id="animatedPodium">
                 {% for player in wager_race.current[:3] %}
-                <div class="enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 
-                    {% if player.rank == 1 %}shadow-2xl shadow-yellow-500/40 border-2 border-yellow-500 order-1 md:order-2{% endif %}
-                    {% if player.rank == 2 %}shadow-xl shadow-gray-400/30 border-2 border-gray-400 order-2 md:order-1{% endif %}
-                    {% if player.rank == 3 %}shadow-xl shadow-orange-600/30 border-2 border-orange-600 order-3 md:order-3{% endif %}">
+                {% if player.rank == 2 %}
+                <!-- 2do Lugar - Plata (Izquierda) -->
+                <div class="podium-card podium-silver enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-72 border-2 border-gray-400 relative"
+                     style="height: 320px; background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(30,30,30,0.95));">
+                    <!-- Sparkles -->
+                    <div class="sparkle" style="top: 10%; left: 20%; animation-delay: 0.2s;"></div>
+                    <div class="sparkle" style="top: 30%; right: 15%; animation-delay: 0.8s;"></div>
                     
-                    <!-- Medal -->
-                    <div class="mb-4">
-                        {% if player.rank == 1 %}
-                        <div class="text-7xl">🥇</div>
-                        {% elif player.rank == 2 %}
+                    <!-- Medal con animación -->
+                    <div class="crown-icon mb-3" style="animation-delay: 1.2s;">
                         <div class="text-6xl">🥈</div>
-                        {% else %}
-                        <div class="text-6xl">🥉</div>
-                        {% endif %}
                     </div>
                     
                     <!-- Rank Badge -->
-                    <div class="text-5xl font-extrabold orbitron mb-3
-                        {% if player.rank == 1 %}text-yellow-400{% endif %}
-                        {% if player.rank == 2 %}text-gray-300{% endif %}
-                        {% if player.rank == 3 %}text-orange-500{% endif %}">
-                        #{{ player.rank }}
+                    <div class="text-4xl font-extrabold orbitron mb-2 text-gray-300 bounce-in" style="animation-delay: 0.8s;">
+                        #2
                     </div>
                     
                     <!-- Username -->
-                    <div class="text-2xl font-bold text-white mb-4 break-words">{{ player.username }}</div>
+                    <div class="text-xl font-bold text-white mb-3 break-words fade-in-up" style="animation-delay: 1s;">
+                        {{ player.username }}
+                    </div>
                     
-                    <!-- Wagered Amount -->
-                    <div class="bg-black/50 rounded-xl p-4 border
-                        {% if player.rank == 1 %}border-yellow-500/50{% endif %}
-                        {% if player.rank == 2 %}border-gray-400/50{% endif %}
-                        {% if player.rank == 3 %}border-orange-600/50{% endif %}">
+                    <!-- Wagered Amount con contador -->
+                    <div class="wager-amount bg-black/50 rounded-xl p-3 border border-gray-400/50" style="animation-delay: 1.4s;">
                         <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
-                        <div class="text-2xl font-mono font-extrabold
-                            {% if player.rank == 1 %}text-yellow-400{% endif %}
-                            {% if player.rank == 2 %}text-gray-300{% endif %}
-                            {% if player.rank == 3 %}text-orange-500{% endif %}">
+                        <div class="text-xl font-mono font-extrabold text-gray-300" data-wager="{{ player.wagered }}">
                             ${{ "{:,.2f}".format(player.wagered) }}
                         </div>
                     </div>
                 </div>
+                {% endif %}
+                {% endfor %}
+                
+                {% for player in wager_race.current[:3] %}
+                {% if player.rank == 1 %}
+                <!-- 1er Lugar - Oro (Centro, más alto) -->
+                <div class="podium-card podium-gold enhanced-card p-8 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-80 border-2 border-yellow-500 relative"
+                     style="height: 380px; background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(30,30,30,0.95));">
+                    <!-- Sparkles dorados -->
+                    <div class="sparkle" style="top: 5%; left: 15%; animation-delay: 0s; background: #FFD700;"></div>
+                    <div class="sparkle" style="top: 15%; right: 10%; animation-delay: 0.5s; background: #FFD700;"></div>
+                    <div class="sparkle" style="top: 25%; left: 80%; animation-delay: 1s; background: #FFD700;"></div>
+                    <div class="sparkle" style="bottom: 30%; left: 5%; animation-delay: 1.5s; background: #FFD700;"></div>
+                    
+                    <!-- Corona/Medal con animación especial -->
+                    <div class="crown-icon mb-4" style="animation-delay: 0.8s;">
+                        <div class="text-8xl">🏆</div>
+                    </div>
+                    
+                    <!-- Rank Badge -->
+                    <div class="text-5xl font-extrabold orbitron mb-3 text-yellow-400 bounce-in" style="animation-delay: 0.5s;">
+                        #1
+                    </div>
+                    
+                    <!-- Username -->
+                    <div class="text-2xl font-bold text-white mb-4 break-words fade-in-up" style="animation-delay: 0.7s;">
+                        {{ player.username }}
+                    </div>
+                    
+                    <!-- Wagered Amount con efecto especial -->
+                    <div class="wager-amount bg-black/50 rounded-xl p-4 border border-yellow-500/50" style="animation-delay: 1s;">
+                        <div class="text-xs text-yellow-400/80 mb-1">🔥 APOSTADO 🔥</div>
+                        <div class="text-2xl font-mono font-extrabold text-yellow-400 pulse-glow" data-wager="{{ player.wagered }}">
+                            ${{ "{:,.2f}".format(player.wagered) }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+                
+                {% for player in wager_race.current[:3] %}
+                {% if player.rank == 3 %}
+                <!-- 3er Lugar - Bronce (Derecha) -->
+                <div class="podium-card podium-bronze enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-72 border-2 border-orange-600 relative"
+                     style="height: 280px; background: linear-gradient(135deg, rgba(205,127,50,0.1), rgba(30,30,30,0.95));">
+                    <!-- Sparkles -->
+                    <div class="sparkle" style="top: 15%; right: 20%; animation-delay: 0.4s; background: #CD7F32;"></div>
+                    <div class="sparkle" style="top: 35%; left: 10%; animation-delay: 1.2s; background: #CD7F32;"></div>
+                    
+                    <!-- Medal con animación -->
+                    <div class="crown-icon mb-3" style="animation-delay: 1.4s;">
+                        <div class="text-5xl">🥉</div>
+                    </div>
+                    
+                    <!-- Rank Badge -->
+                    <div class="text-4xl font-extrabold orbitron mb-2 text-orange-500 bounce-in" style="animation-delay: 1s;">
+                        #3
+                    </div>
+                    
+                    <!-- Username -->
+                    <div class="text-xl font-bold text-white mb-3 break-words fade-in-up" style="animation-delay: 1.2s;">
+                        {{ player.username }}
+                    </div>
+                    
+                    <!-- Wagered Amount -->
+                    <div class="wager-amount bg-black/50 rounded-xl p-3 border border-orange-600/50" style="animation-delay: 1.6s;">
+                        <div class="text-xs text-gray-400 mb-1">APOSTADO</div>
+                        <div class="text-lg font-mono font-extrabold text-orange-500" data-wager="{{ player.wagered }}">
+                            ${{ "{:,.2f}".format(player.wagered) }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 {% endfor %}
             </div>
 
