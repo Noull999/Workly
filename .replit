@@ -106,4 +106,4 @@ localPort = 45553
 externalPort = 9000
 
 [agent]
-integrations = ["styling_replit==1.0.0", "python_database==1.0.0"]
+integrations = ["styling_replit:1.0.0", "python_database:1.0.0"]
