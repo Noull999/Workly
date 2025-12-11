@@ -1299,14 +1299,13 @@
                         EN VIVO AHORA
                     </span>
                     {% else %}
-                    <i class="fas fa-tv text-gray-500"></i> STREAM
+                    <i class="fas fa-tv" style="color: var(--primary-color);"></i> STREAM
                     {% endif %}
                 </h2>
             </div>
             
             <div class="stream-container fade-in-up delay-200">
-                {% if kick_data.stream and kick_data.stream.is_live %}
-                <!-- Stream en vivo -->
+                <!-- Siempre mostrar el reproductor de Kick -->
                 <iframe 
                     src="https://player.kick.com/{{ kick_data.username }}"
                     height="480"
@@ -1316,25 +1315,15 @@
                     allowfullscreen="true"
                     style="border-radius: 17px;">
                 </iframe>
-                {% else %}
-                <!-- Offline - Mostrar imagen y enlace -->
-                <div class="stream-offline">
-                    <div class="text-center p-8">
-                        {% if page.profile_image_url %}
-                        <img src="{{ page.profile_image_url }}" alt="{{ page.title }}" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-gray-600">
-                        {% else %}
-                        <i class="fas fa-broadcast-tower text-6xl text-gray-600 mb-6"></i>
-                        {% endif %}
-                        <h3 class="text-2xl font-bold orbitron text-gray-300 mb-2">STREAM OFFLINE</h3>
-                        <p class="text-gray-500 mb-6">¡Activa las notificaciones para saber cuándo empiece!</p>
-                        <a href="https://kick.com/{{ kick_data.username }}" target="_blank" 
-                           class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 bg-gradient-to-r from-green-500 to-green-600">
-                            <i class="fab fa-kickstarter"></i>
-                            Ver Canal en Kick
-                        </a>
-                    </div>
+                
+                <!-- Enlace al canal -->
+                <div class="text-center mt-4">
+                    <a href="https://kick.com/{{ kick_data.username }}" target="_blank" 
+                       class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 bg-gradient-to-r from-green-500 to-green-600">
+                        <i class="fab fa-kickstarter"></i>
+                        Ver Canal en Kick
+                    </a>
                 </div>
-                {% endif %}
             </div>
         </div>
     </section>
