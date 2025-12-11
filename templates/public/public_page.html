@@ -1393,13 +1393,16 @@
         </div>
     </section>
 
+    <!-- DEBUG: Mostrar valor de kick_data -->
+    <div style="display: none;" id="kick-debug" data-kick="{{ kick_data }}"></div>
+    
     <!-- Stream de Kick Embebido -->
-    {% if kick_data and kick_data.username %}
+    {% if kick_data and kick_data['username'] %}
     <section id="stream-live" class="page-section py-16 px-4" data-animate="fade">
         <div class="container mx-auto max-w-5xl">
             <div class="text-center mb-8">
                 <h2 class="text-3xl sm:text-4xl font-extrabold orbitron gradient-text tracking-wider mb-2">
-                    {% if kick_data.stream and kick_data.stream.is_live %}
+                    {% if kick_data['stream'] and kick_data['stream']['is_live'] %}
                     <span class="inline-flex items-center gap-3">
                         <span class="relative flex h-4 w-4">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -1416,7 +1419,7 @@
             <div class="stream-container">
                 <!-- Siempre mostrar el reproductor de Kick -->
                 <iframe 
-                    src="https://player.kick.com/{{ kick_data.username }}"
+                    src="https://player.kick.com/{{ kick_data['username'] }}"
                     height="480"
                     width="100%"
                     frameborder="0"
@@ -1427,13 +1430,20 @@
                 
                 <!-- Enlace al canal -->
                 <div class="text-center mt-4">
-                    <a href="https://kick.com/{{ kick_data.username }}" target="_blank" 
+                    <a href="https://kick.com/{{ kick_data['username'] }}" target="_blank" 
                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 bg-gradient-to-r from-green-500 to-green-600">
                         <i class="fab fa-kickstarter"></i>
                         Ver Canal en Kick
                     </a>
                 </div>
             </div>
+        </div>
+    </section>
+    {% else %}
+    <!-- Debug: kick_data no tiene username o es None -->
+    <section class="page-section py-8 px-4">
+        <div class="container mx-auto max-w-5xl text-center">
+            <p class="text-yellow-500 text-sm">Debug: kick_data = {{ kick_data }} | username = {{ kick_data['username'] if kick_data else 'None' }}</p>
         </div>
     </section>
     {% endif %}
