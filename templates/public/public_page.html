@@ -1393,30 +1393,40 @@
         </div>
     </section>
 
-    <!-- Stream de Kick Embebido - FORZADO PARA DIAGNÓSTICO -->
-    <section id="stream-live" class="page-section py-16 px-4" style="position: relative; z-index: 1000; background: rgba(255,20,147,0.1); border: 3px solid #FF1493;">
+    <!-- Stream de Kick Embebido -->
+    {% if kick_data and kick_data['username'] %}
+    <section id="stream-live" class="py-16 px-4" style="position: relative; z-index: 10;">
         <div class="container mx-auto max-w-5xl">
             <div class="text-center mb-8">
                 <h2 class="text-3xl sm:text-4xl font-extrabold orbitron gradient-text tracking-wider mb-2">
-                    <i class="fas fa-tv" style="color: var(--primary-color);"></i> STREAM DE YANGLEE
+                    {% if kick_data['stream'] and kick_data['stream']['is_live'] %}
+                    <span class="inline-flex items-center gap-3">
+                        <span class="relative flex h-4 w-4">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                        </span>
+                        EN VIVO AHORA
+                    </span>
+                    {% else %}
+                    <i class="fas fa-tv" style="color: var(--primary-color);"></i> STREAM
+                    {% endif %}
                 </h2>
-                <p class="text-pink-400">Reproductor embebido de Kick</p>
             </div>
             
-            <div class="stream-container" style="position: relative; z-index: 1000; background: #000; border-radius: 17px; min-height: 480px;">
+            <div class="stream-container" style="position: relative; z-index: 10; background: #000; border-radius: 17px; min-height: 480px;">
                 <iframe 
-                    src="https://player.kick.com/yanglee"
+                    src="https://player.kick.com/{{ kick_data['username'] }}"
                     height="480"
                     width="100%"
                     frameborder="0"
                     scrolling="no"
                     allowfullscreen="true"
                     allow="autoplay; fullscreen"
-                    style="border-radius: 17px; position: relative; z-index: 1000; display: block;">
+                    style="border-radius: 17px; display: block;">
                 </iframe>
                 
                 <div class="text-center mt-4">
-                    <a href="https://kick.com/yanglee" target="_blank" 
+                    <a href="https://kick.com/{{ kick_data['username'] }}" target="_blank" 
                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 bg-gradient-to-r from-green-500 to-green-600">
                         <i class="fab fa-kickstarter"></i>
                         Ver Canal en Kick
@@ -1425,6 +1435,7 @@
             </div>
         </div>
     </section>
+    {% endif %}
 
     <!-- Sorteos Activos Section -->
     <section id="sorteos-activos" class="page-section py-20 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
