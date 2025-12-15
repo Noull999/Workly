@@ -2437,8 +2437,10 @@
                 return { key: 'platinum', name: '{{ streamer_config.rank_platinum_name if streamer_config else "Platino" }}', icon: 'fa-crown', color: '#E5E4E2' };
             } else if (wager >= {{ streamer_config.rank_gold_min if streamer_config else 1000 }}) {
                 return { key: 'gold', name: '{{ streamer_config.rank_gold_name if streamer_config else "Oro" }}', icon: 'fa-medal', color: '#FFD700' };
-            } else {
+            } else if (wager >= {{ streamer_config.rank_silver_min if streamer_config else 100 }}) {
                 return { key: 'silver', name: '{{ streamer_config.rank_silver_name if streamer_config else "Plata" }}', icon: 'fa-shield-alt', color: '#C0C0C0' };
+            } else {
+                return { key: 'none', name: 'Sin Rango', icon: 'fa-user', color: '#666666' };
             }
         }
 
