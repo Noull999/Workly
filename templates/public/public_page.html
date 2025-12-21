@@ -2510,16 +2510,20 @@
         function updateRankCounts() {
             if (!wagerRaceData) return;
             
-            const counts = { silver: 0, gold: 0, platinum: 0, diamond: 0 };
+            const counts = { none: 0, silver: 0, gold: 0, platinum: 0, diamond: 0 };
             wagerRaceData.forEach(player => {
                 const rank = getPlayerRank(player.wagered);
-                counts[rank.key]++;
+                if (counts.hasOwnProperty(rank.key)) {
+                    counts[rank.key]++;
+                }
             });
 
             document.getElementById('silverCount').textContent = counts.silver + ' usuarios';
             document.getElementById('goldCount').textContent = counts.gold + ' usuarios';
             document.getElementById('platinumCount').textContent = counts.platinum + ' usuarios';
             document.getElementById('diamondCount').textContent = counts.diamond + ' usuarios';
+            
+            console.log('📊 RANGOS: Conteo - Sin Rango:', counts.none, 'Plata:', counts.silver, 'Oro:', counts.gold, 'Platino:', counts.platinum, 'Diamante:', counts.diamond);
         }
 
         // Inicializar tabla con Top 10 cuando carga la página
