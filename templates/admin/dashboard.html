@@ -121,6 +121,33 @@
                 </div>
             </div>
 
+            <!-- Gestión de Tipeos (Streamer) -->
+            <div class="card shadow mb-4" style="border-color: #FF1493 !important;">
+                <div class="card-header" style="background: linear-gradient(135deg, #FF1493, #FF69B4) !important;">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-hand-holding-usd me-2"></i>Gestión de Tipeos (Streamer)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('tipeos.admin_usuarios') }}" class="btn w-100 py-3" style="background: linear-gradient(135deg, #FF1493, #FF69B4); color: white; border: none;">
+                                <i class="fas fa-users fa-lg mb-2"></i><br>
+                                <strong>Usuarios & Dar Tipeo</strong><br>
+                                <small style="opacity: 0.9;">Ver viewers y otorgar tipeos</small>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('tipeos.admin_solicitudes') }}" class="btn w-100 py-3" style="background: linear-gradient(135deg, #FF69B4, #FF1493); color: white; border: none;">
+                                <i class="fas fa-inbox fa-lg mb-2"></i><br>
+                                <strong>Solicitudes de Tipeo</strong><br>
+                                <small style="opacity: 0.9;">Revisar y aprobar/rechazar</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Acceso a módulos como super admin -->
             <div class="card shadow">
                 <div class="card-header">
