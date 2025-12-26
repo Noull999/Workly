@@ -239,6 +239,8 @@
 
 {% block scripts %}
 <script>
+const csrfToken = '{{ csrf_token() }}';
+
 document.addEventListener('DOMContentLoaded', function() {
     fetch('/tipeos/admin/stats')
         .then(response => response.json())
@@ -282,10 +284,14 @@ function confirmarVinculacion() {
     const formData = new FormData();
     formData.append('stake_username', stakeUsername);
     formData.append('viewer_id', viewerId);
+    formData.append('csrf_token', csrfToken);
     
     fetch('/tipeos/admin/vincular', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
     })
     .then(response => response.json())
     .then(data => {
@@ -306,7 +312,10 @@ function desvincular(stakeUsername) {
     if (!confirm('¿Desvincular este usuario?')) return;
     
     fetch('/tipeos/admin/desvincular/' + encodeURIComponent(stakeUsername), {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
     })
     .then(response => response.json())
     .then(data => {
@@ -332,7 +341,10 @@ function confirmarTipeo() {
     const viewerId = document.getElementById('tipeoViewerId').value;
     
     fetch('/tipeos/admin/dar-tipeo/' + viewerId, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
     })
     .then(response => response.json())
     .then(data => {
