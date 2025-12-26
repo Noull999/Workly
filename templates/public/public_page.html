@@ -2007,6 +2007,7 @@
                 </div>
                 
                 <form id="tipeoForm" class="space-y-6">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" id="tipeoViewerId" name="viewer_id" value="">
                     <input type="hidden" id="tipeoId" name="tipeo_id" value="">
                     
@@ -3810,9 +3811,13 @@
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
                     
                     const formData = new FormData(tipeoForm);
+                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
                     
                     fetch('/tipeos/enviar', {
                         method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        },
                         body: formData
                     })
                     .then(response => response.json())
