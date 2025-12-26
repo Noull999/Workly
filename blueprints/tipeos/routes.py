@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from . import tipeos_bp
 from app import db
-from models import TipeoAvailable, TipeoRequest, UserNotification, Viewer, User
+from models import TipeoAvailable, TipeoRequest, UserNotification, Viewer, User, RankPeriod, RankPeriodUser, StakeKickLink
 from datetime import datetime
 import os
 import uuid
@@ -31,9 +31,39 @@ def admin_usuarios():
         flash('Acceso denegado', 'error')
         return redirect(url_for('dashboard'))
     
-    viewers = Viewer.query.order_by(Viewer.created_at.desc()).all()
+    periodo_activo = RankPeriod.query.filter_by(is_active=True).order_by(RankPeriod.created_at.desc()).first()
     
-    return render_template('tipeos/admin_usuarios.html', viewers=viewers)
+    usuarios_wager = []
+    if periodo_activo:
+        for rpu in periodo_activo.users:
+            link = StakeKickLink.query.filter_by(stake_username=rpu.username).first()
+            viewer = link.viewer if link and link.viewer_id else None
+            
+            tipeo_disponible = False
+            tipeo_pendiente = False
+            if viewer:
+                tipeo_disponible = TipeoAvailable.query.filter_by(
+                    viewer_id=viewer.id, status='available'
+                ).first() is not None
+                tipeo_pendiente = TipeoRequest.query.filter_by(
+                    viewer_id=viewer.id, status='submitted'
+                ).first() is not None
+            
+            usuarios_wager.append({
+                'rpu': rpu,
+                'link': link,
+                'viewer': viewer,
+                'vinculado': link is not None and link.viewer_id is not None,
+                'tipeo_disponible': tipeo_disponible,
+                'tipeo_pendiente': tipeo_pendiente
+            })
+    
+    viewers_kick = Viewer.query.order_by(Viewer.username_kick).all()
+    
+    return render_template('tipeos/admin_usuarios.html', 
+                           usuarios_wager=usuarios_wager, 
+                           periodo=periodo_activo,
+                           viewers_kick=viewers_kick)
 
 
 @tipeos_bp.route('/admin/dar-tipeo/<int:viewer_id>', methods=['POST'])
@@ -75,6 +105,64 @@ def dar_tipeo(viewer_id):
         'success': True,
         'message': f'Tipeo otorgado a {viewer.kick_username}'
     })
+
+
+@tipeos_bp.route('/admin/vincular', methods=['POST'])
+@login_required
+def vincular_stake_kick():
+    """Vincula un usuario de Stake con una cuenta de Kick"""
+    if not is_streamer_or_admin():
+        return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
+    
+    stake_username = request.form.get('stake_username')
+    viewer_id = request.form.get('viewer_id')
+    
+    if not stake_username or not viewer_id:
+        return jsonify({'success': False, 'error': 'Datos incompletos'}), 400
+    
+    viewer = Viewer.query.get(int(viewer_id))
+    if not viewer:
+        return jsonify({'success': False, 'error': 'Usuario de Kick no encontrado'}), 404
+    
+    link = StakeKickLink.query.filter_by(stake_username=stake_username).first()
+    if link:
+        link.viewer_id = viewer.id
+        link.is_verified = True
+        link.verified_by_id = current_user.id
+        link.verified_at = datetime.utcnow()
+    else:
+        link = StakeKickLink(
+            stake_username=stake_username,
+            viewer_id=viewer.id,
+            is_verified=True,
+            verified_by_id=current_user.id,
+            verified_at=datetime.utcnow()
+        )
+        db.session.add(link)
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': f'{stake_username} vinculado con {viewer.username_kick}'
+    })
+
+
+@tipeos_bp.route('/admin/desvincular/<stake_username>', methods=['POST'])
+@login_required
+def desvincular_stake_kick(stake_username):
+    """Desvincula un usuario de Stake de su cuenta de Kick"""
+    if not is_streamer_or_admin():
+        return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
+    
+    link = StakeKickLink.query.filter_by(stake_username=stake_username).first()
+    if link:
+        link.viewer_id = None
+        link.is_verified = False
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Desvinculado correctamente'})
+    
+    return jsonify({'success': False, 'error': 'Vinculación no encontrada'}), 404
 
 
 @tipeos_bp.route('/admin/solicitudes')

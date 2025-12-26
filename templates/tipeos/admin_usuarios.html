@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Gestión de Tipeos - Usuarios - Workly{% endblock %}
+{% block title %}Gestión de Tipeos - Usuarios Wager Race - Workly{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,9 +8,9 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3">
-                    <i class="fas fa-gift text-primary me-2"></i>Gestión de Tipeos - Usuarios
+                    <i class="fas fa-hand-holding-usd me-2" style="color: #FF1493;"></i>Gestión de Tipeos
                 </h1>
-                <a href="{{ url_for('tipeos.admin_solicitudes') }}" class="btn btn-outline-primary">
+                <a href="{{ url_for('tipeos.admin_solicitudes') }}" class="btn" style="background: linear-gradient(135deg, #FF1493, #FF69B4); color: white;">
                     <i class="fas fa-inbox me-2"></i>Ver Solicitudes
                 </a>
             </div>
@@ -18,28 +18,58 @@
     </div>
 
     <div class="row mb-4">
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card bg-primary text-white">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white" style="background: linear-gradient(135deg, #FF1493, #FF69B4);">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h5 class="card-title mb-1">{{ viewers|length }}</h5>
-                            <p class="card-text mb-0">Usuarios Registrados</p>
+                            <h5 class="card-title mb-1">{{ usuarios_wager|length }}</h5>
+                            <p class="card-text mb-0">Usuarios Wager Race</p>
                         </div>
                         <div>
-                            <i class="fas fa-users fa-2x opacity-75"></i>
+                            <i class="fas fa-trophy fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-4 col-md-6 mb-3">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ usuarios_wager|selectattr('vinculado')|list|length }}</h5>
+                            <p class="card-text mb-0">Vinculados con Kick</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-link fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ usuarios_wager|rejectattr('vinculado')|list|length }}</h5>
+                            <p class="card-text mb-0">Sin Vincular</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-unlink fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
                             <h5 class="card-title mb-1" id="tipeos-disponibles-count">-</h5>
-                            <p class="card-text mb-0">Tipeos Disponibles</p>
+                            <p class="card-text mb-0">Tipeos Otorgados</p>
                         </div>
                         <div>
                             <i class="fas fa-gift fa-2x opacity-75"></i>
@@ -48,27 +78,24 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h5 class="card-title mb-1" id="solicitudes-pendientes-count">-</h5>
-                            <p class="card-text mb-0">Solicitudes Pendientes</p>
-                        </div>
-                        <div>
-                            <i class="fas fa-clock fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
+    {% if periodo %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Mostrando usuarios del período: <strong>{{ periodo.name }}</strong>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        No hay un período de wager race activo. Crea uno desde el panel de Stake.
+    </div>
+    {% endif %}
+
+    <div class="card" style="border-color: #FF1493;">
+        <div class="card-header" style="background: linear-gradient(135deg, #FF1493, #FF69B4);">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Tabla de Usuarios</h5>
+                <h5 class="mb-0 text-white"><i class="fas fa-table me-2"></i>Usuarios Wager Race</h5>
                 <input type="text" id="searchInput" class="form-control form-control-sm w-25" placeholder="Buscar usuario...">
             </div>
         </div>
@@ -77,90 +104,131 @@
                 <table class="table table-hover" id="usersTable">
                     <thead class="table-dark">
                         <tr>
-                            <th>ID</th>
-                            <th>Username Workly</th>
-                            <th>Nick Kick</th>
-                            <th>Nick Stake</th>
+                            <th>#</th>
+                            <th>Usuario Stake</th>
+                            <th>Rango</th>
+                            <th>Wagered</th>
+                            <th>Usuario Kick</th>
                             <th>Estado</th>
-                            <th>Puntos</th>
-                            <th>Último Tipeo</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for viewer in viewers %}
-                        <tr id="viewer-row-{{ viewer.id }}">
-                            <td>{{ viewer.id }}</td>
+                        {% for item in usuarios_wager %}
+                        <tr id="row-{{ item.rpu.username }}">
+                            <td>{{ item.rpu.position or loop.index }}</td>
                             <td>
-                                <strong>{{ viewer.kick_username or '-' }}</strong>
+                                <strong>{{ item.rpu.username }}</strong>
                             </td>
-                            <td>{{ viewer.kick_username or '-' }}</td>
                             <td>
-                                {% if viewer.tipeo_requests %}
-                                    {{ viewer.tipeo_requests[-1].nick_stake if viewer.tipeo_requests else '-' }}
+                                {% if item.rpu.rank_key == 'diamond' %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #00CED1, #00BFFF);">💎 {{ item.rpu.rank_name }}</span>
+                                {% elif item.rpu.rank_key == 'platinum' %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #A0A0A0, #C0C0C0);">🏆 {{ item.rpu.rank_name }}</span>
+                                {% elif item.rpu.rank_key == 'gold' %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #FFD700, #FFA500);">🥇 {{ item.rpu.rank_name }}</span>
                                 {% else %}
-                                    <span class="text-muted">Sin registro</span>
+                                    <span class="badge" style="background: linear-gradient(135deg, #A8A8A8, #C0C0C0);">🥈 {{ item.rpu.rank_name }}</span>
+                                {% endif %}
+                            </td>
+                            <td>${{ "%.2f"|format(item.rpu.wagered) }}</td>
+                            <td>
+                                {% if item.vinculado %}
+                                    <span class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>{{ item.viewer.username_kick }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">Sin vincular</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% set tipeo_disponible = viewer.tipeos_available|selectattr('status', 'equalto', 'available')|list|length > 0 %}
-                                {% if tipeo_disponible %}
-                                    <span class="badge bg-warning">Tipeo Disponible</span>
+                                {% if item.tipeo_disponible %}
+                                    <span class="badge bg-success">Tipeo Disponible</span>
+                                {% elif item.tipeo_pendiente %}
+                                    <span class="badge bg-warning">Solicitud Pendiente</span>
+                                {% elif not item.vinculado %}
+                                    <span class="badge bg-secondary">Requiere Vinculación</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">Normal</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge bg-primary">{{ viewer.points }} pts</span>
-                            </td>
-                            <td>
-                                {% set ultimo_tipeo = viewer.tipeo_requests|selectattr('status', 'equalto', 'completed')|list|last %}
-                                {% if ultimo_tipeo %}
-                                    {{ ultimo_tipeo.reviewed_at.strftime('%d/%m/%Y') if ultimo_tipeo.reviewed_at else '-' }}
-                                {% else %}
-                                    <span class="text-muted">Nunca</span>
+                                    <span class="badge bg-info">Listo</span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-success btn-sm btn-dar-tipeo" 
-                                        data-viewer-id="{{ viewer.id }}"
-                                        data-viewer-name="{{ viewer.kick_username }}"
-                                        {% if tipeo_disponible %}disabled{% endif %}>
-                                    <i class="fas fa-gift me-1"></i>Dar Tipeo
-                                </button>
+                                {% if item.vinculado %}
+                                    {% if not item.tipeo_disponible and not item.tipeo_pendiente %}
+                                    <button class="btn btn-sm btn-success me-1" onclick="darTipeo({{ item.viewer.id }}, '{{ item.rpu.username }}')" title="Dar Tipeo">
+                                        <i class="fas fa-gift"></i>
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn btn-sm btn-outline-danger" onclick="desvincular('{{ item.rpu.username }}')" title="Desvincular">
+                                        <i class="fas fa-unlink"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-primary" onclick="mostrarModalVincular('{{ item.rpu.username }}')" title="Vincular con Kick">
+                                        <i class="fas fa-link me-1"></i>Vincular
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle me-2"></i>No hay usuarios en el período activo
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            
-            {% if not viewers %}
-            <div class="text-center py-5">
-                <i class="fas fa-users fa-4x text-muted mb-3"></i>
-                <h5 class="text-muted">No hay usuarios registrados</h5>
-                <p class="text-muted">Los usuarios aparecerán aquí cuando se registren a través de Kick</p>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="confirmModal" tabindex="-1">
+<div class="modal fade" id="vincularModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-gift me-2"></i>Confirmar Tipeo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="background: linear-gradient(135deg, #FF1493, #FF69B4);">
+                <h5 class="modal-title text-white"><i class="fas fa-link me-2"></i>Vincular con Kick</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de otorgar un tipeo disponible a <strong id="modalUserName"></strong>?</p>
-                <p class="text-muted small">El usuario recibirá una notificación y podrá completar el formulario de tipeo.</p>
+                <p>Vincular usuario de Stake: <strong id="stakeUsernameDisplay"></strong></p>
+                <input type="hidden" id="stakeUsernameInput">
+                <div class="mb-3">
+                    <label class="form-label">Seleccionar cuenta de Kick:</label>
+                    <select class="form-select" id="viewerSelect">
+                        <option value="">-- Seleccionar --</option>
+                        {% for v in viewers_kick %}
+                        <option value="{{ v.id }}">{{ v.username_kick }} ({{ v.points }} pts)</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" id="confirmDarTipeo">
-                    <i class="fas fa-check me-1"></i>Confirmar
+                <button type="button" class="btn btn-primary" onclick="confirmarVinculacion()">
+                    <i class="fas fa-link me-1"></i>Vincular
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmTipeoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-gift me-2"></i>Confirmar Tipeo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Dar tipeo a <strong id="tipeoUsernameDisplay"></strong>?</p>
+                <p class="text-muted">El usuario recibirá una notificación y podrá enviar su solicitud.</p>
+                <input type="hidden" id="tipeoViewerId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmarTipeo()">
+                    <i class="fas fa-gift me-1"></i>Dar Tipeo
                 </button>
             </div>
         </div>
@@ -172,15 +240,11 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    let selectedViewerId = null;
-    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    
     fetch('/tipeos/admin/stats')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 document.getElementById('tipeos-disponibles-count').textContent = data.tipeos_disponibles;
-                document.getElementById('solicitudes-pendientes-count').textContent = data.solicitudes_pendientes;
             }
         })
         .catch(error => console.error('Error cargando stats:', error));
@@ -194,82 +258,95 @@ document.addEventListener('DOMContentLoaded', function() {
             row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
     });
-    
-    document.querySelectorAll('.btn-dar-tipeo').forEach(btn => {
-        btn.addEventListener('click', function() {
-            selectedViewerId = this.dataset.viewerId;
-            document.getElementById('modalUserName').textContent = this.dataset.viewerName;
-            modal.show();
-        });
-    });
-    
-    document.getElementById('confirmDarTipeo').addEventListener('click', function() {
-        if (!selectedViewerId) return;
-        
-        this.disabled = true;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Procesando...';
-        
-        fetch(`/tipeos/admin/dar-tipeo/${selectedViewerId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            modal.hide();
-            
-            if (data.success) {
-                const btn = document.querySelector(`[data-viewer-id="${selectedViewerId}"]`);
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-check me-1"></i>Tipeo Otorgado';
-                btn.classList.remove('btn-success');
-                btn.classList.add('btn-secondary');
-                
-                const row = document.getElementById(`viewer-row-${selectedViewerId}`);
-                const statusCell = row.querySelectorAll('td')[4];
-                statusCell.innerHTML = '<span class="badge bg-warning">Tipeo Disponible</span>';
-                
-                showToast('success', data.message);
-            } else {
-                showToast('error', data.error || 'Error al otorgar tipeo');
-            }
-        })
-        .catch(error => {
-            modal.hide();
-            showToast('error', 'Error de conexión');
-        })
-        .finally(() => {
-            document.getElementById('confirmDarTipeo').disabled = false;
-            document.getElementById('confirmDarTipeo').innerHTML = '<i class="fas fa-check me-1"></i>Confirmar';
-        });
-    });
-    
-    function showToast(type, message) {
-        const toastHtml = `
-            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            </div>
-        `;
-        
-        let container = document.querySelector('.toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-            document.body.appendChild(container);
-        }
-        
-        container.insertAdjacentHTML('beforeend', toastHtml);
-        const toast = new bootstrap.Toast(container.lastElementChild);
-        toast.show();
-    }
 });
+
+const vincularModal = new bootstrap.Modal(document.getElementById('vincularModal'));
+const confirmTipeoModal = new bootstrap.Modal(document.getElementById('confirmTipeoModal'));
+
+function mostrarModalVincular(stakeUsername) {
+    document.getElementById('stakeUsernameDisplay').textContent = stakeUsername;
+    document.getElementById('stakeUsernameInput').value = stakeUsername;
+    document.getElementById('viewerSelect').value = '';
+    vincularModal.show();
+}
+
+function confirmarVinculacion() {
+    const stakeUsername = document.getElementById('stakeUsernameInput').value;
+    const viewerId = document.getElementById('viewerSelect').value;
+    
+    if (!viewerId) {
+        alert('Selecciona una cuenta de Kick');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('stake_username', stakeUsername);
+    formData.append('viewer_id', viewerId);
+    
+    fetch('/tipeos/admin/vincular', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            vincularModal.hide();
+            location.reload();
+        } else {
+            alert(data.error || 'Error al vincular');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión');
+    });
+}
+
+function desvincular(stakeUsername) {
+    if (!confirm('¿Desvincular este usuario?')) return;
+    
+    fetch('/tipeos/admin/desvincular/' + encodeURIComponent(stakeUsername), {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Error al desvincular');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión');
+    });
+}
+
+function darTipeo(viewerId, stakeUsername) {
+    document.getElementById('tipeoUsernameDisplay').textContent = stakeUsername;
+    document.getElementById('tipeoViewerId').value = viewerId;
+    confirmTipeoModal.show();
+}
+
+function confirmarTipeo() {
+    const viewerId = document.getElementById('tipeoViewerId').value;
+    
+    fetch('/tipeos/admin/dar-tipeo/' + viewerId, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            confirmTipeoModal.hide();
+            location.reload();
+        } else {
+            alert(data.error || 'Error al dar tipeo');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión');
+    });
+}
 </script>
 {% endblock %}
