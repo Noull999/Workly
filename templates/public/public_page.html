@@ -2921,6 +2921,20 @@
                 checkDailyVisit();
                 startAutoUpdates();
                 loadActiveRaffles();
+                
+                if (!localStorage.getItem('viewerId')) {
+                    fetch('/kick/api/verify-username/' + encodeURIComponent(kickUsername))
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.ok && data.exists && data.viewer_id) {
+                                localStorage.setItem('viewerId', data.viewer_id);
+                                checkTipeoDisponible();
+                            }
+                        })
+                        .catch(err => console.error('Error obteniendo viewerId:', err));
+                } else {
+                    setTimeout(checkTipeoDisponible, 1000);
+                }
             }
             
             if (saveUsernameBtn) {
@@ -2958,8 +2972,10 @@
                                 const data = JSON.parse(xhr.responseText);
                                 
                                 if (data.ok && data.exists) {
-                                    // Username válido - guardar y continuar
                                     localStorage.setItem('kick_username', username);
+                                    if (data.viewer_id) {
+                                        localStorage.setItem('viewerId', data.viewer_id);
+                                    }
                                     kickUsername = username;
                                     usernameModal.classList.add('hidden');
                                     if (pointsWidget) {
@@ -2973,6 +2989,7 @@
                                     checkDailyVisit();
                                     startAutoUpdates();
                                     loadActiveRaffles();
+                                    setTimeout(checkTipeoDisponible, 1000);
                                 } else {
                                     // Username no existe
                                     if (errorDiv && errorText) {

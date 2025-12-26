@@ -928,12 +928,12 @@ def get_active_raffles():
 def verify_kick_username(username):
     """API: Verificar si un username existe en Kick"""
     from helpers.kick_api import get_channel_info
+    from models import Viewer
+    from app import db
     
     try:
-        # Intentar obtener info del canal
         channel_info = get_channel_info(username)
         
-        # Verificar si hubo error (usuario no existe o API falló)
         if channel_info.get('error'):
             return jsonify({
                 'ok': True,
@@ -941,16 +941,28 @@ def verify_kick_username(username):
                 'message': 'Usuario no encontrado en Kick'
             })
         
-        # Usuario existe
+        viewer = Viewer.query.filter(
+            db.func.lower(Viewer.username_kick) == username.lower()
+        ).first()
+        
+        if not viewer:
+            viewer = Viewer(
+                username_kick=channel_info.get('username', username),
+                points=0,
+                watch_time=0
+            )
+            db.session.add(viewer)
+            db.session.commit()
+        
         return jsonify({
             'ok': True,
             'exists': True,
             'username': channel_info.get('username'),
-            'display_name': channel_info.get('display_name', username)
+            'display_name': channel_info.get('display_name', username),
+            'viewer_id': viewer.id
         })
             
     except Exception as e:
-        # Si hay excepción inesperada
         return jsonify({
             'ok': True,
             'exists': False,
