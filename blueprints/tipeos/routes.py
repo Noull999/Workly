@@ -10,9 +10,14 @@ import uuid
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 UPLOAD_FOLDER = 'static/uploads/tipeos'
+STREAMER_EMAIL = 'yangprroo@gmail.com'
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def is_streamer_or_admin():
+    """Verifica si el usuario actual es el streamer o admin global"""
+    return current_user.is_admin_global() or current_user.email == STREAMER_EMAIL
 
 def ensure_upload_folder():
     if not os.path.exists(UPLOAD_FOLDER):
@@ -22,9 +27,9 @@ def ensure_upload_folder():
 @login_required
 def admin_usuarios():
     """Vista de tabla informativa de usuarios para admin/streamer"""
-    if not current_user.is_admin_global():
+    if not is_streamer_or_admin():
         flash('Acceso denegado', 'error')
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('dashboard'))
     
     viewers = Viewer.query.order_by(Viewer.created_at.desc()).all()
     
@@ -35,7 +40,7 @@ def admin_usuarios():
 @login_required
 def dar_tipeo(viewer_id):
     """Admin otorga un tipeo disponible a un usuario"""
-    if not current_user.is_admin_global():
+    if not is_streamer_or_admin():
         return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
     
     viewer = Viewer.query.get_or_404(viewer_id)
@@ -76,9 +81,9 @@ def dar_tipeo(viewer_id):
 @login_required
 def admin_solicitudes():
     """Vista de solicitudes de tipeo pendientes"""
-    if not current_user.is_admin_global():
+    if not is_streamer_or_admin():
         flash('Acceso denegado', 'error')
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('dashboard'))
     
     solicitudes = TipeoRequest.query.order_by(TipeoRequest.created_at.desc()).all()
     
@@ -89,7 +94,7 @@ def admin_solicitudes():
 @login_required
 def aprobar_tipeo(request_id):
     """Admin aprueba una solicitud de tipeo"""
-    if not current_user.is_admin_global():
+    if not is_streamer_or_admin():
         return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
     
     solicitud = TipeoRequest.query.get_or_404(request_id)
@@ -119,7 +124,7 @@ def aprobar_tipeo(request_id):
 @login_required
 def rechazar_tipeo(request_id):
     """Admin rechaza una solicitud de tipeo"""
-    if not current_user.is_admin_global():
+    if not is_streamer_or_admin():
         return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
     
     solicitud = TipeoRequest.query.get_or_404(request_id)
@@ -300,7 +305,7 @@ def marcar_leida(notification_id):
 @login_required
 def admin_stats():
     """Obtener estadísticas de tipeos para el panel admin"""
-    if not current_user.is_admin_global():
+    if not is_streamer_or_admin():
         return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
     
     tipeos_disponibles = TipeoAvailable.query.filter_by(status='available').count()
