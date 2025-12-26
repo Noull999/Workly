@@ -1287,3 +1287,23 @@ class UserNotification(db.Model):
     
     def __repr__(self):
         return f'<UserNotification {self.title} - Read: {self.is_read}>'
+
+
+class StakeKickLink(db.Model):
+    """Vinculación entre usuarios de Stake (wager race) y Kick (viewers)"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    stake_username = db.Column(db.String(100), nullable=False)
+    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=True)
+    
+    is_verified = db.Column(db.Boolean, default=False)
+    verified_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    verified_at = db.Column(db.DateTime, nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    viewer = db.relationship('Viewer', backref='stake_links')
+    verified_by = db.relationship('User', backref='stake_verifications')
+    
+    def __repr__(self):
+        return f'<StakeKickLink {self.stake_username} -> Viewer {self.viewer_id}>'
