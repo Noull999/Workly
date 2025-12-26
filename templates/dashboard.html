@@ -290,6 +290,43 @@
         </div>
         {% endif %}
 
+        <!-- Gestión de Tipeos (solo para yangprroo@gmail.com) -->
+        {% if current_user.email == 'yangprroo@gmail.com' %}
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card shadow h-100 py-2 stat-card" style="border-left: 4px solid #FF1493 !important; cursor: pointer;" onclick="window.location.href='{{ url_for('tipeos.admin_usuarios') }}'">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #FF1493;">Tipeos - Usuarios</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Dar Tipeos</div>
+                            <small class="text-muted">Ver viewers y otorgar tipeos</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hand-holding-usd fa-2x" style="color: #FF1493;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-xl-4 col-xxl-4 mb-4">
+            <div class="card shadow h-100 py-2 stat-card" style="border-left: 4px solid #FF69B4 !important; cursor: pointer;" onclick="window.location.href='{{ url_for('tipeos.admin_solicitudes') }}'">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #FF69B4;">Tipeos - Solicitudes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Revisar Solicitudes</div>
+                            <small class="text-muted">Aprobar o rechazar tipeos pendientes</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-inbox fa-2x" style="color: #FF69B4;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 
     <!-- Gráfico de Ventas -->
