@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitudes de Tipeo - Workly{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">
+                    <i class="fas fa-inbox text-primary me-2"></i>Solicitudes de Tipeo
+                </h1>
+                <a href="{{ url_for('tipeos.admin_usuarios') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-users me-2"></i>Gestión de Usuarios
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" id="statusTabs">
+        <li class="nav-item">
+            <a class="nav-link active" data-status="all" href="#">
+                Todas <span class="badge bg-secondary">{{ solicitudes|length }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-status="submitted" href="#">
+                Pendientes <span class="badge bg-warning">{{ solicitudes|selectattr('status', 'equalto', 'submitted')|list|length }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-status="completed" href="#">
+                Completadas <span class="badge bg-success">{{ solicitudes|selectattr('status', 'equalto', 'completed')|list|length }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-status="rejected" href="#">
+                Rechazadas <span class="badge bg-danger">{{ solicitudes|selectattr('status', 'equalto', 'rejected')|list|length }}</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="row" id="solicitudesContainer">
+        {% for solicitud in solicitudes %}
+        <div class="col-lg-6 col-xl-4 mb-4 solicitud-card" data-status="{{ solicitud.status }}">
+            <div class="card h-100 border-{% if solicitud.status == 'submitted' %}warning{% elif solicitud.status == 'completed' %}success{% elif solicitud.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-user me-2"></i>{{ solicitud.viewer.kick_username if solicitud.viewer else 'Usuario' }}
+                    </span>
+                    <span class="badge bg-{% if solicitud.status == 'submitted' %}warning{% elif solicitud.status == 'completed' %}success{% elif solicitud.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                        {% if solicitud.status == 'submitted' %}Pendiente
+                        {% elif solicitud.status == 'completed' %}Completado
+                        {% elif solicitud.status == 'rejected' %}Rechazado
+                        {% else %}{{ solicitud.status }}{% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Nick Stake:</small>
+                            <div class="fw-bold">{{ solicitud.nick_stake }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Nick Kick:</small>
+                            <div class="fw-bold">{{ solicitud.nick_kick }}</div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Red Crypto:</small>
+                            <div class="fw-bold text-truncate" title="{{ solicitud.red_crypto }}">{{ solicitud.red_crypto }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Instagram:</small>
+                            <div class="fw-bold">{{ solicitud.instagram or '-' }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-2">Imágenes de evidencia:</small>
+                        <div class="d-flex gap-2">
+                            <a href="{{ solicitud.image_url_1 }}" target="_blank" class="flex-grow-1">
+                                <img src="{{ solicitud.image_url_1 }}" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;" alt="Evidencia 1">
+                            </a>
+                            <a href="{{ solicitud.image_url_2 }}" target="_blank" class="flex-grow-1">
+                                <img src="{{ solicitud.image_url_2 }}" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;" alt="Evidencia 2">
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="small text-muted">
+                        <i class="fas fa-calendar me-1"></i>{{ solicitud.created_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    
+                    {% if solicitud.status == 'rejected' and solicitud.rejection_reason %}
+                    <div class="alert alert-danger mt-3 mb-0 small">
+                        <i class="fas fa-times-circle me-1"></i>
+                        <strong>Motivo:</strong> {{ solicitud.rejection_reason }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if solicitud.status == 'completed' and solicitud.reviewed_at %}
+                    <div class="alert alert-success mt-3 mb-0 small">
+                        <i class="fas fa-check-circle me-1"></i>
+                        Completado el {{ solicitud.reviewed_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if solicitud.status == 'submitted' %}
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success btn-sm flex-grow-1 btn-aprobar" data-id="{{ solicitud.id }}">
+                            <i class="fas fa-check me-1"></i>Aprobar
+                        </button>
+                        <button class="btn btn-danger btn-sm flex-grow-1 btn-rechazar" data-id="{{ solicitud.id }}">
+                            <i class="fas fa-times me-1"></i>Rechazar
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% if not solicitudes %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay solicitudes de tipeo</h5>
+                <p class="text-muted">Las solicitudes aparecerán aquí cuando los usuarios las envíen</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="rechazarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-times-circle text-danger me-2"></i>Rechazar Solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Motivo del rechazo:</label>
+                    <textarea class="form-control" id="motivoRechazo" rows="3" placeholder="Ingresa el motivo del rechazo..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmRechazar">
+                    <i class="fas fa-times me-1"></i>Rechazar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedRequestId = null;
+    const rechazarModal = new bootstrap.Modal(document.getElementById('rechazarModal'));
+    
+    document.querySelectorAll('#statusTabs .nav-link').forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            document.querySelectorAll('#statusTabs .nav-link').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            const status = this.dataset.status;
+            document.querySelectorAll('.solicitud-card').forEach(card => {
+                if (status === 'all' || card.dataset.status === status) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    document.querySelectorAll('.btn-aprobar').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const requestId = this.dataset.id;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Procesando...';
+            
+            fetch(`/tipeos/admin/aprobar/${requestId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showToast('error', data.error || 'Error al aprobar');
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-check me-1"></i>Aprobar';
+                }
+            })
+            .catch(error => {
+                showToast('error', 'Error de conexión');
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-check me-1"></i>Aprobar';
+            });
+        });
+    });
+    
+    document.querySelectorAll('.btn-rechazar').forEach(btn => {
+        btn.addEventListener('click', function() {
+            selectedRequestId = this.dataset.id;
+            document.getElementById('motivoRechazo').value = '';
+            rechazarModal.show();
+        });
+    });
+    
+    document.getElementById('confirmRechazar').addEventListener('click', function() {
+        if (!selectedRequestId) return;
+        
+        const motivo = document.getElementById('motivoRechazo').value.trim();
+        if (!motivo) {
+            showToast('error', 'Ingresa un motivo de rechazo');
+            return;
+        }
+        
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Procesando...';
+        
+        const formData = new FormData();
+        formData.append('motivo', motivo);
+        
+        fetch(`/tipeos/admin/rechazar/${selectedRequestId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            rechazarModal.hide();
+            
+            if (data.success) {
+                location.reload();
+            } else {
+                showToast('error', data.error || 'Error al rechazar');
+            }
+        })
+        .catch(error => {
+            rechazarModal.hide();
+            showToast('error', 'Error de conexión');
+        })
+        .finally(() => {
+            document.getElementById('confirmRechazar').disabled = false;
+            document.getElementById('confirmRechazar').innerHTML = '<i class="fas fa-times me-1"></i>Rechazar';
+        });
+    });
+    
+    function showToast(type, message) {
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        
+        let container = document.querySelector('.toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(container);
+        }
+        
+        container.insertAdjacentHTML('beforeend', toastHtml);
+        const toast = new bootstrap.Toast(container.lastElementChild);
+        toast.show();
+    }
+});
+</script>
+{% endblock %}

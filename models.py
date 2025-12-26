@@ -1186,3 +1186,104 @@ class RankRaffle(db.Model):
     
     def __repr__(self):
         return f'<RankRaffle {self.rank_name} - Period {self.period_id} - Winner: {self.winner_username}>'
+
+
+# ===== SISTEMA DE TIPEOS =====
+
+class TipeoAvailable(db.Model):
+    """Registro cuando un admin otorga un tipeo disponible a un usuario"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Usuario que recibe el tipeo
+    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=False)
+    
+    # Admin que otorga el tipeo
+    granted_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Estado: available, claimed (usuario envió formulario), expired
+    status = db.Column(db.String(20), default='available')
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    claimed_at = db.Column(db.DateTime, nullable=True)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    viewer = db.relationship('Viewer', backref='tipeos_available')
+    granted_by = db.relationship('User', backref='tipeos_granted')
+    
+    def __repr__(self):
+        return f'<TipeoAvailable Viewer {self.viewer_id} - Status: {self.status}>'
+
+
+class TipeoRequest(db.Model):
+    """Solicitud de tipeo con evidencia enviada por el usuario"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Referencia al tipeo disponible
+    tipeo_available_id = db.Column(db.Integer, db.ForeignKey('tipeo_available.id'), nullable=False)
+    
+    # Usuario que envía la solicitud
+    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=False)
+    
+    # Datos del formulario
+    nick_stake = db.Column(db.String(100), nullable=False)
+    nick_kick = db.Column(db.String(100), nullable=False)
+    red_crypto = db.Column(db.String(200), nullable=False)
+    instagram = db.Column(db.String(100), nullable=True)
+    
+    # Imágenes de evidencia (2 imágenes)
+    image_url_1 = db.Column(db.String(500), nullable=False)
+    image_url_2 = db.Column(db.String(500), nullable=False)
+    
+    # Estado: submitted, reviewed, completed, rejected
+    status = db.Column(db.String(20), default='submitted')
+    
+    # Motivo de rechazo (si aplica)
+    rejection_reason = db.Column(db.Text, nullable=True)
+    
+    # Admin que revisó
+    reviewed_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    tipeo_available = db.relationship('TipeoAvailable', backref=db.backref('request', uselist=False))
+    viewer = db.relationship('Viewer', backref='tipeo_requests')
+    reviewed_by = db.relationship('User', backref='tipeos_reviewed')
+    
+    def __repr__(self):
+        return f'<TipeoRequest Viewer {self.viewer_id} - Status: {self.status}>'
+
+
+class UserNotification(db.Model):
+    """Notificaciones internas para usuarios/viewers"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Destinatario (puede ser viewer o user)
+    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    
+    # Contenido
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    notification_type = db.Column(db.String(50), default='info')  # info, success, warning, tipeo
+    
+    # Estado
+    is_read = db.Column(db.Boolean, default=False)
+    
+    # Enlace opcional (para navegar a una sección)
+    action_url = db.Column(db.String(500), nullable=True)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    read_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    viewer = db.relationship('Viewer', backref='notifications')
+    user = db.relationship('User', backref='notifications')
+    
+    def __repr__(self):
+        return f'<UserNotification {self.title} - Read: {self.is_read}>'

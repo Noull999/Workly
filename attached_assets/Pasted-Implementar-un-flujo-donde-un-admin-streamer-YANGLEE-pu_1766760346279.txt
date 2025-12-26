@@ -1,0 +1,100 @@
+Implementar un flujo donde un admin/streamer (YANGLEE) pueda otorgar un “tipeo” a un usuario desde una tabla informativa, y que el usuario complete un formulario con evidencia, quedando todo registrado y confirmable.
+
+⸻
+
+1️⃣ Tabla informativa de usuarios (NO guarda tipeos)
+	•	Crear una vista de tabla que muestre usuarios relacionados a Stake/Kick con los siguientes campos:
+	•	user_id
+	•	username Workly
+	•	nick_kick
+	•	nick_stake
+	•	estado general
+	•	botón “Dar tipeo”
+	•	Esta tabla es solo informativa y el botón solo dispara un evento, no guarda datos del tipeo.
+
+⸻
+
+2️⃣ Evento “Dar tipeo”
+
+Al hacer click en “Dar tipeo”:
+	•	No se realiza ningún pago
+	•	Se crea un registro simple indicando que el usuario tiene un tipeo disponible:
+	•	user_id
+	•	requested_by (admin)
+	•	status = “available”
+	•	created_at
+	•	El usuario recibe una notificación interna en su dashboard:
+“🎉 Tienes un tipeo disponible”
+
+⸻
+
+3️⃣ Panel del usuario – Envío de información
+
+En el dashboard del usuario:
+	•	Mostrar una sección “Tipeos disponibles”
+	•	Al ingresar, mostrar:
+	•	Video explicativo (URL configurable)
+	•	Texto de instrucciones
+	•	Formulario con:
+	•	nick_stake (obligatorio)
+	•	nick_kick (obligatorio)
+	•	red_crypto (obligatorio)
+	•	instagram (opcional)
+	•	subida de imagen (obligatoria)
+	•	Botón Enviar
+
+Validaciones:
+	•	No permitir envío incompleto
+	•	Guardar imagen de forma segura
+
+⸻
+
+4️⃣ Tabla real de solicitudes de tipeo
+
+Crear una tabla nueva llamada tipeo_requests con:
+	•	id
+	•	user_id
+	•	nick_stake
+	•	nick_kick
+	•	red_crypto
+	•	instagram
+	•	image_url
+	•	status (submitted / reviewed / completed / rejected)
+	•	created_at
+
+Al enviar el formulario:
+	•	Se crea un registro en esta tabla
+	•	El evento “tipeo disponible” cambia a estado “submitted”
+
+⸻
+
+5️⃣ Panel admin – Confirmación
+
+En el panel de YANGLEE:
+	•	Ver lista de solicitudes de tipeo
+	•	Ver imagen + datos enviados
+	•	Botones:
+	•	✅ “Tipeo realizado”
+	•	❌ “Rechazar” (con motivo)
+
+Al confirmar:
+	•	Cambiar estado a “completed”
+	•	Enviar notificación automática al usuario:
+“✅ Tu tipeo fue realizado correctamente”
+
+⸻
+
+6️⃣ Reglas importantes
+	•	No modificar módulos existentes
+	•	Separar lógica de:
+	•	tabla informativa
+	•	eventos
+	•	solicitudes reales
+	•	Código claro, mantenible y preparado para automatizaciones futuras
+
+⸻
+
+7️⃣ Extras si es posible
+	•	Historial de tipeos por usuario
+	•	Mostrar fecha del último tipeo recibido
+	•	Sistema preparado para automatizar recordatorios

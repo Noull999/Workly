@@ -1081,6 +1081,7 @@
                     <a href="#wager-race" class="nav-link orbitron">Leaderboard</a>
                     {% endif %}
                     <a href="#rangos" class="nav-link orbitron">Rangos</a>
+                    <a href="#tipeo" class="nav-link orbitron tipeo-nav-link hidden">Tipeo</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                 </div>
 
@@ -1138,6 +1139,7 @@
                     <a href="#wager-race" class="nav-link orbitron">Leaderboard</a>
                     {% endif %}
                     <a href="#rangos" class="nav-link orbitron">Rangos</a>
+                    <a href="#tipeo" class="nav-link orbitron tipeo-nav-link hidden">Tipeo</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                     
                     <!-- Login Button (Mobile) -->
@@ -1946,6 +1948,155 @@
                         <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
                         <p>Cargando usuarios...</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- TIPEO Section (Only visible when user has tipeo available) -->
+    <section id="tipeo" class="page-section py-20 px-4 hidden" style="background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));" data-animate="fade">
+        <div class="container mx-auto max-w-4xl">
+            <div class="text-center mb-12">
+                <h2 class="text-5xl font-bold orbitron gradient-text mb-4">
+                    <i class="fas fa-gift text-pink-500"></i> TIPEO DISPONIBLE
+                </h2>
+                <p class="text-xl text-gray-300">¡Tienes un tipeo disponible! Sigue las instrucciones para recibirlo</p>
+            </div>
+            
+            <div class="bg-gray-900/80 rounded-3xl p-8 border-2 border-pink-500/50 shadow-2xl shadow-pink-500/20">
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold text-pink-400 mb-4 orbitron">
+                        <i class="fas fa-video mr-2"></i>Video Instructivo
+                    </h3>
+                    <div class="aspect-video rounded-xl overflow-hidden bg-black/50 border border-gray-700" id="tipeoVideoContainer">
+                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                            <i class="fas fa-play-circle text-6xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold text-pink-400 mb-4 orbitron">
+                        <i class="fas fa-list-ol mr-2"></i>Instrucciones
+                    </h3>
+                    <div class="bg-black/50 rounded-xl p-6 border border-gray-700">
+                        <ol class="space-y-3 text-gray-300">
+                            <li class="flex items-start gap-3">
+                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">1</span>
+                                <span>Ingresa tu nick de Stake exactamente como aparece en la plataforma</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">2</span>
+                                <span>Ingresa tu nick de Kick para verificación</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">3</span>
+                                <span>Ingresa la dirección de tu red crypto donde recibirás el tipeo</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">4</span>
+                                <span>Sube 2 capturas de pantalla como evidencia (ver video)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">5</span>
+                                <span>Envía el formulario y espera la confirmación</span>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <form id="tipeoForm" class="space-y-6">
+                    <input type="hidden" id="tipeoViewerId" name="viewer_id" value="">
+                    <input type="hidden" id="tipeoId" name="tipeo_id" value="">
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-pink-400 font-bold mb-2">
+                                <i class="fas fa-user mr-1"></i>Nick Stake *
+                            </label>
+                            <input type="text" id="tipeoNickStake" name="nick_stake" required
+                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all"
+                                placeholder="Tu username de Stake">
+                        </div>
+                        <div>
+                            <label class="block text-pink-400 font-bold mb-2">
+                                <i class="fab fa-kickstarter mr-1"></i>Nick Kick *
+                            </label>
+                            <input type="text" id="tipeoNickKick" name="nick_kick" required
+                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all"
+                                placeholder="Tu username de Kick">
+                        </div>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-pink-400 font-bold mb-2">
+                                <i class="fas fa-wallet mr-1"></i>Red Crypto *
+                            </label>
+                            <input type="text" id="tipeoRedCrypto" name="red_crypto" required
+                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all"
+                                placeholder="Ej: BTC, ETH, LTC, USDT...">
+                        </div>
+                        <div>
+                            <label class="block text-pink-400 font-bold mb-2">
+                                <i class="fab fa-instagram mr-1"></i>Instagram (opcional)
+                            </label>
+                            <input type="text" id="tipeoInstagram" name="instagram"
+                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all"
+                                placeholder="@tuinstagram">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-pink-400 font-bold mb-4">
+                            <i class="fas fa-images mr-1"></i>Imágenes de Evidencia *
+                        </label>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="image-upload-box border-2 border-dashed border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-pink-500 transition-all relative" onclick="document.getElementById('tipeoImage1').click()">
+                                <input type="file" id="tipeoImage1" name="image1" accept="image/*" required class="hidden" onchange="previewImage(this, 'preview1')">
+                                <div id="preview1Container" class="hidden">
+                                    <img id="preview1" src="" alt="Preview" class="mx-auto max-h-40 rounded-lg mb-2">
+                                    <button type="button" onclick="event.stopPropagation(); clearImage('tipeoImage1', 'preview1')" class="text-red-400 text-sm hover:text-red-300">
+                                        <i class="fas fa-times mr-1"></i>Quitar
+                                    </button>
+                                </div>
+                                <div id="placeholder1">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-2"></i>
+                                    <p class="text-gray-400">Imagen 1</p>
+                                    <p class="text-sm text-gray-500">Click para subir</p>
+                                </div>
+                            </div>
+                            <div class="image-upload-box border-2 border-dashed border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-pink-500 transition-all relative" onclick="document.getElementById('tipeoImage2').click()">
+                                <input type="file" id="tipeoImage2" name="image2" accept="image/*" required class="hidden" onchange="previewImage(this, 'preview2')">
+                                <div id="preview2Container" class="hidden">
+                                    <img id="preview2" src="" alt="Preview" class="mx-auto max-h-40 rounded-lg mb-2">
+                                    <button type="button" onclick="event.stopPropagation(); clearImage('tipeoImage2', 'preview2')" class="text-red-400 text-sm hover:text-red-300">
+                                        <i class="fas fa-times mr-1"></i>Quitar
+                                    </button>
+                                </div>
+                                <div id="placeholder2">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-2"></i>
+                                    <p class="text-gray-400">Imagen 2</p>
+                                    <p class="text-sm text-gray-500">Click para subir</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center pt-4">
+                        <button type="submit" id="tipeoSubmitBtn" class="px-12 py-4 text-xl font-bold orbitron rounded-full transition-all transform hover:scale-105 shadow-lg shadow-pink-500/30" style="background: linear-gradient(135deg, #FF1493, #FF69B4); color: white;">
+                            <i class="fas fa-paper-plane mr-2"></i>Enviar Solicitud
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="tipeoHistorial" class="mt-12 hidden">
+                <h3 class="text-2xl font-bold text-pink-400 mb-6 orbitron text-center">
+                    <i class="fas fa-history mr-2"></i>Historial de Tipeos
+                </h3>
+                <div id="tipeoHistorialList" class="space-y-4">
                 </div>
             </div>
         </div>
@@ -3501,6 +3652,185 @@
                 initNavigation();
             }
         })();
+
+        // ===== SISTEMA DE TIPEOS =====
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const container = document.getElementById(previewId + 'Container');
+            const placeholder = document.getElementById('placeholder' + previewId.charAt(previewId.length - 1));
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    container.classList.remove('hidden');
+                    if (placeholder) placeholder.classList.add('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        function clearImage(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const container = document.getElementById(previewId + 'Container');
+            const placeholder = document.getElementById('placeholder' + previewId.charAt(previewId.length - 1));
+            
+            input.value = '';
+            container.classList.add('hidden');
+            if (placeholder) placeholder.classList.remove('hidden');
+        }
+        
+        function checkTipeoDisponible() {
+            const viewerId = localStorage.getItem('viewerId');
+            if (!viewerId) return;
+            
+            fetch(`/tipeos/disponible/${viewerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.disponible) {
+                        console.log('🎁 TIPEO: Usuario tiene tipeo disponible');
+                        showTipeoSection(viewerId, data.tipeo_id);
+                        showTipeoNotification();
+                    }
+                })
+                .catch(error => console.error('Error verificando tipeo:', error));
+        }
+        
+        function showTipeoSection(viewerId, tipeoId) {
+            const tipeoSection = document.getElementById('tipeo');
+            if (tipeoSection) {
+                tipeoSection.classList.remove('hidden');
+            }
+            
+            document.querySelectorAll('.tipeo-nav-link').forEach(link => {
+                link.classList.remove('hidden');
+            });
+            
+            document.getElementById('tipeoViewerId').value = viewerId;
+            document.getElementById('tipeoId').value = tipeoId;
+            
+            const kickUsername = localStorage.getItem('kickUsername');
+            if (kickUsername) {
+                document.getElementById('tipeoNickKick').value = kickUsername;
+            }
+        }
+        
+        function showTipeoNotification() {
+            const existingNotif = document.getElementById('tipeoNotification');
+            if (existingNotif) return;
+            
+            const notifHtml = `
+                <div id="tipeoNotification" class="fixed bottom-4 right-4 z-50 animate-bounce-slow" style="animation: bounceNotif 2s infinite;">
+                    <div class="bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl p-4 shadow-2xl shadow-pink-500/50 cursor-pointer max-w-sm" onclick="navigateToSection('tipeo'); this.parentElement.remove();">
+                        <div class="flex items-center gap-3">
+                            <div class="text-4xl">🎁</div>
+                            <div>
+                                <div class="font-bold text-white text-lg">¡Tienes un Tipeo!</div>
+                                <div class="text-pink-200 text-sm">Click para reclamar</div>
+                            </div>
+                            <button onclick="event.stopPropagation(); this.closest('#tipeoNotification').remove();" class="text-white/60 hover:text-white ml-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <style>
+                    @keyframes bounceNotif {
+                        0%, 100% { transform: translateY(0); }
+                        50% { transform: translateY(-10px); }
+                    }
+                </style>
+            `;
+            document.body.insertAdjacentHTML('beforeend', notifHtml);
+        }
+        
+        function loadTipeoHistorial() {
+            const viewerId = localStorage.getItem('viewerId');
+            if (!viewerId) return;
+            
+            fetch(`/tipeos/historial/${viewerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.historial.length > 0) {
+                        const container = document.getElementById('tipeoHistorial');
+                        const list = document.getElementById('tipeoHistorialList');
+                        
+                        container.classList.remove('hidden');
+                        list.innerHTML = data.historial.map(t => `
+                            <div class="bg-gray-800/80 rounded-xl p-4 border border-gray-700">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-bold text-white">${t.nick_stake}</div>
+                                        <div class="text-sm text-gray-400">${t.created_at}</div>
+                                    </div>
+                                    <span class="badge px-3 py-1 rounded-full text-sm font-bold ${
+                                        t.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                                        t.status === 'submitted' ? 'bg-yellow-500/20 text-yellow-400' :
+                                        t.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
+                                    }">
+                                        ${t.status === 'completed' ? '✅ Completado' :
+                                          t.status === 'submitted' ? '⏳ Pendiente' :
+                                          t.status === 'rejected' ? '❌ Rechazado' : t.status}
+                                    </span>
+                                </div>
+                                ${t.rejection_reason ? `<div class="mt-2 text-sm text-red-400"><i class="fas fa-info-circle mr-1"></i>${t.rejection_reason}</div>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(error => console.error('Error cargando historial:', error));
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const tipeoForm = document.getElementById('tipeoForm');
+            if (tipeoForm) {
+                tipeoForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const submitBtn = document.getElementById('tipeoSubmitBtn');
+                    const originalHTML = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
+                    
+                    const formData = new FormData(tipeoForm);
+                    
+                    fetch('/tipeos/enviar', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            tipeoForm.innerHTML = `
+                                <div class="text-center py-12">
+                                    <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
+                                    <h3 class="text-2xl font-bold text-white mb-2">¡Solicitud Enviada!</h3>
+                                    <p class="text-gray-400">${data.message}</p>
+                                </div>
+                            `;
+                            document.querySelectorAll('.tipeo-nav-link').forEach(link => {
+                                link.classList.add('hidden');
+                            });
+                            document.getElementById('tipeoNotification')?.remove();
+                            loadTipeoHistorial();
+                        } else {
+                            alert(data.error || 'Error al enviar solicitud');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalHTML;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error de conexión');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHTML;
+                    });
+                });
+            }
+            
+            setTimeout(checkTipeoDisponible, 2000);
+            setTimeout(loadTipeoHistorial, 2500);
+        });
     </script>
 </body>
 </html>

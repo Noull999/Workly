@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Tipeos - Usuarios - Workly{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">
+                    <i class="fas fa-gift text-primary me-2"></i>Gestión de Tipeos - Usuarios
+                </h1>
+                <a href="{{ url_for('tipeos.admin_solicitudes') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-inbox me-2"></i>Ver Solicitudes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ viewers|length }}</h5>
+                            <p class="card-text mb-0">Usuarios Registrados</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-users fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1" id="tipeos-disponibles-count">-</h5>
+                            <p class="card-text mb-0">Tipeos Disponibles</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-gift fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1" id="solicitudes-pendientes-count">-</h5>
+                            <p class="card-text mb-0">Solicitudes Pendientes</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-clock fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Tabla de Usuarios</h5>
+                <input type="text" id="searchInput" class="form-control form-control-sm w-25" placeholder="Buscar usuario...">
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="usersTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Username Workly</th>
+                            <th>Nick Kick</th>
+                            <th>Nick Stake</th>
+                            <th>Estado</th>
+                            <th>Puntos</th>
+                            <th>Último Tipeo</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for viewer in viewers %}
+                        <tr id="viewer-row-{{ viewer.id }}">
+                            <td>{{ viewer.id }}</td>
+                            <td>
+                                <strong>{{ viewer.kick_username or '-' }}</strong>
+                            </td>
+                            <td>{{ viewer.kick_username or '-' }}</td>
+                            <td>
+                                {% if viewer.tipeo_requests %}
+                                    {{ viewer.tipeo_requests[-1].nick_stake if viewer.tipeo_requests else '-' }}
+                                {% else %}
+                                    <span class="text-muted">Sin registro</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set tipeo_disponible = viewer.tipeos_available|selectattr('status', 'equalto', 'available')|list|length > 0 %}
+                                {% if tipeo_disponible %}
+                                    <span class="badge bg-warning">Tipeo Disponible</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Normal</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ viewer.points }} pts</span>
+                            </td>
+                            <td>
+                                {% set ultimo_tipeo = viewer.tipeo_requests|selectattr('status', 'equalto', 'completed')|list|last %}
+                                {% if ultimo_tipeo %}
+                                    {{ ultimo_tipeo.reviewed_at.strftime('%d/%m/%Y') if ultimo_tipeo.reviewed_at else '-' }}
+                                {% else %}
+                                    <span class="text-muted">Nunca</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-success btn-sm btn-dar-tipeo" 
+                                        data-viewer-id="{{ viewer.id }}"
+                                        data-viewer-name="{{ viewer.kick_username }}"
+                                        {% if tipeo_disponible %}disabled{% endif %}>
+                                    <i class="fas fa-gift me-1"></i>Dar Tipeo
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if not viewers %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay usuarios registrados</h5>
+                <p class="text-muted">Los usuarios aparecerán aquí cuando se registren a través de Kick</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-gift me-2"></i>Confirmar Tipeo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de otorgar un tipeo disponible a <strong id="modalUserName"></strong>?</p>
+                <p class="text-muted small">El usuario recibirá una notificación y podrá completar el formulario de tipeo.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmDarTipeo">
+                    <i class="fas fa-check me-1"></i>Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedViewerId = null;
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    
+    fetch('/tipeos/admin/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('tipeos-disponibles-count').textContent = data.tipeos_disponibles;
+                document.getElementById('solicitudes-pendientes-count').textContent = data.solicitudes_pendientes;
+            }
+        })
+        .catch(error => console.error('Error cargando stats:', error));
+    
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTable tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+    
+    document.querySelectorAll('.btn-dar-tipeo').forEach(btn => {
+        btn.addEventListener('click', function() {
+            selectedViewerId = this.dataset.viewerId;
+            document.getElementById('modalUserName').textContent = this.dataset.viewerName;
+            modal.show();
+        });
+    });
+    
+    document.getElementById('confirmDarTipeo').addEventListener('click', function() {
+        if (!selectedViewerId) return;
+        
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Procesando...';
+        
+        fetch(`/tipeos/admin/dar-tipeo/${selectedViewerId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            modal.hide();
+            
+            if (data.success) {
+                const btn = document.querySelector(`[data-viewer-id="${selectedViewerId}"]`);
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i>Tipeo Otorgado';
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-secondary');
+                
+                const row = document.getElementById(`viewer-row-${selectedViewerId}`);
+                const statusCell = row.querySelectorAll('td')[4];
+                statusCell.innerHTML = '<span class="badge bg-warning">Tipeo Disponible</span>';
+                
+                showToast('success', data.message);
+            } else {
+                showToast('error', data.error || 'Error al otorgar tipeo');
+            }
+        })
+        .catch(error => {
+            modal.hide();
+            showToast('error', 'Error de conexión');
+        })
+        .finally(() => {
+            document.getElementById('confirmDarTipeo').disabled = false;
+            document.getElementById('confirmDarTipeo').innerHTML = '<i class="fas fa-check me-1"></i>Confirmar';
+        });
+    });
+    
+    function showToast(type, message) {
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        
+        let container = document.querySelector('.toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(container);
+        }
+        
+        container.insertAdjacentHTML('beforeend', toastHtml);
+        const toast = new bootstrap.Toast(container.lastElementChild);
+        toast.show();
+    }
+});
+</script>
+{% endblock %}
