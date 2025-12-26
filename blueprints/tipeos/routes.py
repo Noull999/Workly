@@ -103,7 +103,7 @@ def dar_tipeo(viewer_id):
     
     return jsonify({
         'success': True,
-        'message': f'Tipeo otorgado a {viewer.kick_username}'
+        'message': f'Tipeo otorgado a {viewer.username_kick}'
     })
 
 
