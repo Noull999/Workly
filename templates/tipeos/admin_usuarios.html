@@ -83,12 +83,12 @@
     {% if periodo %}
     <div class="alert alert-info">
         <i class="fas fa-info-circle me-2"></i>
-        Mostrando usuarios del período: <strong>{{ periodo.name }}</strong>
+        Período activo: <strong>{{ periodo.start_date }}</strong> - {{ periodo.total_players }} jugadores
     </div>
     {% else %}
     <div class="alert alert-warning">
         <i class="fas fa-exclamation-triangle me-2"></i>
-        No hay un período de wager race activo. Crea uno desde el panel de Stake.
+        No se pudieron cargar los datos del Wager Race. Verifica la conexión.
     </div>
     {% endif %}
 
@@ -115,23 +115,25 @@
                     </thead>
                     <tbody>
                         {% for item in usuarios_wager %}
-                        <tr id="row-{{ item.rpu.username }}">
-                            <td>{{ item.rpu.position or loop.index }}</td>
+                        <tr id="row-{{ item.stake_username }}">
+                            <td>{{ item.rank or loop.index }}</td>
                             <td>
-                                <strong>{{ item.rpu.username }}</strong>
+                                <strong>{{ item.stake_username }}</strong>
                             </td>
                             <td>
-                                {% if item.rpu.rank_key == 'diamond' %}
-                                    <span class="badge" style="background: linear-gradient(135deg, #00CED1, #00BFFF);">💎 {{ item.rpu.rank_name }}</span>
-                                {% elif item.rpu.rank_key == 'platinum' %}
-                                    <span class="badge" style="background: linear-gradient(135deg, #A0A0A0, #C0C0C0);">🏆 {{ item.rpu.rank_name }}</span>
-                                {% elif item.rpu.rank_key == 'gold' %}
-                                    <span class="badge" style="background: linear-gradient(135deg, #FFD700, #FFA500);">🥇 {{ item.rpu.rank_name }}</span>
+                                {% if item.wagered >= 10000 %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #00CED1, #00BFFF);">💎 Diamante</span>
+                                {% elif item.wagered >= 5000 %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #E5E4E2, #C0C0C0);">🏆 Platino</span>
+                                {% elif item.wagered >= 1000 %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #FFD700, #FFA500);">🥇 Oro</span>
+                                {% elif item.wagered >= 100 %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #A8A8A8, #C0C0C0);">🥈 Plata</span>
                                 {% else %}
-                                    <span class="badge" style="background: linear-gradient(135deg, #A8A8A8, #C0C0C0);">🥈 {{ item.rpu.rank_name }}</span>
+                                    <span class="badge bg-secondary">Sin rango</span>
                                 {% endif %}
                             </td>
-                            <td>${{ "%.2f"|format(item.rpu.wagered) }}</td>
+                            <td>${{ "{:,.2f}".format(item.wagered) }}</td>
                             <td>
                                 {% if item.vinculado %}
                                     <span class="text-success">
@@ -162,15 +164,15 @@
                             <td class="text-center">
                                 {% if item.vinculado %}
                                     {% if not item.tipeo_disponible and not item.tipeo_pendiente %}
-                                    <button class="btn btn-sm btn-success me-1" onclick="darTipeo({{ item.viewer.id }}, '{{ item.rpu.username }}')" title="Dar Tipeo">
+                                    <button class="btn btn-sm btn-success me-1" onclick="darTipeo({{ item.viewer.id }}, '{{ item.stake_username }}')" title="Dar Tipeo">
                                         <i class="fas fa-gift"></i>
                                     </button>
                                     {% endif %}
-                                    <button class="btn btn-sm btn-outline-danger" onclick="desvincular('{{ item.rpu.username }}')" title="Desvincular">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="desvincular('{{ item.stake_username }}')" title="Desvincular">
                                         <i class="fas fa-unlink"></i>
                                     </button>
                                 {% else %}
-                                    <button class="btn btn-sm btn-primary" onclick="mostrarModalVincular('{{ item.rpu.username }}')" title="Vincular con Kick">
+                                    <button class="btn btn-sm btn-primary" onclick="mostrarModalVincular('{{ item.stake_username }}')" title="Vincular con Kick">
                                         <i class="fas fa-link me-1"></i>Vincular
                                     </button>
                                 {% endif %}

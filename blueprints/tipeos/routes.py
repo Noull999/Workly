@@ -5,6 +5,7 @@ from . import tipeos_bp
 from app import db
 from models import TipeoAvailable, TipeoRequest, UserNotification, Viewer, User, RankPeriod, RankPeriodUser, StakeKickLink
 from datetime import datetime
+from blueprints.public.routes import get_wager_race_data
 import os
 import uuid
 
@@ -31,18 +32,35 @@ def admin_usuarios():
         flash('Acceso denegado', 'error')
         return redirect(url_for('dashboard'))
     
-    periodo_activo = RankPeriod.query.filter_by(is_active=True).order_by(RankPeriod.created_at.desc()).first()
+    wager_race_data = get_wager_race_data()
     
     usuarios_wager = []
-    if periodo_activo:
-        for rpu in periodo_activo.users:
-            link = StakeKickLink.query.filter_by(stake_username=rpu.username).first()
+    periodo_info = None
+    
+    if wager_race_data and wager_race_data.get('current'):
+        current_players = wager_race_data['current']
+        if current_players:
+            first_player = current_players[0]
+            periodo_info = {
+                'start_date': first_player.get('start_date', ''),
+                'end_date': first_player.get('end_date', ''),
+                'total_players': len(current_players)
+            }
+        
+        for player in current_players:
+            stake_username = player.get('username', '')
+            wagered = player.get('wagered', 0)
+            rank = player.get('rank', 0)
+            
+            link = StakeKickLink.query.filter(
+                db.func.lower(StakeKickLink.stake_username) == stake_username.lower()
+            ).first()
             viewer = link.viewer if link and link.viewer_id else None
             auto_vinculado = False
             
             if not viewer:
                 viewer_auto = Viewer.query.filter(
-                    db.func.lower(Viewer.stake_username) == rpu.username.lower(),
+                    db.func.lower(Viewer.stake_username) == stake_username.lower(),
                     Viewer.stake_verified == True
                 ).first()
                 if viewer_auto:
@@ -51,6 +69,7 @@ def admin_usuarios():
             
             tipeo_disponible = False
             tipeo_pendiente = False
+            tipeos_otorgados = 0
             if viewer:
                 tipeo_disponible = TipeoAvailable.query.filter_by(
                     viewer_id=viewer.id, status='available'
@@ -58,25 +77,38 @@ def admin_usuarios():
                 tipeo_pendiente = TipeoRequest.query.filter_by(
                     viewer_id=viewer.id, status='submitted'
                 ).first() is not None
+                tipeos_otorgados = TipeoRequest.query.filter_by(
+                    viewer_id=viewer.id, status='approved'
+                ).count()
             
             vinculado = (link is not None and link.viewer_id is not None) or auto_vinculado
             
             usuarios_wager.append({
-                'rpu': rpu,
+                'stake_username': stake_username,
+                'wagered': wagered,
+                'rank': rank,
                 'link': link,
                 'viewer': viewer,
                 'vinculado': vinculado,
                 'auto_vinculado': auto_vinculado,
                 'tipeo_disponible': tipeo_disponible,
-                'tipeo_pendiente': tipeo_pendiente
+                'tipeo_pendiente': tipeo_pendiente,
+                'tipeos_otorgados': tipeos_otorgados
             })
     
     viewers_kick = Viewer.query.order_by(Viewer.username_kick).all()
     
+    total_vinculados = sum(1 for u in usuarios_wager if u['vinculado'])
+    total_sin_vincular = sum(1 for u in usuarios_wager if not u['vinculado'])
+    total_tipeos = sum(1 for u in usuarios_wager if u['tipeos_otorgados'] > 0)
+    
     return render_template('tipeos/admin_usuarios.html', 
                            usuarios_wager=usuarios_wager, 
-                           periodo=periodo_activo,
-                           viewers_kick=viewers_kick)
+                           periodo=periodo_info,
+                           viewers_kick=viewers_kick,
+                           total_vinculados=total_vinculados,
+                           total_sin_vincular=total_sin_vincular,
+                           total_tipeos=total_tipeos)
 
 
 @tipeos_bp.route('/admin/dar-tipeo/<int:viewer_id>', methods=['POST'])
