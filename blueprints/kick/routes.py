@@ -928,7 +928,8 @@ def get_active_raffles():
 def verify_kick_username(username):
     """API: Verificar si un username existe en Kick y opcionalmente vincular con Stake"""
     from helpers.kick_api import get_channel_info
-    from models import Viewer, WagerRaceParticipant
+    from models import Viewer
+    from blueprints.public.routes import get_wager_race_data
     from app import db
     
     stake_username = None
@@ -956,13 +957,18 @@ def verify_kick_username(username):
         stake_wager = None
         
         if stake_username:
-            participant = WagerRaceParticipant.query.filter(
-                db.func.lower(WagerRaceParticipant.username) == stake_username.lower()
-            ).first()
+            wager_data = get_wager_race_data()
+            current_entries = wager_data.get('current', [])
+            
+            participant = None
+            for entry in current_entries:
+                if entry.get('username', '').lower() == stake_username.lower():
+                    participant = entry
+                    break
             
             if participant:
                 stake_verified = True
-                stake_wager = participant.wagered
+                stake_wager = float(participant.get('wagered', 0))
                 if stake_wager >= 10000:
                     stake_rank = 'Diamond'
                 elif stake_wager >= 5000:
