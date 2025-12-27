@@ -376,6 +376,55 @@
     </div>
     {% endif %}
 
+    <!-- Tipeos Especiales - Solo para yangprroo@gmail.com -->
+    {% if current_user.email == 'yangprroo@gmail.com' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow" style="border-left: 4px solid #00BFFF;">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #00BFFF, #00CED1);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-star me-2"></i>Tipeos Especiales
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Dar tipeos a usuarios de Kick que no están en el Wager Race (Bonus Hunt, Tipeo al Azar, Sorteos, etc.)
+                    </p>
+                    
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label">Usuario de Kick</label>
+                            <select class="form-select" id="tipeoEspecialViewer">
+                                <option value="">-- Seleccionar Usuario --</option>
+                                {% for v in viewers_kick %}
+                                <option value="{{ v.id }}" data-username="{{ v.username_kick }}">{{ v.username_kick }} ({{ v.points }} pts)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Motivo del Tipeo</label>
+                            <select class="form-select" id="tipeoEspecialMotivo">
+                                <option value="bonus_hunt">🔥 Bonus Hunt</option>
+                                <option value="tipeo_azar">🎲 Tipeo al Azar</option>
+                                <option value="sorteo_semanal">🎁 Sorteo Semanal</option>
+                                <option value="otro">✨ Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn w-100" style="background: linear-gradient(135deg, #00BFFF, #00CED1); color: white;" onclick="darTipeoEspecial()">
+                                <i class="fas fa-gift me-1"></i>Dar Tipeo
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="tipeoEspecialResult" class="mt-3 d-none"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Gráfico de Ventas -->
     {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos) %}
     {% if stats.pos and stats.pos.sales_by_day %}
@@ -1476,6 +1525,57 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+{% endif %}
+
+// Función para dar tipeo especial
+{% if current_user.email == 'yangprroo@gmail.com' %}
+function darTipeoEspecial() {
+    const viewerSelect = document.getElementById('tipeoEspecialViewer');
+    const viewerId = viewerSelect.value;
+    const motivo = document.getElementById('tipeoEspecialMotivo').value;
+    const resultDiv = document.getElementById('tipeoEspecialResult');
+    
+    if (!viewerId) {
+        resultDiv.className = 'mt-3 alert alert-warning';
+        resultDiv.classList.remove('d-none');
+        resultDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Selecciona un usuario de Kick';
+        return;
+    }
+    
+    const username = viewerSelect.options[viewerSelect.selectedIndex].dataset.username;
+    
+    if (!confirm('¿Dar tipeo especial a ' + username + '?')) return;
+    
+    const formData = new FormData();
+    formData.append('viewer_id', viewerId);
+    formData.append('motivo', motivo);
+    
+    fetch('/tipeos/admin/dar-tipeo-especial', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        resultDiv.classList.remove('d-none');
+        if (data.success) {
+            resultDiv.className = 'mt-3 alert alert-success';
+            resultDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message;
+            viewerSelect.value = '';
+        } else {
+            resultDiv.className = 'mt-3 alert alert-danger';
+            resultDiv.innerHTML = '<i class="fas fa-times-circle me-2"></i>' + (data.error || 'Error al dar tipeo');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resultDiv.classList.remove('d-none');
+        resultDiv.className = 'mt-3 alert alert-danger';
+        resultDiv.innerHTML = '<i class="fas fa-times-circle me-2"></i>Error de conexión';
+    });
+}
 {% endif %}
 </script>
 

@@ -253,10 +253,12 @@ def dashboard():
                 }
             
             tipeo_solicitudes = []
+            viewers_kick = []
             if current_user.email == 'yangprroo@gmail.com':
                 try:
-                    from models import TipeoRequest
+                    from models import TipeoRequest, Viewer
                     tipeo_solicitudes = TipeoRequest.query.filter_by(status='submitted').order_by(TipeoRequest.created_at.desc()).limit(10).all()
+                    viewers_kick = Viewer.query.order_by(Viewer.username_kick).all()
                 except Exception as e:
                     print(f"Error al cargar solicitudes de tipeo: {e}")
             
@@ -409,7 +411,7 @@ def dashboard():
             'booking': f'/empresa/{company.code if company else "demo"}/reservar'
         }
         
-        return render_template('dashboard.html', modules=modules_active, stats=stats, company=company, public_urls=public_urls, tipeo_solicitudes=tipeo_solicitudes if 'tipeo_solicitudes' in dir() else [])
+        return render_template('dashboard.html', modules=modules_active, stats=stats, company=company, public_urls=public_urls, tipeo_solicitudes=tipeo_solicitudes if 'tipeo_solicitudes' in dir() else [], viewers_kick=viewers_kick if 'viewers_kick' in dir() else [])
     
     except Exception as e:
         # En caso de error, mostrar mensaje de error sin redirección para evitar bucles
