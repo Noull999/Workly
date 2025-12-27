@@ -1081,7 +1081,8 @@
                     <a href="#wager-race" class="nav-link orbitron">Leaderboard</a>
                     {% endif %}
                     <a href="#rangos" class="nav-link orbitron">Rangos</a>
-                    <a href="#tipeo" class="nav-link orbitron tipeo-nav-link hidden">Tipeo</a>
+                    <a href="#tipeos-info" class="nav-link orbitron">Tipeos</a>
+                    <a href="#tipeo" class="nav-link orbitron tipeo-nav-link hidden">Mi Tipeo</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                 </div>
 
@@ -1145,7 +1146,8 @@
                     <a href="#wager-race" class="nav-link orbitron">Leaderboard</a>
                     {% endif %}
                     <a href="#rangos" class="nav-link orbitron">Rangos</a>
-                    <a href="#tipeo" class="nav-link orbitron tipeo-nav-link hidden">Tipeo</a>
+                    <a href="#tipeos-info" class="nav-link orbitron">Tipeos</a>
+                    <a href="#tipeo" class="nav-link orbitron tipeo-nav-link hidden">Mi Tipeo</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                     
                     <!-- Login Button (Mobile) -->
@@ -1954,6 +1956,187 @@
                         <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
                         <p>Cargando usuarios...</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- TIPEOS INFO Section - Información general sobre tipeos -->
+    <section id="tipeos-info" class="page-section py-20 px-4" style="background: linear-gradient(180deg, rgba(255,20,147,0.05), transparent, rgba(255,20,147,0.05));" data-animate="fade">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl sm:text-5xl font-bold orbitron gradient-text mb-4">
+                    <i class="fas fa-hand-holding-usd text-pink-500"></i> TIPEOS
+                </h2>
+                <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+                    Los tipeos son recompensas especiales que YANGLEE otorga a su comunidad. ¡Conoce cómo conseguir el tuyo!
+                </p>
+            </div>
+            
+            <!-- Video Instructivo -->
+            <div class="bg-gray-900/80 rounded-3xl p-6 sm:p-8 border-2 border-pink-500/30 shadow-2xl shadow-pink-500/10 mb-12">
+                <h3 class="text-2xl font-bold text-pink-400 mb-6 orbitron text-center">
+                    <i class="fas fa-video mr-2"></i>Video Instructivo
+                </h3>
+                <div class="aspect-video rounded-xl overflow-hidden bg-black/50 border border-gray-700 max-w-4xl mx-auto">
+                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                        <div class="text-center">
+                            <i class="fas fa-play-circle text-6xl mb-4 text-pink-500/50"></i>
+                            <p class="text-lg">Video tutorial próximamente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cómo Conseguir un Tipeo -->
+            <div class="mb-12">
+                <h3 class="text-3xl font-bold orbitron text-center mb-8 gradient-text">
+                    <i class="fas fa-question-circle mr-2"></i>¿Cómo Conseguir un Tipeo?
+                </h3>
+                
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Bonus Hunt -->
+                    <div class="bg-gray-900/80 rounded-2xl p-6 border-2 border-yellow-500/30 hover:border-yellow-500/60 transition-all hover:transform hover:scale-105">
+                        <div class="text-center mb-4">
+                            <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mb-4">
+                                <i class="fas fa-fire text-4xl text-white"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold orbitron text-yellow-400">Bonus Hunt</h4>
+                        </div>
+                        <p class="text-gray-300 text-center mb-4">
+                            Durante los Bonus Hunt en stream, YANGLEE selecciona aleatoriamente a viewers activos para recibir tipeos.
+                        </p>
+                        <ul class="text-gray-400 text-sm space-y-2">
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>Estar presente en el stream</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>Participar en el chat</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>Tener cuenta en Stake con código YANGLEE</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Tipeo al Azar -->
+                    <div class="bg-gray-900/80 rounded-2xl p-6 border-2 border-purple-500/30 hover:border-purple-500/60 transition-all hover:transform hover:scale-105">
+                        <div class="text-center mb-4">
+                            <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4">
+                                <i class="fas fa-dice text-4xl text-white"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold orbitron text-purple-400">Tipeo al Azar</h4>
+                        </div>
+                        <p class="text-gray-300 text-center mb-4">
+                            En cualquier momento del stream, YANGLEE puede decidir dar tipeos sorpresa a viewers que estén activos.
+                        </p>
+                        <ul class="text-gray-400 text-sm space-y-2">
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>Ser viewer activo y constante</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>Buena actitud en el chat</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>¡Suerte!</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Sorteos Semanales -->
+                    <div class="bg-gray-900/80 rounded-2xl p-6 border-2 border-cyan-500/30 hover:border-cyan-500/60 transition-all hover:transform hover:scale-105">
+                        <div class="text-center mb-4">
+                            <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center mb-4">
+                                <i class="fas fa-gift text-4xl text-white"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold orbitron text-cyan-400">Sorteos Semanales</h4>
+                        </div>
+                        <p class="text-gray-300 text-center mb-4">
+                            Participa en los sorteos semanales usando tus puntos de Kick. ¡Más puntos = más oportunidades!
+                        </p>
+                        <ul class="text-gray-400 text-sm space-y-2">
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>Acumular puntos de Kick</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>Participar en los sorteos activos</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-green-400"></i>
+                                <span>Estar atento a los anuncios</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instrucciones para Reclamar -->
+            <div class="bg-gray-900/80 rounded-3xl p-6 sm:p-8 border-2 border-pink-500/30">
+                <h3 class="text-2xl font-bold text-pink-400 mb-6 orbitron text-center">
+                    <i class="fas fa-clipboard-list mr-2"></i>¿Cómo Reclamar tu Tipeo?
+                </h3>
+                <p class="text-gray-300 text-center mb-6">
+                    Una vez que YANGLEE te otorgue un tipeo, aparecerá automáticamente la sección "Mi Tipeo" en el menú. Sigue estos pasos:
+                </p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="bg-black/40 rounded-xl p-4 border border-gray-700">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">1</span>
+                            <span class="font-bold text-white">Inicia sesión</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Ingresa con tu usuario de Kick para verificar tu identidad</p>
+                    </div>
+                    <div class="bg-black/40 rounded-xl p-4 border border-gray-700">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">2</span>
+                            <span class="font-bold text-white">Ve a "Mi Tipeo"</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Aparecerá en el menú cuando tengas un tipeo disponible</p>
+                    </div>
+                    <div class="bg-black/40 rounded-xl p-4 border border-gray-700">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">3</span>
+                            <span class="font-bold text-white">Completa el formulario</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Ingresa tu nick de Stake, red crypto y evidencias</p>
+                    </div>
+                    <div class="bg-black/40 rounded-xl p-4 border border-gray-700">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">4</span>
+                            <span class="font-bold text-white">Sube capturas</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">1) Tu usuario de Stake, 2) Evidencia del código sponsor</p>
+                    </div>
+                    <div class="bg-black/40 rounded-xl p-4 border border-gray-700">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">5</span>
+                            <span class="font-bold text-white">Envía y espera</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">YANGLEE revisará tu solicitud y enviará el tipeo</p>
+                    </div>
+                    <div class="bg-black/40 rounded-xl p-4 border border-gray-700">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold"><i class="fas fa-check"></i></span>
+                            <span class="font-bold text-white">¡Recibe tu tipeo!</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">El tipeo llegará a la dirección crypto que proporcionaste</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-400 text-sm">
+                        <i class="fas fa-shield-alt text-green-400 mr-1"></i>
+                        Tu información crypto se utiliza únicamente para enviar el tipeo. YANGLEE nunca solicitará datos adicionales.
+                    </p>
                 </div>
             </div>
         </div>
