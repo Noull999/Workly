@@ -261,9 +261,10 @@ def enviar_solicitud():
     nick_stake = request.form.get('nick_stake', '').strip()
     nick_kick = request.form.get('nick_kick', '').strip()
     red_crypto = request.form.get('red_crypto', '').strip()
+    direccion_crypto = request.form.get('direccion_crypto', '').strip()
     instagram = request.form.get('instagram', '').strip()
     
-    if not nick_stake or not nick_kick or not red_crypto:
+    if not nick_stake or not nick_kick or not red_crypto or not direccion_crypto:
         return jsonify({'success': False, 'error': 'Completa todos los campos obligatorios'}), 400
     
     if 'image1' not in request.files or 'image2' not in request.files:
@@ -301,6 +302,7 @@ def enviar_solicitud():
         nick_stake=nick_stake,
         nick_kick=nick_kick,
         red_crypto=red_crypto,
+        direccion_crypto=direccion_crypto,
         instagram=instagram if instagram else None,
         image_url_1=f'/{filepath1}',
         image_url_2=f'/{filepath2}',

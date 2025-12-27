@@ -1998,15 +1998,19 @@
                             </li>
                             <li class="flex items-start gap-3">
                                 <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">3</span>
-                                <span>Ingresa la dirección de tu red crypto donde recibirás el tipeo</span>
+                                <span>Ingresa la red crypto y tu código/dirección de depósito donde recibirás el tipeo</span>
                             </li>
                             <li class="flex items-start gap-3">
                                 <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">4</span>
-                                <span>Sube 2 capturas de pantalla como evidencia (ver video)</span>
+                                <span>Sube 2 capturas de pantalla: <strong class="text-pink-400">1)</strong> Tu usuario de Stake en la app, <strong class="text-pink-400">2)</strong> Evidencia de que usas el código de patrocinador</span>
                             </li>
                             <li class="flex items-start gap-3">
                                 <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">5</span>
                                 <span>Envía el formulario y espera la confirmación</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">6</span>
+                                <span class="text-gray-400"><i class="fas fa-shield-alt mr-1 text-green-400"></i>Tu red y dirección crypto se solicitan únicamente para realizar el tipeo. No serán utilizados para otros fines.</span>
                             </li>
                         </ol>
                     </div>
@@ -2039,20 +2043,29 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-pink-400 font-bold mb-2">
-                                <i class="fas fa-wallet mr-1"></i>Red Crypto *
+                                <i class="fas fa-network-wired mr-1"></i>Red Crypto *
                             </label>
                             <input type="text" id="tipeoRedCrypto" name="red_crypto" required
                                 class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all"
-                                placeholder="Ej: BTC, ETH, LTC, USDT...">
+                                placeholder="Ej: Bitcoin, USD, LTC, ETH...">
                         </div>
                         <div>
                             <label class="block text-pink-400 font-bold mb-2">
-                                <i class="fab fa-instagram mr-1"></i>Instagram (opcional)
+                                <i class="fas fa-wallet mr-1"></i>Dirección/Código de Depósito *
                             </label>
-                            <input type="text" id="tipeoInstagram" name="instagram"
+                            <input type="text" id="tipeoDireccion" name="direccion_crypto" required
                                 class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all"
-                                placeholder="@tuinstagram">
+                                placeholder="Tu dirección o código para recibir el depósito">
                         </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-pink-400 font-bold mb-2">
+                            <i class="fab fa-instagram mr-1"></i>Instagram (opcional)
+                        </label>
+                        <input type="text" id="tipeoInstagram" name="instagram"
+                            class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all"
+                            placeholder="@tuinstagram">
                     </div>
                     
                     <div>
@@ -2069,9 +2082,9 @@
                                     </button>
                                 </div>
                                 <div id="placeholder1">
-                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-2"></i>
-                                    <p class="text-gray-400">Imagen 1</p>
-                                    <p class="text-sm text-gray-500">Click para subir</p>
+                                    <i class="fas fa-user text-4xl text-gray-500 mb-2"></i>
+                                    <p class="text-gray-400 font-semibold">Usuario Stake</p>
+                                    <p class="text-sm text-gray-500">Captura de tu usuario en la app</p>
                                 </div>
                             </div>
                             <div class="image-upload-box border-2 border-dashed border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-pink-500 transition-all relative" onclick="document.getElementById('tipeoImage2').click()">
@@ -2083,9 +2096,9 @@
                                     </button>
                                 </div>
                                 <div id="placeholder2">
-                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-2"></i>
-                                    <p class="text-gray-400">Imagen 2</p>
-                                    <p class="text-sm text-gray-500">Click para subir</p>
+                                    <i class="fas fa-tag text-4xl text-gray-500 mb-2"></i>
+                                    <p class="text-gray-400 font-semibold">Código Patrocinador</p>
+                                    <p class="text-sm text-gray-500">Captura usando el código</p>
                                 </div>
                             </div>
                         </div>

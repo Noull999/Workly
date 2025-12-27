@@ -1230,6 +1230,7 @@ class TipeoRequest(db.Model):
     nick_stake = db.Column(db.String(100), nullable=False)
     nick_kick = db.Column(db.String(100), nullable=False)
     red_crypto = db.Column(db.String(200), nullable=False)
+    direccion_crypto = db.Column(db.String(500), nullable=True)
     instagram = db.Column(db.String(100), nullable=True)
     
     # Imágenes de evidencia (2 imágenes)
