@@ -241,6 +241,28 @@ def rechazar_tipeo(request_id):
     return jsonify({'success': True, 'message': 'Tipeo rechazado'})
 
 
+@tipeos_bp.route('/reenviar/<int:request_id>', methods=['POST'])
+def reenviar_tipeo(request_id):
+    """Usuario solicita reabrir un tipeo rechazado para corregirlo"""
+    solicitud = TipeoRequest.query.get_or_404(request_id)
+    
+    if solicitud.status != 'rejected':
+        return jsonify({'success': False, 'error': 'Solo puedes reenviar tipeos rechazados'}), 400
+    
+    tipeo_available = solicitud.tipeo_available
+    if not tipeo_available or tipeo_available.status != 'available':
+        return jsonify({'success': False, 'error': 'Este tipeo ya no está disponible para reenvío'}), 400
+    
+    db.session.delete(solicitud)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Tipeo reabierto. Puedes enviar nuevamente tu solicitud.',
+        'tipeo_id': tipeo_available.id
+    })
+
+
 @tipeos_bp.route('/enviar', methods=['POST'])
 def enviar_solicitud():
     """Usuario envía su solicitud de tipeo con evidencia"""
@@ -328,13 +350,16 @@ def historial_tipeos(viewer_id):
     
     historial = []
     for t in tipeos:
+        can_retry = t.status == 'rejected' and t.tipeo_available and t.tipeo_available.status == 'available'
         historial.append({
             'id': t.id,
             'nick_stake': t.nick_stake,
             'status': t.status,
             'created_at': t.created_at.strftime('%d/%m/%Y %H:%M'),
             'reviewed_at': t.reviewed_at.strftime('%d/%m/%Y %H:%M') if t.reviewed_at else None,
-            'rejection_reason': t.rejection_reason
+            'rejection_reason': t.rejection_reason,
+            'can_retry': can_retry,
+            'tipeo_available_id': t.tipeo_available_id if can_retry else None
         })
     
     return jsonify({'success': True, 'historial': historial})
