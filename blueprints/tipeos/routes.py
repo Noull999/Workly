@@ -152,6 +152,63 @@ def dar_tipeo(viewer_id):
     })
 
 
+@tipeos_bp.route('/admin/dar-tipeo-especial', methods=['POST'])
+@login_required
+def dar_tipeo_especial():
+    """Admin otorga un tipeo especial a un usuario de Kick (no en wager race)"""
+    if not is_streamer_or_admin():
+        return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
+    
+    viewer_id = request.form.get('viewer_id')
+    motivo = request.form.get('motivo', 'otro')
+    
+    if not viewer_id:
+        return jsonify({'success': False, 'error': 'Selecciona un usuario'}), 400
+    
+    viewer = Viewer.query.get(int(viewer_id))
+    if not viewer:
+        return jsonify({'success': False, 'error': 'Usuario no encontrado'}), 404
+    
+    tipeo_existente = TipeoAvailable.query.filter_by(
+        viewer_id=viewer.id,
+        status='available'
+    ).first()
+    
+    if tipeo_existente:
+        return jsonify({'success': False, 'error': f'{viewer.username_kick} ya tiene un tipeo disponible'}), 400
+    
+    motivos_texto = {
+        'bonus_hunt': '🔥 Bonus Hunt',
+        'tipeo_azar': '🎲 Tipeo al Azar',
+        'sorteo_semanal': '🎁 Sorteo Semanal',
+        'otro': '✨ Tipeo Especial'
+    }
+    motivo_texto = motivos_texto.get(motivo, '✨ Tipeo Especial')
+    
+    nuevo_tipeo = TipeoAvailable(
+        viewer_id=viewer.id,
+        granted_by_id=current_user.id,
+        status='available'
+    )
+    db.session.add(nuevo_tipeo)
+    
+    notificacion = UserNotification(
+        viewer_id=viewer.id,
+        title=f'🎉 ¡Tienes un tipeo! - {motivo_texto}',
+        message=f'YANGLEE te ha otorgado un tipeo por {motivo_texto}. Ve a la sección "Mi Tipeo" para reclamarlo.',
+        notification_type='tipeo',
+        action_url='#tipeo-section'
+    )
+    db.session.add(notificacion)
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': f'Tipeo especial otorgado a {viewer.username_kick} ({motivo_texto})'
+    })
+
+
 @tipeos_bp.route('/admin/vincular', methods=['POST'])
 @login_required
 def vincular_stake_kick():
