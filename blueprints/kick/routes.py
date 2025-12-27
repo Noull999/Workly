@@ -924,12 +924,18 @@ def get_active_raffles():
     })
 
 
-@kick_bp.route('/api/verify-username/<username>')
+@kick_bp.route('/api/verify-username/<username>', methods=['GET', 'POST'])
 def verify_kick_username(username):
-    """API: Verificar si un username existe en Kick"""
+    """API: Verificar si un username existe en Kick y opcionalmente vincular con Stake"""
     from helpers.kick_api import get_channel_info
-    from models import Viewer
+    from models import Viewer, WagerRaceParticipant
     from app import db
+    
+    stake_username = None
+    if request.method == 'POST':
+        stake_username = request.form.get('stake_username', '').strip()
+    else:
+        stake_username = request.args.get('stake_username', '').strip()
     
     try:
         channel_info = get_channel_info(username)
@@ -945,24 +951,60 @@ def verify_kick_username(username):
             db.func.lower(Viewer.username_kick) == username.lower()
         ).first()
         
+        stake_verified = False
+        stake_rank = None
+        stake_wager = None
+        
+        if stake_username:
+            participant = WagerRaceParticipant.query.filter(
+                db.func.lower(WagerRaceParticipant.username) == stake_username.lower()
+            ).first()
+            
+            if participant:
+                stake_verified = True
+                stake_wager = participant.wagered
+                if stake_wager >= 10000:
+                    stake_rank = 'Diamond'
+                elif stake_wager >= 5000:
+                    stake_rank = 'Platinum'
+                elif stake_wager >= 1000:
+                    stake_rank = 'Gold'
+                elif stake_wager >= 100:
+                    stake_rank = 'Silver'
+                else:
+                    stake_rank = 'Bronze'
+        
         if not viewer:
             viewer = Viewer(
                 username_kick=channel_info.get('username', username),
+                stake_username=stake_username if stake_username else None,
+                stake_verified=stake_verified,
                 points=0,
                 watch_time=0
             )
             db.session.add(viewer)
-            db.session.commit()
+        else:
+            if stake_username:
+                viewer.stake_username = stake_username
+                viewer.stake_verified = stake_verified
+        
+        db.session.commit()
         
         return jsonify({
             'ok': True,
             'exists': True,
             'username': channel_info.get('username'),
             'display_name': channel_info.get('display_name', username),
-            'viewer_id': viewer.id
+            'viewer_id': viewer.id,
+            'stake_username': viewer.stake_username,
+            'stake_verified': stake_verified,
+            'stake_rank': stake_rank,
+            'stake_wager': stake_wager
         })
             
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'ok': True,
             'exists': False,

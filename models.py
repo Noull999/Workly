@@ -770,6 +770,8 @@ class Viewer(db.Model):
     """Viewers que participan en sistema de puntos SIN OAuth (solo username manual)"""
     id = db.Column(db.Integer, primary_key=True)
     username_kick = db.Column(db.String(100), unique=True, nullable=False)  # Username de Kick (ingresado manualmente)
+    stake_username = db.Column(db.String(100), nullable=True)  # Username de Stake (opcional, para vinculación)
+    stake_verified = db.Column(db.Boolean, default=False)  # Si el stake_username fue verificado contra wager race
     points = db.Column(db.Integer, default=0, nullable=False)  # Puntos acumulados
     watch_time = db.Column(db.Integer, default=0, nullable=False)  # Tiempo visto en minutos
     messages_sent = db.Column(db.Integer, default=0, nullable=False)  # Mensajes enviados (para futuro)

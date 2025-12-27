@@ -2282,23 +2282,46 @@
         <div class="modal-content">
             <h2 class="modal-title">🎮 BIENVENIDO</h2>
             <p class="text-center text-gray-300 mb-4">
-                Ingresa tu username de Kick para ganar puntos mientras ves el stream y participar en sorteos
+                Ingresa tus datos para ganar puntos, participar en sorteos y recibir tipeos
             </p>
-            <input 
-                type="text" 
-                id="usernameInput" 
-                class="modal-input" 
-                placeholder="Tu username de Kick"
-                maxlength="30"
-            />
+            <div class="mb-4">
+                <label class="block text-pink-400 text-sm font-bold mb-2">
+                    <i class="fab fa-kickstarter mr-1"></i> Username de Kick *
+                </label>
+                <input 
+                    type="text" 
+                    id="usernameInput" 
+                    class="modal-input" 
+                    placeholder="Tu username de Kick"
+                    maxlength="30"
+                />
+            </div>
+            <div class="mb-4">
+                <label class="block text-green-400 text-sm font-bold mb-2">
+                    <i class="fas fa-coins mr-1"></i> Username de Stake (opcional)
+                </label>
+                <input 
+                    type="text" 
+                    id="stakeUsernameInput" 
+                    class="modal-input" 
+                    placeholder="Tu username de Stake"
+                    maxlength="50"
+                    style="border-color: #22c55e;"
+                />
+                <p class="text-gray-500 text-xs mt-1">
+                    <i class="fas fa-info-circle"></i> Si participas en el Wager Race, ingresa tu nick de Stake para vinculación automática
+                </p>
+            </div>
             <div id="usernameError" class="hidden" style="color: #FF6600; text-align: center; margin-top: 10px; font-size: 0.9rem;">
                 <i class="fas fa-exclamation-triangle"></i> <span id="usernameErrorText"></span>
+            </div>
+            <div id="stakeValidation" class="hidden" style="text-align: center; margin-top: 10px; font-size: 0.9rem;">
             </div>
             <button id="saveUsernameBtn" class="modal-btn">
                 <i class="fas fa-save mr-2"></i> GUARDAR Y COMENZAR
             </button>
             <p class="text-center text-gray-500 text-sm mt-4">
-                Verificaremos que tu username exista en Kick
+                Verificaremos tu username de Kick y validaremos tu cuenta de Stake
             </p>
         </div>
     </div>
@@ -2911,6 +2934,9 @@
                 localStorage.removeItem('kick_username');
                 localStorage.removeItem('viewerId');
                 localStorage.removeItem('lastDailyVisit');
+                localStorage.removeItem('stake_username');
+                localStorage.removeItem('stake_verified');
+                localStorage.removeItem('stake_rank');
                 kickUsername = null;
                 
                 const navUserWidget = document.getElementById('navUserWidget');
@@ -2986,28 +3012,32 @@
             if (saveUsernameBtn) {
                 saveUsernameBtn.addEventListener('click', function() {
                     const username = usernameInput.value.trim();
+                    const stakeInput = document.getElementById('stakeUsernameInput');
+                    const stakeUsername = stakeInput ? stakeInput.value.trim() : '';
                     const errorDiv = document.getElementById('usernameError');
                     const errorText = document.getElementById('usernameErrorText');
+                    const stakeValidation = document.getElementById('stakeValidation');
                     
-                    // Ocultar error anterior
                     if (errorDiv) errorDiv.classList.add('hidden');
+                    if (stakeValidation) stakeValidation.classList.add('hidden');
                     
                     if (!username || username.length === 0) {
                         if (errorDiv && errorText) {
-                            errorText.textContent = 'Por favor ingresa un username';
+                            errorText.textContent = 'Por favor ingresa tu username de Kick';
                             errorDiv.classList.remove('hidden');
                         }
                         return;
                     }
                     
-                    // Mostrar estado de verificación
                     const originalHTML = saveUsernameBtn.innerHTML;
                     saveUsernameBtn.disabled = true;
                     saveUsernameBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> VERIFICANDO...';
                     
-                    // Verificar username con API
+                    const formData = new FormData();
+                    formData.append('stake_username', stakeUsername);
+                    
                     const xhr = new XMLHttpRequest();
-                    xhr.open('GET', '/kick/api/verify-username/' + encodeURIComponent(username), true);
+                    xhr.open('POST', '/kick/api/verify-username/' + encodeURIComponent(username), true);
                     
                     xhr.onload = function() {
                         saveUsernameBtn.disabled = false;
@@ -3022,22 +3052,42 @@
                                     if (data.viewer_id) {
                                         localStorage.setItem('viewerId', data.viewer_id);
                                     }
-                                    kickUsername = username;
-                                    usernameModal.classList.add('hidden');
-                                    if (pointsWidget) {
-                                        pointsWidget.classList.remove('hidden');
+                                    if (stakeUsername) {
+                                        localStorage.setItem('stake_username', stakeUsername);
+                                        localStorage.setItem('stake_verified', data.stake_verified ? 'true' : 'false');
+                                        if (data.stake_rank) {
+                                            localStorage.setItem('stake_rank', data.stake_rank);
+                                        }
                                     }
-                                    updateUsernameDisplay();
-                                    updateNavUserWidget();
-                                    updateLoginButtonVisibility();
-                                    updatePointsCounter();
-                                    updateWagerRank();
-                                    checkDailyVisit();
-                                    startAutoUpdates();
-                                    loadActiveRaffles();
-                                    setTimeout(checkTipeoDisponible, 1000);
+                                    
+                                    kickUsername = username;
+                                    
+                                    if (stakeValidation && stakeUsername) {
+                                        if (data.stake_verified) {
+                                            stakeValidation.innerHTML = '<i class="fas fa-check-circle text-green-400"></i> <span class="text-green-400">¡Cuenta de Stake verificada! Rango: ' + data.stake_rank + '</span>';
+                                            stakeValidation.classList.remove('hidden');
+                                        } else {
+                                            stakeValidation.innerHTML = '<i class="fas fa-info-circle text-yellow-400"></i> <span class="text-yellow-400">Usuario de Stake no encontrado en el Wager Race actual</span>';
+                                            stakeValidation.classList.remove('hidden');
+                                        }
+                                    }
+                                    
+                                    setTimeout(function() {
+                                        usernameModal.classList.add('hidden');
+                                        if (pointsWidget) {
+                                            pointsWidget.classList.remove('hidden');
+                                        }
+                                        updateUsernameDisplay();
+                                        updateNavUserWidget();
+                                        updateLoginButtonVisibility();
+                                        updatePointsCounter();
+                                        updateWagerRank();
+                                        checkDailyVisit();
+                                        startAutoUpdates();
+                                        loadActiveRaffles();
+                                        setTimeout(checkTipeoDisponible, 1000);
+                                    }, stakeUsername && data.stake_verified ? 1500 : 0);
                                 } else {
-                                    // Username no existe
                                     if (errorDiv && errorText) {
                                         errorText.textContent = 'Este username no existe en Kick. Verifica que esté escrito correctamente.';
                                         errorDiv.classList.remove('hidden');
@@ -3067,7 +3117,7 @@
                         }
                     };
                     
-                    xhr.send();
+                    xhr.send(formData);
                 });
             }
             
