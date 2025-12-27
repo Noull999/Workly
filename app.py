@@ -255,8 +255,8 @@ def dashboard():
             tipeo_solicitudes = []
             if current_user.email == 'yangprroo@gmail.com':
                 try:
-                    from models import TipeoSolicitud
-                    tipeo_solicitudes = TipeoSolicitud.query.filter_by(status='submitted').order_by(TipeoSolicitud.created_at.desc()).limit(10).all()
+                    from models import TipeoRequest
+                    tipeo_solicitudes = TipeoRequest.query.filter_by(status='submitted').order_by(TipeoRequest.created_at.desc()).limit(10).all()
                 except Exception as e:
                     print(f"Error al cargar solicitudes de tipeo: {e}")
             

@@ -1094,6 +1094,9 @@
                             <i class="fas fa-gem nav-gem-icon"></i>
                             <span id="navPoints">0</span>
                         </div>
+                        <button onclick="logoutKick()" class="ml-2 text-gray-400 hover:text-red-400 transition-colors" title="Cerrar Sesión">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
                     </div>
                     
                     <!-- Login Button (Shown when not logged in) -->
@@ -1129,6 +1132,9 @@
                             <i class="fas fa-gem nav-gem-icon"></i>
                             <span id="navPointsMobile">0</span>
                         </div>
+                        <button onclick="logoutKick()" class="ml-2 text-gray-400 hover:text-red-400 transition-colors" title="Cerrar Sesión">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
                     </div>
                     
                     <a href="#inicio" class="nav-link orbitron">Inicio</a>
@@ -2884,6 +2890,32 @@
             const usernameModal = document.getElementById('usernameModal');
             if (usernameModal) {
                 usernameModal.classList.add('hidden');
+            }
+        }
+        
+        function logoutKick() {
+            if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+                localStorage.removeItem('kick_username');
+                localStorage.removeItem('viewerId');
+                localStorage.removeItem('lastDailyVisit');
+                kickUsername = null;
+                
+                const navUserWidget = document.getElementById('navUserWidget');
+                const navUserWidgetMobile = document.getElementById('navUserWidgetMobile');
+                const pointsWidget = document.getElementById('pointsWidget');
+                const navLoginBtn = document.getElementById('navLoginBtn');
+                const navLoginBtnMobile = document.getElementById('navLoginBtnMobile');
+                
+                if (navUserWidget) navUserWidget.classList.add('hidden');
+                if (navUserWidgetMobile) navUserWidgetMobile.classList.add('hidden');
+                if (pointsWidget) pointsWidget.classList.add('hidden');
+                if (navLoginBtn) navLoginBtn.style.display = 'flex';
+                if (navLoginBtnMobile) navLoginBtnMobile.style.display = 'flex';
+                
+                document.querySelectorAll('.tipeo-nav-link').forEach(link => link.classList.add('hidden'));
+                document.getElementById('tipeoNotification')?.remove();
+                
+                location.reload();
             }
         }
         
