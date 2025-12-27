@@ -168,10 +168,23 @@ def desvincular_stake_kick(stake_username):
     if not is_streamer_or_admin():
         return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
     
+    desvinculado = False
+    
     link = StakeKickLink.query.filter_by(stake_username=stake_username).first()
     if link:
         link.viewer_id = None
         link.is_verified = False
+        desvinculado = True
+    
+    viewer_auto = Viewer.query.filter(
+        db.func.lower(Viewer.stake_username) == stake_username.lower()
+    ).first()
+    if viewer_auto:
+        viewer_auto.stake_username = None
+        viewer_auto.stake_verified = False
+        desvinculado = True
+    
+    if desvinculado:
         db.session.commit()
         return jsonify({'success': True, 'message': 'Desvinculado correctamente'})
     
