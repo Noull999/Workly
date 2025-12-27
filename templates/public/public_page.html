@@ -3039,6 +3039,9 @@
                     const xhr = new XMLHttpRequest();
                     xhr.open('POST', '/kick/api/verify-username/' + encodeURIComponent(username), true);
                     
+                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '{{ csrf_token() }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                    
                     xhr.onload = function() {
                         saveUsernameBtn.disabled = false;
                         saveUsernameBtn.innerHTML = originalHTML;
