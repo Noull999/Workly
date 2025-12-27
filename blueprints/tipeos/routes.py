@@ -38,6 +38,16 @@ def admin_usuarios():
         for rpu in periodo_activo.users:
             link = StakeKickLink.query.filter_by(stake_username=rpu.username).first()
             viewer = link.viewer if link and link.viewer_id else None
+            auto_vinculado = False
+            
+            if not viewer:
+                viewer_auto = Viewer.query.filter(
+                    db.func.lower(Viewer.stake_username) == rpu.username.lower(),
+                    Viewer.stake_verified == True
+                ).first()
+                if viewer_auto:
+                    viewer = viewer_auto
+                    auto_vinculado = True
             
             tipeo_disponible = False
             tipeo_pendiente = False
@@ -49,11 +59,14 @@ def admin_usuarios():
                     viewer_id=viewer.id, status='submitted'
                 ).first() is not None
             
+            vinculado = (link is not None and link.viewer_id is not None) or auto_vinculado
+            
             usuarios_wager.append({
                 'rpu': rpu,
                 'link': link,
                 'viewer': viewer,
-                'vinculado': link is not None and link.viewer_id is not None,
+                'vinculado': vinculado,
+                'auto_vinculado': auto_vinculado,
                 'tipeo_disponible': tipeo_disponible,
                 'tipeo_pendiente': tipeo_pendiente
             })

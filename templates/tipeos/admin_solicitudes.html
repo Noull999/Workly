@@ -56,6 +56,13 @@
                     </span>
                 </div>
                 <div class="card-body">
+                    {% if solicitud.viewer and solicitud.viewer.stake_verified %}
+                    <div class="alert alert-success py-2 mb-3">
+                        <i class="fas fa-magic me-1"></i>
+                        <strong>Stake Verificado Automáticamente</strong>
+                        <span class="badge bg-success ms-2">{{ solicitud.viewer.stake_username }}</span>
+                    </div>
+                    {% endif %}
                     <div class="row mb-3">
                         <div class="col-6">
                             <small class="text-muted">Nick Stake:</small>

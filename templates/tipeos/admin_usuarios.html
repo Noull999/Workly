@@ -137,6 +137,11 @@
                                     <span class="text-success">
                                         <i class="fas fa-check-circle me-1"></i>{{ item.viewer.username_kick }}
                                     </span>
+                                    {% if item.auto_vinculado %}
+                                    <span class="badge bg-success ms-1" title="Vinculado automáticamente al ingresar">
+                                        <i class="fas fa-magic"></i> Auto
+                                    </span>
+                                    {% endif %}
                                 {% else %}
                                     <span class="text-muted">Sin vincular</span>
                                 {% endif %}
@@ -148,6 +153,8 @@
                                     <span class="badge bg-warning">Solicitud Pendiente</span>
                                 {% elif not item.vinculado %}
                                     <span class="badge bg-secondary">Requiere Vinculación</span>
+                                {% elif item.auto_vinculado %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #00C851, #007E33);">✓ Verificado Auto</span>
                                 {% else %}
                                     <span class="badge bg-info">Listo</span>
                                 {% endif %}
