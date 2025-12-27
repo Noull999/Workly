@@ -252,6 +252,14 @@ def dashboard():
                     'unique_visitors': unique_visitors
                 }
             
+            tipeo_solicitudes = []
+            if current_user.email == 'yangprroo@gmail.com':
+                try:
+                    from models import TipeoSolicitud
+                    tipeo_solicitudes = TipeoSolicitud.query.filter_by(status='submitted').order_by(TipeoSolicitud.created_at.desc()).limit(10).all()
+                except Exception as e:
+                    print(f"Error al cargar solicitudes de tipeo: {e}")
+            
             # Estadísticas globales para admin_global
             global_stats = None
             if current_user.is_admin_global():
@@ -401,7 +409,7 @@ def dashboard():
             'booking': f'/empresa/{company.code if company else "demo"}/reservar'
         }
         
-        return render_template('dashboard.html', modules=modules_active, stats=stats, company=company, public_urls=public_urls)
+        return render_template('dashboard.html', modules=modules_active, stats=stats, company=company, public_urls=public_urls, tipeo_solicitudes=tipeo_solicitudes if 'tipeo_solicitudes' in dir() else [])
     
     except Exception as e:
         # En caso de error, mostrar mensaje de error sin redirección para evitar bucles

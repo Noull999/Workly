@@ -328,6 +328,53 @@
         {% endif %}
 
     </div>
+    
+    {% if current_user.email == 'yangprroo@gmail.com' and tipeo_solicitudes and tipeo_solicitudes|length > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow" style="border-left: 4px solid #FF1493;">
+                <div class="card-header py-3 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #FF1493, #FF69B4);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-inbox me-2"></i>Solicitudes de Tipeo Pendientes ({{ tipeo_solicitudes|length }})
+                    </h6>
+                    <a href="{{ url_for('tipeos.admin_solicitudes') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-external-link-alt me-1"></i>Ver Todas
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nick Stake</th>
+                                    <th>Nick Kick</th>
+                                    <th>Red Crypto</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sol in tipeo_solicitudes %}
+                                <tr>
+                                    <td><strong>{{ sol.nick_stake }}</strong></td>
+                                    <td>{{ sol.nick_kick }}</td>
+                                    <td><code>{{ sol.red_crypto[:30] }}...</code></td>
+                                    <td>{{ sol.created_at.strftime('%d/%m %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('tipeos.admin_solicitudes') }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Gráfico de Ventas -->
     {% if (current_user.is_admin_global() and current_user.admin_pref_pos) or (not current_user.is_admin_global() and company.module_pos) %}
