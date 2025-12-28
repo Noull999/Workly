@@ -31,8 +31,13 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_PERMANENT'] = True  # Sesiones permanentes para OAuth
 app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutos
 
-# Configure the database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///inventory.db")
+# Configure the database - PostgreSQL required
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    logging.error("DATABASE_URL not set! Database operations will fail.")
+    raise RuntimeError("DATABASE_URL environment variable must be set")
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+logging.info(f"Database configured: PostgreSQL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
