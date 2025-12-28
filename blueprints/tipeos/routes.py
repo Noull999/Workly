@@ -556,3 +556,44 @@ def admin_stats():
         'solicitudes_completadas': solicitudes_completadas,
         'solicitudes_rechazadas': solicitudes_rechazadas
     })
+
+
+@tipeos_bp.route('/admin/vincular-retroactivo', methods=['POST'])
+@login_required
+def vincular_retroactivo():
+    """Vincular retroactivamente las cuentas de Stake de tipeos ya aprobados"""
+    if not is_streamer_or_admin():
+        return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
+    
+    solicitudes_completadas = TipeoRequest.query.filter_by(status='completed').all()
+    
+    vinculados = 0
+    ya_vinculados = 0
+    sin_stake = 0
+    
+    for solicitud in solicitudes_completadas:
+        if not solicitud.nick_stake:
+            sin_stake += 1
+            continue
+        
+        viewer = solicitud.viewer
+        if not viewer:
+            continue
+        
+        if viewer.stake_username and viewer.stake_verified:
+            ya_vinculados += 1
+            continue
+        
+        viewer.stake_username = solicitud.nick_stake
+        viewer.stake_verified = True
+        vinculados += 1
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': f'Proceso completado: {vinculados} vinculados, {ya_vinculados} ya estaban vinculados, {sin_stake} sin nick_stake',
+        'vinculados': vinculados,
+        'ya_vinculados': ya_vinculados,
+        'sin_stake': sin_stake
+    })
