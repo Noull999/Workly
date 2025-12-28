@@ -296,7 +296,7 @@ def admin_solicitudes():
 @tipeos_bp.route('/admin/aprobar/<int:request_id>', methods=['POST'])
 @login_required
 def aprobar_tipeo(request_id):
-    """Admin aprueba una solicitud de tipeo"""
+    """Admin aprueba una solicitud de tipeo y vincula cuentas automáticamente"""
     if not is_streamer_or_admin():
         return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
     
@@ -310,17 +310,23 @@ def aprobar_tipeo(request_id):
     if tipeo_available:
         tipeo_available.status = 'completed'
     
+    # VINCULAR AUTOMÁTICAMENTE las cuentas al aprobar
+    viewer = solicitud.viewer
+    if viewer and solicitud.nick_stake:
+        viewer.stake_username = solicitud.nick_stake
+        viewer.stake_verified = True
+    
     notificacion = UserNotification(
         viewer_id=solicitud.viewer_id,
         title='✅ ¡Tu tipeo fue realizado!',
-        message='Tu solicitud de tipeo ha sido aprobada y el tipeo fue realizado correctamente.',
+        message=f'Tu solicitud de tipeo ha sido aprobada. Tu cuenta de Stake ({solicitud.nick_stake}) ha sido vinculada automáticamente.',
         notification_type='success'
     )
     db.session.add(notificacion)
     
     db.session.commit()
     
-    return jsonify({'success': True, 'message': 'Tipeo aprobado correctamente'})
+    return jsonify({'success': True, 'message': 'Tipeo aprobado y cuentas vinculadas'})
 
 
 @tipeos_bp.route('/admin/rechazar/<int:request_id>', methods=['POST'])
