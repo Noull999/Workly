@@ -395,12 +395,13 @@
                     <div class="row g-3 align-items-end">
                         <div class="col-md-5">
                             <label class="form-label">Usuario de Kick</label>
-                            <select class="form-select" id="tipeoEspecialViewer">
-                                <option value="">-- Seleccionar Usuario --</option>
+                            <input type="text" class="form-control mb-2" id="tipeoEspecialSearch" placeholder="🔍 Buscar usuario..." oninput="filtrarViewersKick()">
+                            <select class="form-select" id="tipeoEspecialViewer" size="5" style="max-height: 180px; overflow-y: auto;">
                                 {% for v in viewers_kick %}
-                                <option value="{{ v.id }}" data-username="{{ v.username_kick }}">{{ v.username_kick }} ({{ v.points }} pts)</option>
+                                <option value="{{ v.id }}" data-username="{{ v.username_kick|lower }}">{{ v.username_kick }} ({{ v.points }} pts)</option>
                                 {% endfor %}
                             </select>
+                            <small class="text-muted mt-1 d-block"><span id="viewersCount">{{ viewers_kick|length }}</span> usuarios</small>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Motivo del Tipeo</label>
@@ -1527,8 +1528,28 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 {% endif %}
 
-// Función para dar tipeo especial
+// Funciones para tipeos especiales
 {% if current_user.email == 'yangprroo@gmail.com' %}
+function filtrarViewersKick() {
+    const searchInput = document.getElementById('tipeoEspecialSearch');
+    const select = document.getElementById('tipeoEspecialViewer');
+    const countSpan = document.getElementById('viewersCount');
+    const filter = searchInput.value.toLowerCase();
+    const options = select.options;
+    let visibleCount = 0;
+    
+    for (let i = 0; i < options.length; i++) {
+        const username = options[i].getAttribute('data-username') || '';
+        if (username.includes(filter)) {
+            options[i].style.display = '';
+            visibleCount++;
+        } else {
+            options[i].style.display = 'none';
+        }
+    }
+    countSpan.textContent = visibleCount;
+}
+
 function darTipeoEspecial() {
     const viewerSelect = document.getElementById('tipeoEspecialViewer');
     const viewerId = viewerSelect.value;
@@ -1542,7 +1563,8 @@ function darTipeoEspecial() {
         return;
     }
     
-    const username = viewerSelect.options[viewerSelect.selectedIndex].dataset.username;
+    const selectedOption = viewerSelect.options[viewerSelect.selectedIndex];
+    const username = selectedOption.textContent.split(' (')[0];
     
     if (!confirm('¿Dar tipeo especial a ' + username + '?')) return;
     
