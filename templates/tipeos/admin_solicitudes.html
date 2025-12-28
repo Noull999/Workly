@@ -53,12 +53,23 @@
                     <span>
                         <i class="fas fa-user me-2"></i>{{ solicitud.viewer.kick_username if solicitud.viewer else 'Usuario' }}
                     </span>
-                    <span class="badge bg-{% if solicitud.status == 'submitted' %}warning{% elif solicitud.status == 'completed' %}success{% elif solicitud.status == 'rejected' %}danger{% else %}secondary{% endif %}">
-                        {% if solicitud.status == 'submitted' %}Pendiente
-                        {% elif solicitud.status == 'completed' %}Completado
-                        {% elif solicitud.status == 'rejected' %}Rechazado
-                        {% else %}{{ solicitud.status }}{% endif %}
-                    </span>
+                    <div class="d-flex gap-2 align-items-center">
+                        {% if solicitud.tipo_solicitud == 'cuenta_nueva' %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-user-plus me-1"></i>Cuenta Nueva
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-hand-holding-usd me-1"></i>Normal
+                        </span>
+                        {% endif %}
+                        <span class="badge bg-{% if solicitud.status == 'submitted' %}warning{% elif solicitud.status == 'completed' %}success{% elif solicitud.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                            {% if solicitud.status == 'submitted' %}Pendiente
+                            {% elif solicitud.status == 'completed' %}Completado
+                            {% elif solicitud.status == 'rejected' %}Rechazado
+                            {% else %}{{ solicitud.status }}{% endif %}
+                        </span>
+                    </div>
                 </div>
                 <div class="card-body">
                     {% if solicitud.viewer and solicitud.viewer.stake_verified %}
@@ -113,6 +124,13 @@
                     <div class="alert alert-danger mt-3 mb-0 small">
                         <i class="fas fa-times-circle me-1"></i>
                         <strong>Motivo:</strong> {{ solicitud.rejection_reason }}
+                        {% if solicitud.rechazo_definitivo %}
+                        <div class="mt-2">
+                            <span class="badge bg-dark">
+                                <i class="fas fa-ban me-1"></i>Rechazo Definitivo
+                            </span>
+                        </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                     
@@ -163,6 +181,17 @@
                 <div class="mb-3">
                     <label class="form-label">Motivo del rechazo:</label>
                     <textarea class="form-control" id="motivoRechazo" rows="3" placeholder="Ingresa el motivo del rechazo..."></textarea>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="rechazoDefinitivo">
+                    <label class="form-check-label text-danger" for="rechazoDefinitivo">
+                        <i class="fas fa-ban me-1"></i><strong>Rechazo Definitivo</strong> (el usuario NO podrá reenviar)
+                    </label>
+                </div>
+                <div class="alert alert-warning small py-2">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>Rechazo normal:</strong> El usuario puede corregir y reenviar su solicitud.<br>
+                    <strong>Rechazo definitivo:</strong> El usuario NO podrá enviar otra solicitud de este tipo.
                 </div>
             </div>
             <div class="modal-footer">
@@ -266,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             selectedRequestId = this.dataset.id;
             document.getElementById('motivoRechazo').value = '';
+            document.getElementById('rechazoDefinitivo').checked = false;
             rechazarModal.show();
         });
     });
@@ -279,11 +309,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        const rechazoDefinitivo = document.getElementById('rechazoDefinitivo').checked;
+        
+        if (rechazoDefinitivo && !confirm('¿Estás seguro? El usuario NO podrá reenviar su solicitud.')) {
+            return;
+        }
+        
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Procesando...';
         
         const formData = new FormData();
         formData.append('motivo', motivo);
+        formData.append('rechazo_definitivo', rechazoDefinitivo ? '1' : '0');
         
         fetch(`/tipeos/admin/rechazar/${selectedRequestId}`, {
             method: 'POST',

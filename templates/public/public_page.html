@@ -2147,6 +2147,159 @@
         </div>
     </section>
 
+    <!-- TIPEO CUENTAS NUEVAS Section - Para nuevos usuarios de Stake -->
+    <section id="tipeo-nuevos" class="page-section py-20 px-4" style="background: linear-gradient(180deg, rgba(0,255,127,0.05), transparent, rgba(0,255,127,0.05));" data-animate="fade">
+        <div class="container mx-auto max-w-4xl">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl sm:text-5xl font-bold orbitron mb-4" style="background: linear-gradient(135deg, #00FF7F, #32CD32); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    <i class="fas fa-user-plus" style="color: #00FF7F;"></i> TIPEO CUENTA NUEVA
+                </h2>
+                <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+                    ¿Eres nuevo en Stake y usaste el código <span class="text-green-400 font-bold">YANGLEE</span>? ¡Solicita tu tipeo de bienvenida!
+                </p>
+            </div>
+            
+            <div class="bg-gray-900/80 rounded-3xl p-6 sm:p-8 border-2 border-green-500/30 shadow-2xl shadow-green-500/10">
+                <div class="bg-green-500/20 border border-green-500 rounded-xl p-4 mb-6 text-center">
+                    <p class="text-green-400 font-bold">
+                        <i class="fas fa-info-circle mr-2"></i>Este formulario es solo para usuarios NUEVOS en Stake que usaron el código de patrocinador YANGLEE
+                    </p>
+                </div>
+                
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold text-green-400 mb-4 orbitron">
+                        <i class="fas fa-list-ol mr-2"></i>Requisitos
+                    </h3>
+                    <div class="bg-black/50 rounded-xl p-6 border border-gray-700">
+                        <ul class="space-y-3 text-gray-300">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                                <span>Tener una cuenta <strong class="text-green-400">NUEVA</strong> en Stake (nivel bajo)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                                <span>Haber usado el código de patrocinador <strong class="text-green-400">YANGLEE</strong> al registrarte</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                                <span>Tener cuenta de Kick vinculada (iniciar sesión con Kick)</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                {% if viewer %}
+                <form id="tipeoNuevosForm" class="space-y-6">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="tipo_solicitud" value="cuenta_nueva">
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-green-400 font-bold mb-2">
+                                <i class="fas fa-user mr-1"></i>Nick Stake *
+                            </label>
+                            <input type="text" id="nuevosNickStake" name="nick_stake" required
+                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-green-500 focus:outline-none transition-all"
+                                placeholder="Tu username de Stake">
+                        </div>
+                        <div>
+                            <label class="block text-green-400 font-bold mb-2">
+                                <i class="fab fa-kickstarter mr-1"></i>Nick Kick *
+                            </label>
+                            <input type="text" id="nuevosNickKick" name="nick_kick" required readonly
+                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white"
+                                value="{{ viewer.username_kick }}">
+                        </div>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-green-400 font-bold mb-2">
+                                <i class="fas fa-network-wired mr-1"></i>Red Crypto
+                            </label>
+                            <input type="hidden" name="red_crypto" value="TRX">
+                            <div class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white">
+                                <i class="fab fa-bitcoin text-orange-400 mr-2"></i>TRX (Tron)
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-green-400 font-bold mb-2">
+                                <i class="fas fa-wallet mr-1"></i>Dirección TRX *
+                            </label>
+                            <input type="text" id="nuevosDireccion" name="direccion_crypto" required
+                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-green-500 focus:outline-none transition-all"
+                                placeholder="Tu dirección TRX para recibir el tipeo">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-green-400 font-bold mb-2">
+                            <i class="fab fa-instagram mr-1"></i>Instagram (opcional)
+                        </label>
+                        <input type="text" id="nuevosInstagram" name="instagram"
+                            class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-green-500 focus:outline-none transition-all"
+                            placeholder="@tuinstagram">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-green-400 font-bold mb-4">
+                            <i class="fas fa-images mr-1"></i>Imágenes de Evidencia *
+                        </label>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="image-upload-box border-2 border-dashed border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-green-500 transition-all relative" onclick="document.getElementById('nuevosImage1').click()">
+                                <input type="file" id="nuevosImage1" name="image1" accept="image/*" required class="hidden" onchange="previewImage(this, 'nuevosPreview1')">
+                                <div id="nuevosPreview1Container" class="hidden">
+                                    <img id="nuevosPreview1" src="" alt="Preview" class="mx-auto max-h-40 rounded-lg mb-2">
+                                    <button type="button" onclick="event.stopPropagation(); clearImage('nuevosImage1', 'nuevosPreview1')" class="text-red-400 text-sm hover:text-red-300">
+                                        <i class="fas fa-times mr-1"></i>Quitar
+                                    </button>
+                                </div>
+                                <div id="nuevosPlaceholder1">
+                                    <i class="fas fa-user-circle text-4xl text-gray-500 mb-2"></i>
+                                    <p class="text-green-400 font-semibold">Usuario con Nivel</p>
+                                    <p class="text-sm text-gray-500">Captura de tu usuario mostrando tu nivel</p>
+                                </div>
+                            </div>
+                            <div class="image-upload-box border-2 border-dashed border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-green-500 transition-all relative" onclick="document.getElementById('nuevosImage2').click()">
+                                <input type="file" id="nuevosImage2" name="image2" accept="image/*" required class="hidden" onchange="previewImage(this, 'nuevosPreview2')">
+                                <div id="nuevosPreview2Container" class="hidden">
+                                    <img id="nuevosPreview2" src="" alt="Preview" class="mx-auto max-h-40 rounded-lg mb-2">
+                                    <button type="button" onclick="event.stopPropagation(); clearImage('nuevosImage2', 'nuevosPreview2')" class="text-red-400 text-sm hover:text-red-300">
+                                        <i class="fas fa-times mr-1"></i>Quitar
+                                    </button>
+                                </div>
+                                <div id="nuevosPlaceholder2">
+                                    <i class="fas fa-code text-4xl text-gray-500 mb-2"></i>
+                                    <p class="text-green-400 font-semibold">Código Patrocinador</p>
+                                    <p class="text-sm text-gray-500">Captura mostrando código YANGLEE usado</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center pt-4">
+                        <button type="submit" id="nuevosSubmitBtn" class="px-12 py-4 text-xl font-bold orbitron rounded-full transition-all transform hover:scale-105 shadow-lg shadow-green-500/30" style="background: linear-gradient(135deg, #00FF7F, #32CD32); color: white;">
+                            <i class="fas fa-paper-plane mr-2"></i>Enviar Solicitud
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="bg-yellow-500/20 border border-yellow-500 rounded-xl p-6 mb-6">
+                        <i class="fab fa-kickstarter text-5xl text-yellow-400 mb-4"></i>
+                        <p class="text-yellow-400 font-bold text-lg mb-2">Inicia sesión con Kick para solicitar tu tipeo</p>
+                        <p class="text-gray-400">Necesitas vincular tu cuenta de Kick para enviar la solicitud</p>
+                    </div>
+                    <a href="{{ url_for('kick.login') }}" class="inline-block px-8 py-3 rounded-full font-bold transition-all transform hover:scale-105" style="background: linear-gradient(135deg, #53FC18, #00FF00); color: black;">
+                        <i class="fab fa-kickstarter mr-2"></i>Iniciar con Kick
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div id="nuevosResult" class="mt-6 hidden"></div>
+        </div>
+    </section>
 
     <!-- TIPEO Section (Only visible when user has tipeo available) -->
     <section id="tipeo" class="page-section py-20 px-4 hidden" style="background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));" data-animate="fade">
@@ -4175,6 +4328,58 @@
             
             setTimeout(checkTipeoDisponible, 2000);
             setTimeout(loadTipeoHistorial, 2500);
+            
+            // Handler para formulario de cuentas nuevas
+            const tipeoNuevosForm = document.getElementById('tipeoNuevosForm');
+            if (tipeoNuevosForm) {
+                tipeoNuevosForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const submitBtn = document.getElementById('nuevosSubmitBtn');
+                    const resultDiv = document.getElementById('nuevosResult');
+                    const originalHTML = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
+                    
+                    const formData = new FormData(tipeoNuevosForm);
+                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+                    
+                    fetch('/tipeos/enviar-cuenta-nueva', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            tipeoNuevosForm.innerHTML = `
+                                <div class="text-center py-12">
+                                    <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
+                                    <h3 class="text-2xl font-bold text-white mb-2">¡Solicitud Enviada!</h3>
+                                    <p class="text-gray-400">${data.message}</p>
+                                    <p class="text-gray-500 text-sm mt-4">Revisaremos que tu cuenta sea nueva y usaste el código correcto.</p>
+                                </div>
+                            `;
+                        } else {
+                            resultDiv.className = 'mt-6 bg-red-500/20 border border-red-500 rounded-xl p-4 text-center';
+                            resultDiv.innerHTML = '<i class="fas fa-times-circle text-red-400 mr-2"></i>' + (data.error || 'Error al enviar solicitud');
+                            resultDiv.classList.remove('hidden');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalHTML;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        resultDiv.className = 'mt-6 bg-red-500/20 border border-red-500 rounded-xl p-4 text-center';
+                        resultDiv.innerHTML = '<i class="fas fa-times-circle text-red-400 mr-2"></i>Error de conexión';
+                        resultDiv.classList.remove('hidden');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHTML;
+                    });
+                });
+            }
         });
     </script>
 </body>

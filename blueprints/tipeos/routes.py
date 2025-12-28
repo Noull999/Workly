@@ -338,28 +338,41 @@ def rechazar_tipeo(request_id):
     
     solicitud = TipeoRequest.query.get_or_404(request_id)
     motivo = request.form.get('motivo', 'Sin motivo especificado')
+    rechazo_definitivo = request.form.get('rechazo_definitivo', '0') == '1'
     
     solicitud.status = 'rejected'
     solicitud.rejection_reason = motivo
+    solicitud.rechazo_definitivo = rechazo_definitivo
     solicitud.reviewed_by_id = current_user.id
     solicitud.reviewed_at = datetime.utcnow()
     
     tipeo_available = solicitud.tipeo_available
     if tipeo_available:
-        tipeo_available.status = 'available'
-        tipeo_available.claimed_at = None
+        if rechazo_definitivo:
+            tipeo_available.status = 'expired'
+        else:
+            tipeo_available.status = 'available'
+            tipeo_available.claimed_at = None
     
-    notificacion = UserNotification(
-        viewer_id=solicitud.viewer_id,
-        title='❌ Solicitud de tipeo rechazada',
-        message=f'Tu solicitud fue rechazada. Motivo: {motivo}. Puedes intentarlo nuevamente.',
-        notification_type='warning'
-    )
+    if rechazo_definitivo:
+        notificacion = UserNotification(
+            viewer_id=solicitud.viewer_id,
+            title='❌ Solicitud de tipeo rechazada definitivamente',
+            message=f'Tu solicitud fue rechazada. Motivo: {motivo}. Esta decisión es definitiva.',
+            notification_type='error'
+        )
+    else:
+        notificacion = UserNotification(
+            viewer_id=solicitud.viewer_id,
+            title='❌ Solicitud de tipeo rechazada',
+            message=f'Tu solicitud fue rechazada. Motivo: {motivo}. Puedes intentarlo nuevamente.',
+            notification_type='warning'
+        )
     db.session.add(notificacion)
     
     db.session.commit()
     
-    return jsonify({'success': True, 'message': 'Tipeo rechazado'})
+    return jsonify({'success': True, 'message': 'Tipeo rechazado' + (' definitivamente' if rechazo_definitivo else '')})
 
 
 @tipeos_bp.route('/reenviar/<int:request_id>', methods=['POST'])
@@ -369,6 +382,10 @@ def reenviar_tipeo(request_id):
     
     if solicitud.status != 'rejected':
         return jsonify({'success': False, 'error': 'Solo puedes reenviar tipeos rechazados'}), 400
+    
+    # Bloquear si es rechazo definitivo
+    if solicitud.rechazo_definitivo:
+        return jsonify({'success': False, 'error': 'Esta solicitud fue rechazada definitivamente y no puede reenviarse'}), 400
     
     tipeo_available = solicitud.tipeo_available
     if not tipeo_available or tipeo_available.status != 'available':
@@ -478,6 +495,120 @@ def enviar_solicitud():
     })
 
 
+@tipeos_bp.route('/enviar-cuenta-nueva', methods=['POST'])
+def enviar_solicitud_cuenta_nueva():
+    """Usuario nuevo de Stake envía su solicitud de tipeo"""
+    from flask import session
+    
+    viewer_id = session.get('viewer_id')
+    if not viewer_id:
+        return jsonify({'success': False, 'error': 'Debes iniciar sesión con Kick'}), 401
+    
+    viewer = Viewer.query.get(viewer_id)
+    if not viewer:
+        return jsonify({'success': False, 'error': 'Usuario no encontrado'}), 404
+    
+    # Verificar si ya tiene una solicitud de cuenta nueva pendiente
+    solicitud_existente = TipeoRequest.query.join(TipeoAvailable).filter(
+        TipeoAvailable.viewer_id == viewer_id,
+        TipeoRequest.tipo_solicitud == 'cuenta_nueva',
+        TipeoRequest.status.in_(['submitted'])
+    ).first()
+    
+    if solicitud_existente:
+        return jsonify({'success': False, 'error': 'Ya tienes una solicitud pendiente de revisión'}), 400
+    
+    # Verificar si fue rechazado definitivamente
+    rechazado_definitivo = TipeoRequest.query.join(TipeoAvailable).filter(
+        TipeoAvailable.viewer_id == viewer_id,
+        TipeoRequest.tipo_solicitud == 'cuenta_nueva',
+        TipeoRequest.rechazo_definitivo == True
+    ).first()
+    
+    if rechazado_definitivo:
+        return jsonify({'success': False, 'error': 'Tu solicitud fue rechazada definitivamente. No puedes enviar otra.'}), 400
+    
+    nick_stake = request.form.get('nick_stake', '').strip()
+    nick_kick = request.form.get('nick_kick', '').strip()
+    red_crypto = request.form.get('red_crypto', 'TRX').strip()
+    direccion_crypto = request.form.get('direccion_crypto', '').strip()
+    instagram = request.form.get('instagram', '').strip()
+    
+    if not nick_stake or not nick_kick or not direccion_crypto:
+        return jsonify({'success': False, 'error': 'Completa todos los campos obligatorios'}), 400
+    
+    if 'image1' not in request.files or 'image2' not in request.files:
+        return jsonify({'success': False, 'error': 'Debes subir las 2 imágenes de evidencia'}), 400
+    
+    image1 = request.files['image1']
+    image2 = request.files['image2']
+    
+    if image1.filename == '' or image2.filename == '':
+        return jsonify({'success': False, 'error': 'Debes seleccionar las 2 imágenes'}), 400
+    
+    if not allowed_file(image1.filename) or not allowed_file(image2.filename):
+        return jsonify({'success': False, 'error': 'Formato de imagen no válido. Usa: PNG, JPG, JPEG, GIF o WEBP'}), 400
+    
+    # Crear TipeoAvailable automático para cuentas nuevas
+    tipeo = TipeoAvailable(
+        viewer_id=viewer_id,
+        granted_by_id=1,  # Sistema automático
+        status='claimed'
+    )
+    db.session.add(tipeo)
+    db.session.flush()  # Para obtener el ID
+    
+    unique_id = str(uuid.uuid4())[:8]
+    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    
+    safe_filename1 = secure_filename(image1.filename)
+    ext1 = safe_filename1.rsplit('.', 1)[1].lower() if '.' in safe_filename1 else 'jpg'
+    
+    safe_filename2 = secure_filename(image2.filename)
+    ext2 = safe_filename2.rsplit('.', 1)[1].lower() if '.' in safe_filename2 else 'jpg'
+    
+    image1_data = image1.read()
+    image2_data = image2.read()
+    
+    ensure_upload_folder()
+    local_filename1 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_1.{ext1}"
+    local_filename2 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_2.{ext2}"
+    local_path1 = os.path.join(UPLOAD_FOLDER, local_filename1)
+    local_path2 = os.path.join(UPLOAD_FOLDER, local_filename2)
+    
+    try:
+        with open(local_path1, 'wb') as f:
+            f.write(image1_data)
+        with open(local_path2, 'wb') as f:
+            f.write(image2_data)
+        image_url_1 = f'/tipeos/imagen/{local_filename1}'
+        image_url_2 = f'/tipeos/imagen/{local_filename2}'
+    except Exception as e:
+        print(f"Error guardando imágenes: {e}")
+        return jsonify({'success': False, 'error': 'Error al guardar imágenes'}), 500
+    
+    solicitud = TipeoRequest(
+        tipeo_available_id=tipeo.id,
+        viewer_id=viewer_id,
+        nick_stake=nick_stake,
+        nick_kick=nick_kick,
+        red_crypto=red_crypto,
+        direccion_crypto=direccion_crypto,
+        instagram=instagram if instagram else None,
+        image_url_1=image_url_1,
+        image_url_2=image_url_2,
+        status='submitted',
+        tipo_solicitud='cuenta_nueva'
+    )
+    db.session.add(solicitud)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': '¡Solicitud enviada! Revisaremos que tu cuenta sea nueva.'
+    })
+
+
 @tipeos_bp.route('/historial/<int:viewer_id>')
 def historial_tipeos(viewer_id):
     """Obtener historial de tipeos de un viewer"""
@@ -485,7 +616,11 @@ def historial_tipeos(viewer_id):
     
     historial = []
     for t in tipeos:
-        can_retry = t.status == 'rejected' and t.tipeo_available and t.tipeo_available.status == 'available'
+        # No permitir reenviar si es rechazo definitivo
+        can_retry = (t.status == 'rejected' and 
+                    not t.rechazo_definitivo and 
+                    t.tipeo_available and 
+                    t.tipeo_available.status == 'available')
         historial.append({
             'id': t.id,
             'nick_stake': t.nick_stake,
@@ -493,6 +628,7 @@ def historial_tipeos(viewer_id):
             'created_at': t.created_at.strftime('%d/%m/%Y %H:%M'),
             'reviewed_at': t.reviewed_at.strftime('%d/%m/%Y %H:%M') if t.reviewed_at else None,
             'rejection_reason': t.rejection_reason,
+            'rechazo_definitivo': t.rechazo_definitivo,
             'can_retry': can_retry,
             'tipeo_available_id': t.tipeo_available_id if can_retry else None
         })
