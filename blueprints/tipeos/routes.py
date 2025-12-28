@@ -6,21 +6,12 @@ from app import db
 from models import TipeoAvailable, TipeoRequest, UserNotification, Viewer, User, RankPeriod, RankPeriodUser, StakeKickLink
 from datetime import datetime
 from blueprints.public.routes import get_wager_race_data
-from replit.object_storage import Client as ObjectStorageClient
 import os
 import uuid
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 UPLOAD_FOLDER = 'static/uploads/tipeos'
 STREAMER_EMAIL = 'yangprroo@gmail.com'
-
-def get_storage_client():
-    """Obtiene el cliente de Object Storage"""
-    try:
-        return ObjectStorageClient()
-    except Exception as e:
-        print(f"Error al conectar con Object Storage: {e}")
-        return None
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -445,28 +436,22 @@ def enviar_solicitud():
     image1_data = image1.read()
     image2_data = image2.read()
     
-    storage = get_storage_client()
-    if storage:
-        try:
-            storage.upload_from_bytes(object_key1, image1_data)
-            storage.upload_from_bytes(object_key2, image2_data)
-            image_url_1 = f'/tipeos/imagen/{object_key1}'
-            image_url_2 = f'/tipeos/imagen/{object_key2}'
-        except Exception as e:
-            print(f"Error subiendo a Object Storage: {e}")
-            return jsonify({'success': False, 'error': 'Error al subir imágenes'}), 500
-    else:
-        ensure_upload_folder()
-        local_filename1 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_1.{ext1}"
-        local_filename2 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_2.{ext2}"
-        local_path1 = os.path.join(UPLOAD_FOLDER, local_filename1)
-        local_path2 = os.path.join(UPLOAD_FOLDER, local_filename2)
+    ensure_upload_folder()
+    local_filename1 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_1.{ext1}"
+    local_filename2 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_2.{ext2}"
+    local_path1 = os.path.join(UPLOAD_FOLDER, local_filename1)
+    local_path2 = os.path.join(UPLOAD_FOLDER, local_filename2)
+    
+    try:
         with open(local_path1, 'wb') as f:
             f.write(image1_data)
         with open(local_path2, 'wb') as f:
             f.write(image2_data)
-        image_url_1 = f'/tipeos/imagen/{object_key1}'
-        image_url_2 = f'/tipeos/imagen/{object_key2}'
+        image_url_1 = f'/tipeos/imagen/{local_filename1}'
+        image_url_2 = f'/tipeos/imagen/{local_filename2}'
+    except Exception as e:
+        print(f"Error guardando imágenes: {e}")
+        return jsonify({'success': False, 'error': 'Error al guardar imágenes'}), 500
     
     solicitud = TipeoRequest(
         tipeo_available_id=tipeo.id,
@@ -630,30 +615,16 @@ def vincular_retroactivo():
 
 @tipeos_bp.route('/imagen/<path:filename>')
 def servir_imagen(filename):
-    """Sirve imágenes desde Object Storage o almacenamiento local"""
-    from flask import Response, send_from_directory
-    
-    ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'jpg'
-    content_types = {
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'webp': 'image/webp'
-    }
-    content_type = content_types.get(ext, 'image/jpeg')
-    
-    storage = get_storage_client()
-    if storage:
-        try:
-            image_data = storage.download_as_bytes(filename)
-            return Response(image_data, mimetype=content_type)
-        except Exception as e:
-            print(f"Object Storage error, intentando local: {e}")
+    """Sirve imágenes de tipeos desde almacenamiento local"""
+    from flask import send_from_directory, abort
     
     local_filename = os.path.basename(filename)
-    local_path = os.path.join(UPLOAD_FOLDER, local_filename)
-    if os.path.exists(local_path):
-        return send_from_directory(os.path.dirname(local_path), local_filename, mimetype=content_type)
+    full_path = os.path.join(UPLOAD_FOLDER, local_filename)
     
-    return "Imagen no encontrada", 404
+    if os.path.exists(full_path):
+        return send_from_directory(
+            os.path.abspath(UPLOAD_FOLDER), 
+            local_filename
+        )
+    
+    return abort(404)
