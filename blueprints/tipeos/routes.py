@@ -497,16 +497,37 @@ def enviar_solicitud():
 
 @tipeos_bp.route('/enviar-cuenta-nueva', methods=['POST'])
 def enviar_solicitud_cuenta_nueva():
-    """Usuario nuevo de Stake envía su solicitud de tipeo"""
+    """Usuario nuevo de Stake envía su solicitud de tipeo (con o sin sesión de Kick)"""
     from flask import session
     
-    viewer_id = session.get('viewer_id')
-    if not viewer_id:
-        return jsonify({'success': False, 'error': 'Debes iniciar sesión con Kick'}), 401
+    nick_kick = request.form.get('nick_kick', '').strip()
     
-    viewer = Viewer.query.get(viewer_id)
+    if not nick_kick:
+        return jsonify({'success': False, 'error': 'Debes proporcionar tu nick de Kick'}), 400
+    
+    # Intentar obtener viewer de la sesión o buscarlo/crearlo por nick_kick
+    viewer_id = session.get('viewer_id')
+    viewer = None
+    
+    if viewer_id:
+        viewer = Viewer.query.get(viewer_id)
+    
     if not viewer:
-        return jsonify({'success': False, 'error': 'Usuario no encontrado'}), 404
+        # Buscar viewer por nick_kick (case insensitive)
+        viewer = Viewer.query.filter(
+            db.func.lower(Viewer.username_kick) == nick_kick.lower()
+        ).first()
+        
+        if not viewer:
+            # Crear nuevo viewer con los datos proporcionados
+            viewer = Viewer(
+                username_kick=nick_kick,
+                points=0
+            )
+            db.session.add(viewer)
+            db.session.flush()  # Para obtener el ID
+    
+    viewer_id = viewer.id
     
     # Verificar si ya tiene una solicitud de cuenta nueva pendiente
     solicitud_existente = TipeoRequest.query.join(TipeoAvailable).filter(
