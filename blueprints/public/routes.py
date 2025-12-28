@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, session
 from datetime import datetime, timedelta
 from . import public
 from models import Company, Service, Appointment, User, PublicPage
@@ -307,6 +307,12 @@ def perfil_dinamico(email):
     kick_user_authenticated = 'kick_user_id' in session
     kick_username_authenticated = session.get('kick_username')
     
+    # Obtener el viewer de Kick para el sistema de tipeos
+    viewer = None
+    if kick_user_authenticated:
+        from models import KickViewer
+        viewer = KickViewer.query.filter_by(kick_user_id=session.get('kick_user_id')).first()
+    
     # ===== WAGER RACE DE STAKE =====
     wager_race_data = None
     if usuario_data.get('stake_wager_race_enabled', True):
@@ -342,6 +348,7 @@ def perfil_dinamico(email):
                          kick_username_authenticated=kick_username_authenticated,
                          wager_race=wager_race_data,
                          streamer_config=streamer_config,
+                         viewer=viewer,
                          request=request)
 
 
