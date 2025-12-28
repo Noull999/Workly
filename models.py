@@ -1242,8 +1242,14 @@ class TipeoRequest(db.Model):
     # Estado: submitted, reviewed, completed, rejected
     status = db.Column(db.String(20), default='submitted')
     
+    # Tipo de solicitud: normal (tipeo regular) o cuenta_nueva (nuevos usuarios Stake)
+    tipo_solicitud = db.Column(db.String(20), default='normal')
+    
     # Motivo de rechazo (si aplica)
     rejection_reason = db.Column(db.Text, nullable=True)
+    
+    # Rechazo definitivo (no permite reenviar solicitud)
+    rechazo_definitivo = db.Column(db.Boolean, default=False)
     
     # Admin que revisó
     reviewed_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
