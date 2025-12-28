@@ -1083,7 +1083,7 @@
                     <a href="#rangos" class="nav-link orbitron">Rangos</a>
                     <a href="#tipeos-info" class="nav-link orbitron">Tipeos</a>
                     <a href="#tipeo" class="nav-link orbitron tipeo-nav-link hidden">Mi Tipeo</a>
-                    <a href="#tipeo-nuevos" class="nav-link orbitron" style="color: #00FF7F;">Cuenta Nueva</a>
+                    <a href="#tipeo-nuevos" class="nav-link orbitron">Cuenta Nueva</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                 </div>
 
@@ -1149,7 +1149,7 @@
                     <a href="#rangos" class="nav-link orbitron">Rangos</a>
                     <a href="#tipeos-info" class="nav-link orbitron">Tipeos</a>
                     <a href="#tipeo" class="nav-link orbitron tipeo-nav-link hidden">Mi Tipeo</a>
-                    <a href="#tipeo-nuevos" class="nav-link orbitron" style="color: #00FF7F;">Cuenta Nueva</a>
+                    <a href="#tipeo-nuevos" class="nav-link orbitron">Cuenta Nueva</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                     
                     <!-- Login Button (Mobile) -->
@@ -2287,14 +2287,11 @@
                 </form>
                 {% else %}
                 <div class="text-center py-8">
-                    <div class="bg-yellow-500/20 border border-yellow-500 rounded-xl p-6 mb-6">
-                        <i class="fab fa-kickstarter text-5xl text-yellow-400 mb-4"></i>
-                        <p class="text-yellow-400 font-bold text-lg mb-2">Inicia sesión con Kick para solicitar tu tipeo</p>
-                        <p class="text-gray-400">Necesitas vincular tu cuenta de Kick para enviar la solicitud</p>
+                    <div class="bg-gray-800/50 border border-gray-600 rounded-xl p-6">
+                        <i class="fas fa-user-lock text-5xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-300 font-bold text-lg mb-2">Inicia sesión para solicitar tu tipeo</p>
+                        <p class="text-gray-500">Usa el botón de inicio de sesión en la barra de navegación</p>
                     </div>
-                    <a href="{{ url_for('kick.login') }}" class="inline-block px-8 py-3 rounded-full font-bold transition-all transform hover:scale-105" style="background: linear-gradient(135deg, #53FC18, #00FF00); color: black;">
-                        <i class="fab fa-kickstarter mr-2"></i>Iniciar con Kick
-                    </a>
                 </div>
                 {% endif %}
             </div>
