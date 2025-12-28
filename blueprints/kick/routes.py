@@ -294,6 +294,27 @@ def callback():
         db.session.add(kick_user)
         db.session.commit()
         
+        # CREAR/ACTUALIZAR VIEWER automáticamente sin depender de API pública
+        from models import Viewer
+        viewer = Viewer.query.filter(
+            db.func.lower(Viewer.username_kick) == kick_user.username.lower()
+        ).first()
+        
+        if not viewer:
+            viewer = Viewer(
+                username_kick=kick_user.username,
+                points=0,
+                watch_time=0
+            )
+            db.session.add(viewer)
+            db.session.commit()
+            logger.info(f"[KICK CALLBACK] Viewer creado automáticamente: {kick_user.username}")
+        else:
+            logger.info(f"[KICK CALLBACK] Viewer existente encontrado: {kick_user.username}")
+        
+        # Guardar viewer_id en sesión para uso posterior
+        session['viewer_id'] = viewer.id
+        
         # Autenticar al usuario con Flask-Login
         login_user(kick_user)
         session['kick_username'] = kick_user.username
@@ -926,8 +947,7 @@ def get_active_raffles():
 
 @kick_bp.route('/api/verify-username/<username>', methods=['GET', 'POST'])
 def verify_kick_username(username):
-    """API: Verificar si un username existe en Kick y opcionalmente vincular con Stake"""
-    from helpers.kick_api import get_channel_info
+    """API: Verificar/crear viewer por username (no depende de API pública de Kick)"""
     from models import Viewer
     from blueprints.public.routes import get_wager_race_data
     from app import db
@@ -939,15 +959,7 @@ def verify_kick_username(username):
         stake_username = request.args.get('stake_username', '').strip()
     
     try:
-        channel_info = get_channel_info(username)
-        
-        if channel_info.get('error'):
-            return jsonify({
-                'ok': True,
-                'exists': False,
-                'message': 'Usuario no encontrado en Kick'
-            })
-        
+        # Buscar viewer existente por username (case-insensitive)
         viewer = Viewer.query.filter(
             db.func.lower(Viewer.username_kick) == username.lower()
         ).first()
@@ -956,6 +968,7 @@ def verify_kick_username(username):
         stake_rank = None
         stake_wager = None
         
+        # Verificar en wager race si se proporciona stake_username
         if stake_username:
             wager_data = get_wager_race_data()
             current_entries = wager_data.get('current', [])
@@ -980,9 +993,10 @@ def verify_kick_username(username):
                 else:
                     stake_rank = 'Bronze'
         
+        # Crear viewer si no existe (confiamos en el username del OAuth)
         if not viewer:
             viewer = Viewer(
-                username_kick=channel_info.get('username', username),
+                username_kick=username,
                 stake_username=stake_username if stake_username else None,
                 stake_verified=stake_verified,
                 points=0,
@@ -999,8 +1013,8 @@ def verify_kick_username(username):
         return jsonify({
             'ok': True,
             'exists': True,
-            'username': channel_info.get('username'),
-            'display_name': channel_info.get('display_name', username),
+            'username': username,
+            'display_name': username,
             'viewer_id': viewer.id,
             'stake_username': viewer.stake_username,
             'stake_verified': stake_verified,
@@ -1012,7 +1026,7 @@ def verify_kick_username(username):
         import traceback
         traceback.print_exc()
         return jsonify({
-            'ok': True,
+            'ok': False,
             'exists': False,
             'message': 'Error al verificar username'
         })
