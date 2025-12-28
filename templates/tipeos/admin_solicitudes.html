@@ -10,9 +10,14 @@
                 <h1 class="h3">
                     <i class="fas fa-inbox text-primary me-2"></i>Solicitudes de Tipeo
                 </h1>
-                <a href="{{ url_for('tipeos.admin_usuarios') }}" class="btn btn-outline-primary">
-                    <i class="fas fa-users me-2"></i>Gestión de Usuarios
-                </a>
+                <div class="d-flex gap-2">
+                    <button id="btnVincularRetroactivo" class="btn btn-outline-success">
+                        <i class="fas fa-link me-2"></i>Vincular Anteriores
+                    </button>
+                    <a href="{{ url_for('tipeos.admin_usuarios') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-users me-2"></i>Gestión de Usuarios
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -177,6 +182,36 @@
 document.addEventListener('DOMContentLoaded', function() {
     let selectedRequestId = null;
     const rechazarModal = new bootstrap.Modal(document.getElementById('rechazarModal'));
+    
+    document.getElementById('btnVincularRetroactivo').addEventListener('click', function() {
+        if (!confirm('¿Vincular todas las cuentas de Stake de tipeos ya aprobados?')) return;
+        
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+        
+        fetch('/tipeos/admin/vincular-retroactivo', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', `${data.vinculados} vinculados, ${data.ya_vinculados} ya estaban vinculados`);
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showToast('error', data.error || 'Error al vincular');
+            }
+        })
+        .catch(error => {
+            showToast('error', 'Error de conexión');
+        })
+        .finally(() => {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-link me-2"></i>Vincular Anteriores';
+        });
+    });
     
     document.querySelectorAll('#statusTabs .nav-link').forEach(tab => {
         tab.addEventListener('click', function(e) {
