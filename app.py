@@ -72,8 +72,30 @@ def from_json(value):
     except (json.JSONDecodeError, TypeError):
         return {}
 
+def to_chile_tz(value, format='%d/%m/%Y %H:%M'):
+    """Convert UTC datetime to Chile timezone (America/Santiago)."""
+    from datetime import timezone, timedelta
+    if value is None:
+        return ''
+    try:
+        # Chile está en UTC-3 (horario de verano) o UTC-4 (horario estándar)
+        # Usamos UTC-3 para simplificar (horario de verano de Chile)
+        chile_offset = timedelta(hours=-3)
+        chile_tz = timezone(chile_offset)
+        
+        # Si el datetime no tiene zona horaria, asumimos que es UTC
+        if value.tzinfo is None:
+            from datetime import timezone as tz
+            value = value.replace(tzinfo=tz.utc)
+        
+        chile_time = value.astimezone(chile_tz)
+        return chile_time.strftime(format)
+    except Exception:
+        return str(value)
+
 app.jinja_env.filters['nl2br'] = nl2br
 app.jinja_env.filters['from_json'] = from_json
+app.jinja_env.filters['chile_tz'] = to_chile_tz
 
 # Context processor para datos globales de Kick
 @app.context_processor

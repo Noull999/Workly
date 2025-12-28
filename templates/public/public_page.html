@@ -1284,9 +1284,18 @@
                             </div>
                         </div>
                         
+                        {% if page.description %}
                         <p class="text-lg sm:text-xl text-gray-300 max-w-md font-medium leading-relaxed">
-                            {{ page.description or 'Streamer profesional de gaming y entretenimiento' }}
+                            {{ page.description }}
                         </p>
+                        {% endif %}
+                        
+                        <!-- Logo de Stake -->
+                        <div class="flex items-center justify-center lg:justify-start mt-4">
+                            <a href="https://stake.com/?c=YANGLEE" target="_blank" class="opacity-90 hover:opacity-100 transition-all hover:scale-105">
+                                <img src="https://stake.com/_app/immutable/assets/logo.f69be498.svg" alt="Stake.com" class="h-12 sm:h-16">
+                            </a>
+                        </div>
                         
                         <!-- Social Buttons -->
                         <div class="flex flex-wrap gap-3 justify-center lg:justify-start">
