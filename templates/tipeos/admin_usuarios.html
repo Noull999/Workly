@@ -204,13 +204,19 @@
             
             <div class="row g-3">
                 <div class="col-md-5">
-                    <label class="form-label">Usuario de Kick</label>
-                    <select class="form-select" id="tipeoEspecialViewer">
-                        <option value="">-- Seleccionar Usuario --</option>
+                    <label class="form-label"><i class="fab fa-kickstarter me-1"></i>Buscar Usuario de Kick</label>
+                    <input type="text" class="form-control mb-2" id="tipeoEspecialBuscar" placeholder="Escribe para filtrar por Kick...">
+                    <select class="form-select" id="tipeoEspecialViewer" size="6">
+                        <option value="" data-username="" data-stake="">-- Selecciona un usuario de Kick --</option>
                         {% for v in viewers_kick %}
-                        <option value="{{ v.id }}" data-username="{{ v.username_kick }}">{{ v.username_kick }} ({{ v.points }} pts)</option>
+                        <option value="{{ v.id }}" data-username="{{ v.username_kick }}" data-stake="{{ v.stake_username or '' }}">
+                            {{ v.username_kick }} ({{ v.points }} pts){% if v.stake_username and v.stake_verified %} - Stake: {{ v.stake_username }}{% endif %}
+                        </option>
                         {% endfor %}
                     </select>
+                    <small class="text-muted mt-1 d-block">
+                        <i class="fas fa-info-circle me-1"></i>La búsqueda es solo por usuario de Kick. El Stake vinculado se muestra como referencia.
+                    </small>
                 </div>
                 <div class="col-md-5">
                     <label class="form-label">Motivo del Tipeo</label>
@@ -220,6 +226,12 @@
                         <option value="sorteo_semanal">🎁 Sorteo Semanal</option>
                         <option value="otro">✨ Otro</option>
                     </select>
+                    
+                    <div id="usuarioSeleccionadoInfo" class="mt-3 p-3 bg-dark rounded d-none">
+                        <h6 class="text-info mb-2"><i class="fas fa-user me-1"></i>Usuario Seleccionado:</h6>
+                        <p class="mb-1"><strong>Kick:</strong> <span id="infoKick">-</span></p>
+                        <p class="mb-0"><strong>Stake:</strong> <span id="infoStake">No vinculado</span></p>
+                    </div>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button class="btn w-100" style="background: linear-gradient(135deg, #00BFFF, #00CED1); color: white;" onclick="darTipeoEspecial()">
@@ -311,6 +323,52 @@ document.addEventListener('DOMContentLoaded', function() {
             row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
     });
+    
+    // Filtro para Tipeos Especiales - solo busca por nombre de Kick
+    const tipeoEspecialBuscar = document.getElementById('tipeoEspecialBuscar');
+    const tipeoEspecialViewer = document.getElementById('tipeoEspecialViewer');
+    
+    if (tipeoEspecialBuscar && tipeoEspecialViewer) {
+        tipeoEspecialBuscar.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const options = tipeoEspecialViewer.querySelectorAll('option');
+            const infoDiv = document.getElementById('usuarioSeleccionadoInfo');
+            
+            options.forEach(option => {
+                if (!option.value) {
+                    // Siempre mostrar la opción placeholder
+                    option.style.display = '';
+                } else {
+                    const kickUsername = option.dataset.username ? option.dataset.username.toLowerCase() : '';
+                    option.style.display = kickUsername.includes(searchTerm) ? '' : 'none';
+                }
+            });
+            
+            // Si la opción seleccionada quedó oculta, resetear selección
+            const selectedOption = tipeoEspecialViewer.options[tipeoEspecialViewer.selectedIndex];
+            if (selectedOption && selectedOption.style.display === 'none') {
+                tipeoEspecialViewer.selectedIndex = 0;
+                infoDiv.classList.add('d-none');
+            }
+        });
+        
+        // Mostrar info del usuario seleccionado
+        tipeoEspecialViewer.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const infoDiv = document.getElementById('usuarioSeleccionadoInfo');
+            
+            if (selectedOption && selectedOption.value) {
+                const kickUsername = selectedOption.dataset.username || '-';
+                const stakeUsername = selectedOption.dataset.stake || '';
+                
+                document.getElementById('infoKick').textContent = kickUsername;
+                document.getElementById('infoStake').textContent = stakeUsername || 'No vinculado';
+                infoDiv.classList.remove('d-none');
+            } else {
+                infoDiv.classList.add('d-none');
+            }
+        });
+    }
 });
 
 const vincularModal = new bootstrap.Modal(document.getElementById('vincularModal'));
