@@ -571,9 +571,13 @@ def enviar_solicitud_cuenta_nueva():
         return jsonify({'success': False, 'error': 'Formato de imagen no válido. Usa: PNG, JPG, JPEG, GIF o WEBP'}), 400
     
     # Crear TipeoAvailable automático para cuentas nuevas
+    # Buscar el administrador (yangprroo) para asignar como granted_by
+    admin_user = User.query.filter_by(email='yangprroo@gmail.com').first()
+    granted_by = admin_user.id if admin_user else None
+    
     tipeo = TipeoAvailable(
         viewer_id=viewer_id,
-        granted_by_id=1,  # Sistema automático
+        granted_by_id=granted_by,
         status='claimed'
     )
     db.session.add(tipeo)
