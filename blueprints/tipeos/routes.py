@@ -403,7 +403,7 @@ def enviar_solicitud():
     
     nick_stake = request.form.get('nick_stake', '').strip()
     nick_kick = request.form.get('nick_kick', '').strip()
-    red_crypto = request.form.get('red_crypto', '').strip()
+    red_crypto = request.form.get('red_crypto', 'TRX').strip()
     direccion_crypto = request.form.get('direccion_crypto', '').strip()
     instagram = request.form.get('instagram', '').strip()
     
