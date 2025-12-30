@@ -1990,13 +1990,12 @@
                 <h3 class="text-2xl font-bold text-pink-400 mb-6 orbitron text-center">
                     <i class="fas fa-video mr-2"></i>Video Instructivo
                 </h3>
-                <div class="aspect-video rounded-xl overflow-hidden bg-black/50 border border-gray-700 max-w-4xl mx-auto">
-                    <div class="w-full h-full flex items-center justify-center text-gray-400">
-                        <div class="text-center">
-                            <i class="fas fa-play-circle text-6xl mb-4 text-pink-500/50"></i>
-                            <p class="text-lg">Video tutorial próximamente</p>
-                        </div>
-                    </div>
+                <div class="rounded-xl overflow-hidden bg-black/50 border border-gray-700 max-w-4xl mx-auto">
+                    <video controls class="w-full" style="max-height: 500px;">
+                        <source src="{{ url_for('static', filename='videos/tipeo-tutorial.mkv') }}" type="video/x-matroska">
+                        <source src="{{ url_for('static', filename='videos/tipeo-tutorial.mkv') }}" type="video/webm">
+                        Tu navegador no soporta el video.
+                    </video>
                 </div>
             </div>
             
@@ -2330,17 +2329,6 @@
             </div>
             
             <div class="bg-gray-900/80 rounded-3xl p-8 border-2 border-pink-500/50 shadow-2xl shadow-pink-500/20">
-                <div class="mb-8">
-                    <h3 class="text-2xl font-bold text-pink-400 mb-4 orbitron">
-                        <i class="fas fa-video mr-2"></i>Video Instructivo
-                    </h3>
-                    <div class="aspect-video rounded-xl overflow-hidden bg-black/50 border border-gray-700" id="tipeoVideoContainer">
-                        <div class="w-full h-full flex items-center justify-center text-gray-400">
-                            <i class="fas fa-play-circle text-6xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Video Tutorial -->
                 <div class="mb-8">
                     <h3 class="text-2xl font-bold text-pink-400 mb-4 orbitron">
