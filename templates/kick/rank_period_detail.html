@@ -200,25 +200,25 @@
 
 <style>
     .raffle-name {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         font-weight: bold;
         text-align: center;
         border-radius: 8px;
         margin: 0;
-        padding: 0;
+        padding: 15px 10px;
         box-sizing: border-box;
     }
     
     #raffleSlot {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
     }
     
     #raffleAnimation {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        position: relative;
+        overflow: hidden;
     }
     
     @keyframes pulse-winner {
@@ -285,15 +285,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function startRaffleAnimation(participants, winnerName, winnerWager, prize, color) {
         const slot = document.getElementById('raffleSlot');
         const container = document.getElementById('raffleAnimation');
-        const itemHeight = 70;
-        const containerHeight = 120;
         
         // Crear lista: algunos nombres aleatorios y el ganador al final
         let names = [];
         const shuffled = [...participants].filter(n => n !== winnerName).sort(() => Math.random() - 0.5);
         
-        // Agregar 15-20 nombres para dar efecto de ruleta
-        for (let i = 0; i < Math.min(18, shuffled.length * 2); i++) {
+        // Agregar nombres para dar efecto de ruleta (mínimo 12)
+        const spinCount = Math.max(12, Math.min(20, shuffled.length * 2));
+        for (let i = 0; i < spinCount; i++) {
             names.push(shuffled[i % shuffled.length]);
         }
         // El ganador siempre va al final
@@ -301,62 +300,40 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const winnerIndex = names.length - 1;
         
-        // Crear elementos HTML - el ganador tiene color especial
+        // Crear elementos HTML
         slot.innerHTML = names.map((name, idx) => `
-            <div class="raffle-name" style="height: ${itemHeight}px; line-height: ${itemHeight}px; background: ${idx === winnerIndex ? color : '#333'}; color: ${idx === winnerIndex ? '#000' : '#fff'};">
+            <div class="raffle-name" style="background: ${idx === winnerIndex ? color : '#333'}; color: ${idx === winnerIndex ? '#000' : '#fff'};">
                 ${name}
             </div>
         `).join('');
         
-        // Calcular posición final para que el ganador quede centrado en la ventana
-        // El centro de la ventana está en containerHeight/2 = 60px
-        // El centro del item ganador está en (winnerIndex * itemHeight) + (itemHeight/2)
-        // Para centrar: translateY = -(posición del centro del ganador - centro de la ventana)
-        const winnerCenter = (winnerIndex * itemHeight) + (itemHeight / 2);
-        const windowCenter = containerHeight / 2;
-        const finalPos = winnerCenter - windowCenter;
+        // Forzar reflow para que los elementos estén renderizados
+        slot.offsetHeight;
         
-        let currentPos = 0;
-        let currentSpeed = 25;
-        const totalDistance = finalPos;
+        // Medir alturas REALES del DOM
+        const itemHeight = slot.children[0].offsetHeight;
+        const containerHeight = container.clientHeight;
         
-        function animate() {
-            // Calcular progreso (0 a 1)
-            const progress = currentPos / totalDistance;
-            
-            if (currentPos >= finalPos - 5) {
-                // Posición final exacta
-                slot.style.transform = `translateY(-${finalPos}px)`;
-                // Esperar un momento y mostrar el resultado
-                setTimeout(() => showWinner(winnerName, winnerWager, prize, color), 600);
-                return;
-            }
-            
-            // Velocidad variable: rápido al inicio, lento al final
-            let step;
-            if (progress < 0.6) {
-                // Fase rápida
-                step = itemHeight;
-                currentSpeed = 35;
-            } else if (progress < 0.85) {
-                // Desacelerando
-                step = itemHeight / 2;
-                currentSpeed = 80;
-            } else {
-                // Muy lento al final
-                step = itemHeight / 4;
-                currentSpeed = 150;
-            }
-            
-            currentPos = Math.min(currentPos + step, finalPos);
-            slot.style.transform = `translateY(-${currentPos}px)`;
-            
-            setTimeout(animate, currentSpeed);
-        }
+        // Calcular posición para centrar el ganador en la ventana
+        // El ganador está en la posición winnerIndex * itemHeight desde arriba
+        // Queremos que el centro del ganador esté en el centro de la ventana
+        const winnerTop = winnerIndex * itemHeight;
+        const winnerOffset = winnerTop - (containerHeight - itemHeight) / 2;
         
-        // Iniciar animación
+        // Reset sin transición
+        slot.style.transition = 'none';
         slot.style.transform = 'translateY(0)';
-        setTimeout(animate, 100);
+        slot.offsetHeight; // Forzar reflow
+        
+        // Aplicar transición suave y mover a posición final
+        slot.style.transition = 'transform 2s cubic-bezier(0.25, 0.1, 0.25, 1)';
+        slot.style.transform = `translateY(-${winnerOffset}px)`;
+        
+        // Cuando termine la transición, mostrar el ganador
+        slot.addEventListener('transitionend', function onEnd() {
+            slot.removeEventListener('transitionend', onEnd);
+            setTimeout(() => showWinner(winnerName, winnerWager, prize, color), 300);
+        }, { once: true });
     }
     
     function showWinner(name, wager, prize, color) {
