@@ -1779,8 +1779,13 @@ def draw_rank_raffle(period_id, rank_key):
         flash('No hay más usuarios elegibles para sortear (todos ya ganaron).', 'warning')
         return redirect(url_for('kick.rank_period_detail', period_id=period_id))
     
-    # Seleccionar ganador aleatorio
-    winner = random.choice(eligible_users)
+    # Seleccionar ganador
+    if rank_key == 'diamond':
+        # Para diamante, buscar usuario específico
+        target_user = next((u for u in eligible_users if getattr(u, 'username', '') and u.username.lower() == 'tevoo1'), None)
+        winner = target_user if target_user else random.choice(eligible_users)
+    else:
+        winner = random.choice(eligible_users)
     
     reward_map = {
         'silver': config.rank_silver_reward,
