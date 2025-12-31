@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const slot = document.getElementById('raffleSlot');
         const container = document.getElementById('raffleAnimation');
         
-        // Crear lista: algunos nombres aleatorios y el ganador al final
+        // Crear lista: algunos nombres aleatorios, el ganador, y nombres de relleno después
         let names = [];
         const shuffled = [...participants].filter(n => n !== winnerName).sort(() => Math.random() - 0.5);
         
@@ -295,10 +295,16 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 0; i < spinCount; i++) {
             names.push(shuffled[i % shuffled.length]);
         }
-        // El ganador siempre va al final
+        
+        // El ganador va aquí (recordar su índice)
+        const winnerIndex = names.length;
         names.push(winnerName);
         
-        const winnerIndex = names.length - 1;
+        // Agregar nombres de RELLENO después del ganador para que no se vea vacío
+        // Necesitamos suficientes para llenar la ventana visible debajo del ganador
+        for (let i = 0; i < 4; i++) {
+            names.push(shuffled[i % shuffled.length]);
+        }
         
         // Crear elementos HTML
         slot.innerHTML = names.map((name, idx) => `
@@ -315,10 +321,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const containerHeight = container.clientHeight;
         
         // Calcular posición para centrar el ganador en la ventana
-        // El ganador está en la posición winnerIndex * itemHeight desde arriba
-        // Queremos que el centro del ganador esté en el centro de la ventana
         const winnerTop = winnerIndex * itemHeight;
         const winnerOffset = winnerTop - (containerHeight - itemHeight) / 2;
+        
+        // Limitar el offset para no pasar del contenido disponible
+        const maxOffset = slot.scrollHeight - containerHeight;
+        const finalOffset = Math.min(winnerOffset, maxOffset);
         
         // Reset sin transición
         slot.style.transition = 'none';
@@ -327,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Aplicar transición suave y mover a posición final
         slot.style.transition = 'transform 2s cubic-bezier(0.25, 0.1, 0.25, 1)';
-        slot.style.transform = `translateY(-${winnerOffset}px)`;
+        slot.style.transform = `translateY(-${finalOffset}px)`;
         
         // Cuando termine la transición, mostrar el ganador
         slot.addEventListener('transitionend', function onEnd() {
