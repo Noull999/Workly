@@ -277,64 +277,61 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function startRaffleAnimation(participants, winnerName, winnerWager, prize, color) {
         const slot = document.getElementById('raffleSlot');
-        const animationContainer = document.getElementById('raffleAnimation');
+        const itemHeight = 60;
         
-        // Crear lista de nombres mezclados (repetidos para efecto de ruleta)
+        // Crear lista corta: mezclar participantes 2 veces y poner ganador al final
         let names = [];
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 2; i++) {
             names = names.concat([...participants].sort(() => Math.random() - 0.5));
         }
-        // Asegurar que el ganador esté al final
+        // Quitar ganador de la lista y ponerlo al final
         names = names.filter(n => n !== winnerName);
         names.push(winnerName);
         
-        // Crear elementos HTML para cada nombre
-        slot.innerHTML = names.map(name => `
-            <div class="raffle-name" style="background: ${name === winnerName ? color : '#333'}; color: ${name === winnerName ? '#000' : '#fff'};">
+        const totalItems = names.length;
+        const winnerIndex = totalItems - 1;
+        
+        // Crear elementos HTML
+        slot.innerHTML = names.map((name, idx) => `
+            <div class="raffle-name" style="background: ${idx === winnerIndex ? color : '#333'}; color: ${idx === winnerIndex ? '#000' : '#fff'};">
                 ${name}
             </div>
         `).join('');
         
-        // Animar la ruleta
-        const itemHeight = 60;
-        const totalItems = names.length;
+        // Posición final exacta donde debe parar (centrado en el ganador)
+        const finalPos = winnerIndex * itemHeight - 30;
         let currentPos = 0;
-        let speed = 50;
-        let interval;
+        let speed = 30;
         
-        // Fase 1: Velocidad rápida
-        interval = setInterval(() => {
-            currentPos += itemHeight;
+        // Animación rápida hasta cerca del final
+        const fastPhaseEnd = Math.max(0, finalPos - 300);
+        
+        function animate() {
+            if (currentPos >= finalPos) {
+                // Llegamos al ganador - mostrar resultado
+                slot.style.transform = `translateY(-${finalPos}px)`;
+                setTimeout(() => showWinner(winnerName, winnerWager, prize, color), 400);
+                return;
+            }
+            
+            // Calcular velocidad según proximidad al final
+            let step;
+            if (currentPos < fastPhaseEnd) {
+                step = itemHeight;
+                speed = 40;
+            } else {
+                // Desacelerar cerca del final
+                step = itemHeight / 3;
+                speed = 80 + ((currentPos - fastPhaseEnd) / (finalPos - fastPhaseEnd)) * 150;
+            }
+            
+            currentPos = Math.min(currentPos + step, finalPos);
             slot.style.transform = `translateY(-${currentPos}px)`;
             
-            // Desacelerar gradualmente
-            if (currentPos > (totalItems - 15) * itemHeight) {
-                clearInterval(interval);
-                // Fase 2: Desaceleración
-                slowDown(currentPos, (totalItems - 1) * itemHeight - 30);
-            }
-        }, speed);
-        
-        function slowDown(start, end) {
-            let pos = start;
-            let delay = 80;
-            
-            function step() {
-                if (pos >= end) {
-                    // Mostrar ganador
-                    setTimeout(() => showWinner(winnerName, winnerWager, prize, color), 500);
-                    return;
-                }
-                
-                pos += itemHeight / 2;
-                slot.style.transform = `translateY(-${pos}px)`;
-                delay += 30;
-                
-                setTimeout(step, delay);
-            }
-            
-            step();
+            setTimeout(animate, speed);
         }
+        
+        animate();
     }
     
     function showWinner(name, wager, prize, color) {
