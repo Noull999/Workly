@@ -70,18 +70,19 @@
 
                     {% if rank.completed_count < rank.max_winners %}
                         {% if rank.count > 0 %}
-                        <form action="{{ url_for('kick.draw_rank_raffle', period_id=period.id, rank_key=rank.key) }}" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-lg w-100" style="background-color: {{ rank.color }}; color: #000;" 
-                                    onclick="return confirm('¿Realizar sorteo #{{ rank.completed_count + 1 }} entre los {{ rank.count }} usuarios de {{ rank.name }}?')">
-                                <i class="fas fa-dice me-2"></i>
-                                {% if rank.completed_count > 0 %}
-                                    Sortear #{{ rank.completed_count + 1 }}
-                                {% else %}
-                                    Sortear
-                                {% endif %}
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-lg w-100 raffle-btn" 
+                                style="background-color: {{ rank.color }}; color: #000;"
+                                data-url="{{ url_for('kick.draw_rank_raffle', period_id=period.id, rank_key=rank.key) }}"
+                                data-rank="{{ rank.name }}"
+                                data-color="{{ rank.color }}"
+                                data-count="{{ rank.count }}">
+                            <i class="fas fa-dice me-2"></i>
+                            {% if rank.completed_count > 0 %}
+                                Sortear #{{ rank.completed_count + 1 }}
+                            {% else %}
+                                Sortear
+                            {% endif %}
+                        </button>
                         <small class="text-muted mt-2 d-block">
                             {{ rank.completed_count }}/{{ rank.max_winners }} sorteados
                         </small>
@@ -157,4 +158,199 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Sorteo con Animación -->
+<div class="modal fade" id="raffleModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-0" id="raffleModalHeader">
+                <h5 class="modal-title">
+                    <i class="fas fa-dice me-2"></i>
+                    <span id="raffleModalTitle">Sorteo</span>
+                </h5>
+            </div>
+            <div class="modal-body text-center py-5">
+                <!-- Animación de nombres rotando -->
+                <div id="raffleAnimation" class="position-relative" style="height: 120px; overflow: hidden;">
+                    <div id="raffleSlot" class="position-absolute w-100" style="transition: transform 0.1s ease-out;">
+                    </div>
+                </div>
+                
+                <!-- Resultado final -->
+                <div id="raffleResult" class="d-none">
+                    <div class="mb-4">
+                        <i class="fas fa-trophy fa-4x text-warning mb-3"></i>
+                        <h2 class="display-4 fw-bold" id="winnerName"></h2>
+                        <p class="text-muted fs-5" id="winnerWager"></p>
+                    </div>
+                    <div class="alert py-2" id="prizeAlert">
+                        <i class="fas fa-gift me-2"></i>
+                        <span id="prizeText"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-lg btn-success d-none" id="closeRaffleBtn" onclick="location.reload()">
+                    <i class="fas fa-check me-2"></i>Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .raffle-name {
+        font-size: 2rem;
+        font-weight: bold;
+        padding: 10px;
+        text-align: center;
+        border-radius: 10px;
+        margin: 5px 0;
+    }
+    
+    #raffleSlot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    @keyframes pulse-winner {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .winner-animation {
+        animation: pulse-winner 0.5s ease-in-out 3;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = '{{ csrf_token() }}';
+    const modal = new bootstrap.Modal(document.getElementById('raffleModal'));
+    
+    document.querySelectorAll('.raffle-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const rankName = this.dataset.rank;
+            const rankColor = this.dataset.color;
+            const userCount = this.dataset.count;
+            
+            if (!confirm(`¿Realizar sorteo entre los ${userCount} usuarios de ${rankName}?`)) {
+                return;
+            }
+            
+            // Configurar modal
+            document.getElementById('raffleModalTitle').textContent = `Sorteo ${rankName}`;
+            document.getElementById('raffleModalHeader').style.backgroundColor = rankColor + '33';
+            document.getElementById('raffleAnimation').classList.remove('d-none');
+            document.getElementById('raffleResult').classList.add('d-none');
+            document.getElementById('closeRaffleBtn').classList.add('d-none');
+            
+            modal.show();
+            
+            // Hacer petición AJAX
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    startRaffleAnimation(data.participants, data.winner.username, data.winner.wagered, data.prize, rankColor);
+                } else {
+                    alert(data.error || 'Error en el sorteo');
+                    modal.hide();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al realizar el sorteo');
+                modal.hide();
+            });
+        });
+    });
+    
+    function startRaffleAnimation(participants, winnerName, winnerWager, prize, color) {
+        const slot = document.getElementById('raffleSlot');
+        const animationContainer = document.getElementById('raffleAnimation');
+        
+        // Crear lista de nombres mezclados (repetidos para efecto de ruleta)
+        let names = [];
+        for (let i = 0; i < 5; i++) {
+            names = names.concat([...participants].sort(() => Math.random() - 0.5));
+        }
+        // Asegurar que el ganador esté al final
+        names = names.filter(n => n !== winnerName);
+        names.push(winnerName);
+        
+        // Crear elementos HTML para cada nombre
+        slot.innerHTML = names.map(name => `
+            <div class="raffle-name" style="background: ${name === winnerName ? color : '#333'}; color: ${name === winnerName ? '#000' : '#fff'};">
+                ${name}
+            </div>
+        `).join('');
+        
+        // Animar la ruleta
+        const itemHeight = 60;
+        const totalItems = names.length;
+        let currentPos = 0;
+        let speed = 50;
+        let interval;
+        
+        // Fase 1: Velocidad rápida
+        interval = setInterval(() => {
+            currentPos += itemHeight;
+            slot.style.transform = `translateY(-${currentPos}px)`;
+            
+            // Desacelerar gradualmente
+            if (currentPos > (totalItems - 15) * itemHeight) {
+                clearInterval(interval);
+                // Fase 2: Desaceleración
+                slowDown(currentPos, (totalItems - 1) * itemHeight - 30);
+            }
+        }, speed);
+        
+        function slowDown(start, end) {
+            let pos = start;
+            let delay = 80;
+            
+            function step() {
+                if (pos >= end) {
+                    // Mostrar ganador
+                    setTimeout(() => showWinner(winnerName, winnerWager, prize, color), 500);
+                    return;
+                }
+                
+                pos += itemHeight / 2;
+                slot.style.transform = `translateY(-${pos}px)`;
+                delay += 30;
+                
+                setTimeout(step, delay);
+            }
+            
+            step();
+        }
+    }
+    
+    function showWinner(name, wager, prize, color) {
+        document.getElementById('raffleAnimation').classList.add('d-none');
+        document.getElementById('raffleResult').classList.remove('d-none');
+        document.getElementById('winnerName').textContent = name;
+        document.getElementById('winnerName').style.color = color;
+        document.getElementById('winnerWager').textContent = `Wager: $${parseFloat(wager).toLocaleString('es-CL', {minimumFractionDigits: 2})} USD`;
+        document.getElementById('prizeText').textContent = prize;
+        document.getElementById('prizeAlert').style.backgroundColor = color + '33';
+        document.getElementById('prizeAlert').style.color = color;
+        document.getElementById('closeRaffleBtn').classList.remove('d-none');
+        
+        // Animación de pulso
+        document.getElementById('winnerName').classList.add('winner-animation');
+    }
+});
+</script>
 {% endblock %}

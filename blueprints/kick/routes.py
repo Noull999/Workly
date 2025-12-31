@@ -1723,25 +1723,34 @@ def rank_period_detail(period_id):
 @kick_bp.route('/admin/rank-periods/<int:period_id>/draw/<rank_key>', methods=['POST'])
 @login_required
 def draw_rank_raffle(period_id, rank_key):
-    """Ejecutar sorteo para un rango específico"""
+    """Ejecutar sorteo para un rango específico con animación"""
     from flask_login import current_user
+    from flask import request, jsonify
     from models import RankPeriod, RankRaffle, StreamerConfig
     from app import db
     from datetime import datetime
     import random
     
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
     if not current_user.is_admin_global() and not current_user.is_admin_empresa():
+        if is_ajax:
+            return jsonify({'success': False, 'error': 'No tienes permisos'}), 403
         flash('No tienes permisos para realizar esta acción.', 'danger')
         return redirect(url_for('admin.dashboard'))
     
     period = RankPeriod.query.get_or_404(period_id)
     
     if period.user_id != current_user.id and not current_user.is_admin_global():
+        if is_ajax:
+            return jsonify({'success': False, 'error': 'No tienes acceso'}), 403
         flash('No tienes acceso a este período.', 'danger')
         return redirect(url_for('kick.admin_rank_periods'))
     
     # Verificar que el rango sea válido
     if rank_key not in ['silver', 'gold', 'platinum', 'diamond']:
+        if is_ajax:
+            return jsonify({'success': False, 'error': 'Rango inválido'}), 400
         flash('Rango inválido.', 'danger')
         return redirect(url_for('kick.rank_period_detail', period_id=period_id))
     
@@ -1762,12 +1771,16 @@ def draw_rank_raffle(period_id, rank_key):
     existing_count = len(existing_raffles)
     
     if existing_count >= max_winners:
+        if is_ajax:
+            return jsonify({'success': False, 'error': f'Ya se completaron los {max_winners} sorteos para este rango.'}), 400
         flash(f'Ya se completaron los {max_winners} sorteos para este rango.', 'warning')
         return redirect(url_for('kick.rank_period_detail', period_id=period_id))
     
     # Obtener usuarios del rango
     users = period.get_users_by_rank(rank_key)
     if not users:
+        if is_ajax:
+            return jsonify({'success': False, 'error': f'No hay usuarios en el rango {rank_key}.'}), 400
         flash(f'No hay usuarios en el rango {rank_key}.', 'warning')
         return redirect(url_for('kick.rank_period_detail', period_id=period_id))
     
@@ -1776,6 +1789,8 @@ def draw_rank_raffle(period_id, rank_key):
     eligible_users = [u for u in users if u.username not in previous_winners]
     
     if not eligible_users:
+        if is_ajax:
+            return jsonify({'success': False, 'error': 'No hay más usuarios elegibles para sortear.'}), 400
         flash('No hay más usuarios elegibles para sortear (todos ya ganaron).', 'warning')
         return redirect(url_for('kick.rank_period_detail', period_id=period_id))
     
@@ -1801,11 +1816,12 @@ def draw_rank_raffle(period_id, rank_key):
     }
     
     # Crear registro del sorteo
+    prize_text = f"${reward_map[rank_key]} USD" if reward_map[rank_key] else "Premio de rango"
     raffle = RankRaffle(
         period_id=period_id,
         rank_key=rank_key,
         rank_name=name_map[rank_key],
-        prize=f"${reward_map[rank_key]} USD" if reward_map[rank_key] else "Premio de rango",
+        prize=prize_text,
         winner_username=winner.username,
         winner_wagered=winner.wagered,
         is_completed=True,
@@ -1816,6 +1832,26 @@ def draw_rank_raffle(period_id, rank_key):
     db.session.commit()
     
     remaining = max_winners - existing_count - 1
+    
+    # Si es AJAX, devolver JSON con datos para animación
+    if is_ajax:
+        # Mezclar participantes para animación (el ganador siempre está incluido)
+        participant_names = [u.username for u in eligible_users]
+        random.shuffle(participant_names)
+        
+        return jsonify({
+            'success': True,
+            'winner': {
+                'username': winner.username,
+                'wagered': winner.wagered
+            },
+            'participants': participant_names,
+            'rank_name': name_map[rank_key],
+            'prize': prize_text,
+            'remaining': remaining,
+            'raffle_number': existing_count + 1
+        })
+    
     if remaining > 0:
         flash(f'¡Ganador #{existing_count + 1}: {winner.username}! Quedan {remaining} sorteo(s) por realizar.', 'success')
     else:
