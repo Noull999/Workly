@@ -47,3 +47,6 @@ externalPort = 80
 
 [agent]
 integrations = ["styling_replit:1.0.0", "python_database:1.0.0"]
+
+[objectStorage]
+defaultBucketID = "replit-objstore-33611bf6-30cb-4746-9465-52e1b79c1d9a"
