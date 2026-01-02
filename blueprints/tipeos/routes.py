@@ -8,6 +8,16 @@ from datetime import datetime
 from blueprints.public.routes import get_wager_race_data
 import os
 import uuid
+import logging
+
+try:
+    from replit.object_storage import Client as ObjectStorageClient
+    object_storage = ObjectStorageClient()
+    OBJECT_STORAGE_AVAILABLE = True
+except Exception as e:
+    logging.warning(f"Object Storage not available: {e}")
+    object_storage = None
+    OBJECT_STORAGE_AVAILABLE = False
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 UPLOAD_FOLDER = 'static/uploads/tipeos'
@@ -23,6 +33,46 @@ def is_streamer_or_admin():
 def ensure_upload_folder():
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def save_image_to_storage(image_data, filename):
+    """Guarda imagen en Object Storage (persistente) y local (fallback)"""
+    object_key = f"tipeos/{filename}"
+    
+    if OBJECT_STORAGE_AVAILABLE and object_storage:
+        try:
+            object_storage.upload_from_bytes(object_key, image_data)
+            logging.info(f"Image saved to Object Storage: {object_key}")
+        except Exception as e:
+            logging.error(f"Failed to upload to Object Storage: {e}")
+    
+    ensure_upload_folder()
+    local_path = os.path.join(UPLOAD_FOLDER, filename)
+    try:
+        with open(local_path, 'wb') as f:
+            f.write(image_data)
+    except Exception as e:
+        logging.error(f"Failed to save locally: {e}")
+    
+    return f'/tipeos/imagen/{filename}'
+
+def get_image_from_storage(filename):
+    """Obtiene imagen de Object Storage o local"""
+    object_key = f"tipeos/{filename}"
+    
+    if OBJECT_STORAGE_AVAILABLE and object_storage:
+        try:
+            data = object_storage.download_as_bytes(object_key)
+            if data:
+                return data
+        except Exception as e:
+            logging.debug(f"Not in Object Storage, trying local: {e}")
+    
+    local_path = os.path.join(UPLOAD_FOLDER, filename)
+    if os.path.exists(local_path):
+        with open(local_path, 'rb') as f:
+            return f.read()
+    
+    return None
 
 @tipeos_bp.route('/admin/usuarios')
 @login_required
@@ -453,21 +503,14 @@ def enviar_solicitud():
     image1_data = image1.read()
     image2_data = image2.read()
     
-    ensure_upload_folder()
     local_filename1 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_1.{ext1}"
     local_filename2 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_2.{ext2}"
-    local_path1 = os.path.join(UPLOAD_FOLDER, local_filename1)
-    local_path2 = os.path.join(UPLOAD_FOLDER, local_filename2)
     
     try:
-        with open(local_path1, 'wb') as f:
-            f.write(image1_data)
-        with open(local_path2, 'wb') as f:
-            f.write(image2_data)
-        image_url_1 = f'/tipeos/imagen/{local_filename1}'
-        image_url_2 = f'/tipeos/imagen/{local_filename2}'
+        image_url_1 = save_image_to_storage(image1_data, local_filename1)
+        image_url_2 = save_image_to_storage(image2_data, local_filename2)
     except Exception as e:
-        print(f"Error guardando imágenes: {e}")
+        logging.error(f"Error guardando imágenes: {e}")
         return jsonify({'success': False, 'error': 'Error al guardar imágenes'}), 500
     
     solicitud = TipeoRequest(
@@ -595,21 +638,14 @@ def enviar_solicitud_cuenta_nueva():
     image1_data = image1.read()
     image2_data = image2.read()
     
-    ensure_upload_folder()
     local_filename1 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_1.{ext1}"
     local_filename2 = f"tipeo_{viewer_id}_{timestamp}_{unique_id}_2.{ext2}"
-    local_path1 = os.path.join(UPLOAD_FOLDER, local_filename1)
-    local_path2 = os.path.join(UPLOAD_FOLDER, local_filename2)
     
     try:
-        with open(local_path1, 'wb') as f:
-            f.write(image1_data)
-        with open(local_path2, 'wb') as f:
-            f.write(image2_data)
-        image_url_1 = f'/tipeos/imagen/{local_filename1}'
-        image_url_2 = f'/tipeos/imagen/{local_filename2}'
+        image_url_1 = save_image_to_storage(image1_data, local_filename1)
+        image_url_2 = save_image_to_storage(image2_data, local_filename2)
     except Exception as e:
-        print(f"Error guardando imágenes: {e}")
+        logging.error(f"Error guardando imágenes: {e}")
         return jsonify({'success': False, 'error': 'Error al guardar imágenes'}), 500
     
     solicitud = TipeoRequest(
@@ -776,16 +812,16 @@ def vincular_retroactivo():
 
 @tipeos_bp.route('/imagen/<path:filename>')
 def servir_imagen(filename):
-    """Sirve imágenes de tipeos desde almacenamiento local"""
-    from flask import send_from_directory, abort
+    """Sirve imágenes de tipeos desde Object Storage o local"""
+    from flask import abort, Response
+    import mimetypes
     
     local_filename = os.path.basename(filename)
-    full_path = os.path.join(UPLOAD_FOLDER, local_filename)
     
-    if os.path.exists(full_path):
-        return send_from_directory(
-            os.path.abspath(UPLOAD_FOLDER), 
-            local_filename
-        )
+    image_data = get_image_from_storage(local_filename)
+    
+    if image_data:
+        content_type = mimetypes.guess_type(local_filename)[0] or 'image/jpeg'
+        return Response(image_data, mimetype=content_type)
     
     return abort(404)
