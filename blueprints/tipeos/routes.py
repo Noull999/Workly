@@ -825,3 +825,31 @@ def servir_imagen(filename):
         return Response(image_data, mimetype=content_type)
     
     return abort(404)
+
+
+@tipeos_bp.route('/video/<path:filename>')
+def servir_video(filename):
+    """Sirve videos desde Object Storage o local"""
+    from flask import abort, Response
+    import mimetypes
+    
+    local_filename = os.path.basename(filename)
+    object_key = f"videos/{local_filename}"
+    
+    if OBJECT_STORAGE_AVAILABLE and object_storage:
+        try:
+            data = object_storage.download_as_bytes(object_key)
+            if data:
+                content_type = mimetypes.guess_type(local_filename)[0] or 'video/mp4'
+                return Response(data, mimetype=content_type)
+        except Exception as e:
+            logging.debug(f"Video not in Object Storage: {e}")
+    
+    local_path = os.path.join('static/videos', local_filename)
+    if os.path.exists(local_path):
+        with open(local_path, 'rb') as f:
+            data = f.read()
+        content_type = mimetypes.guess_type(local_filename)[0] or 'video/mp4'
+        return Response(data, mimetype=content_type)
+    
+    return abort(404)
