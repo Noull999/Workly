@@ -2354,7 +2354,7 @@
     </section>
 
     <!-- TIPEO Section (Only visible when user has tipeo available) -->
-    <section id="tipeo" class="page-section py-20 px-4 hidden" style="background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));" data-animate="fade">
+    <section id="tipeo" class="page-section py-20 px-4 hidden" style="background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));">
         <div class="container mx-auto max-w-4xl">
             <div class="text-center mb-12">
                 <h2 class="text-5xl font-bold orbitron gradient-text mb-4">
@@ -4246,6 +4246,9 @@
             const tipeoSection = document.getElementById('tipeo');
             if (tipeoSection) {
                 tipeoSection.classList.remove('hidden');
+                tipeoSection.classList.add('active');
+                tipeoSection.style.display = 'block';
+                tipeoSection.style.opacity = '1';
             }
             
             document.querySelectorAll('.tipeo-nav-link').forEach(link => {
