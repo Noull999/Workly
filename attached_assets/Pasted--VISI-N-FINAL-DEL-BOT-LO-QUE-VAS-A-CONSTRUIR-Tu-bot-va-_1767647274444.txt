@@ -1,0 +1,168 @@
+🧠 VISIÓN FINAL DEL BOT (LO QUE VAS A CONSTRUIR)
+
+Tu bot va a poder:
+
+✅ Conectarse al chat de Kick
+✅ Leer mensajes en tiempo real
+✅ Detectar comandos (!tipeo, !sorteo, etc.)
+✅ Enviar eventos a Workly
+✅ Enviar mensajes al chat (con links)
+✅ Crear sorteos
+✅ Elegir ganador al azar
+
+Todo sin BotRix, sin OAuth de viewers.
+
+🏗️ ARQUITECTURA FINAL (MUY IMPORTANTE)
+Kick Chat (WebSocket)
+        ↓
+   WorklyBot (Python)
+        ↓
+   Workly API (Flask)
+        ↓
+   DB / lógica / IA
+
+
+👉 El bot NO decide lógica compleja
+👉 El bot NO guarda sorteos
+👉 El bot ES UN PUENTE
+
+🛠️ TECNOLOGÍAS (CORRECTAS PARA TU CASO)
+Bot (Replit)
+
+Python 3.10+
+
+websocket-client
+
+requests
+
+asyncio
+
+random
+
+Workly
+
+Flask
+
+Endpoint seguro /api/bot/webhook
+
+🧩 FUNCIONES DEL BOT (DIVIDIDAS)
+1️⃣ Conectarse al chat de Kick
+
+Con WebSocket
+
+Mantener conexión viva
+
+Reconectar si se cae
+
+📌 Esto es lo más “técnico”, pero es estándar.
+
+2️⃣ Leer mensajes del chat
+
+Cada mensaje tendrá:
+
+usuario (nick Kick)
+
+texto
+
+canal
+
+Ejemplo:
+
+pepe123: !tipeo
+
+3️⃣ Detectar comandos
+
+Comandos iniciales (NO MÁS):
+
+!tipeo
+!sorteo
+!entrar
+
+
+Lógica simple:
+
+si empieza con !
+
+parsear comando
+
+4️⃣ Enviar evento a Workly
+
+Cuando detecta un comando:
+
+{
+  "channel": "yanglee",
+  "user": "pepe123",
+  "command": "tipeo",
+  "raw_message": "!tipeo"
+}
+
+
+POST a:
+
+https://worklycl.com/api/bot/webhook
+
+
+Con header:
+
+Authorization: Bearer BOT_SECRET
+
+5️⃣ Recibir respuesta de Workly
+
+Workly responde algo como:
+
+{
+  "reply": "@pepe123 🎉 tienes un tipeo disponible",
+  "link": "https://worklycl.com/claim/abc123"
+}
+
+6️⃣ Enviar mensaje al chat
+
+El bot envía:
+
+@pepe123 🎉 tienes un tipeo disponible
+👉 https://worklycl.com/claim/abc123
+
+
+📌 Esto es lo que hace que funcione de verdad.
+
+🎲 SISTEMA DE SORTEOS (SIMPLE Y POTENTE)
+Flujo
+1️⃣ Streamer escribe:
+!sorteo 5m
+
+2️⃣ Bot:
+
+avisa a Workly
+
+Workly crea sorteo
+
+Workly responde:
+
+duración
+
+palabra clave
+
+3️⃣ Durante el sorteo
+
+Usuarios escriben:
+
+!entrar
+
+
+Bot:
+
+agrega usuario a una lista en memoria
+
+evita duplicados
+
+4️⃣ Fin del sorteo
+
+Bot:
+
+elige ganador con random.choice()
+
+anuncia en chat
+
+notifica a Workly
+
+📌 Simple, efectivo, sin APIs externas.
