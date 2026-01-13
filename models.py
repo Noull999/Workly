@@ -1231,7 +1231,7 @@ class TipeoRequest(db.Model):
     # Datos del formulario unificado
     stake_username = db.Column(db.String(100), nullable=False)  # Nombre usuario Stake
     trx_address = db.Column(db.String(100), nullable=False)  # Dirección TRX
-    trx_code = db.Column(db.String(100), nullable=False)  # Código TRX
+    trx_code = db.Column(db.String(100), nullable=True)  # Código TRX (opcional)
     comments = db.Column(db.Text, nullable=True)  # Comentarios opcionales
     
     # Campos legacy (mantener compatibilidad)
