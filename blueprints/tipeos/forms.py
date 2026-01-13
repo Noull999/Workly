@@ -16,11 +16,6 @@ class TipeoUnificadoForm(FlaskForm):
         Regexp(r'^T[a-zA-Z0-9]{33}$', message='Formato de dirección TRX inválido (debe empezar con T y tener 34 caracteres)')
     ])
     
-    trx_code = StringField('Código TRX', validators=[
-        DataRequired(message='El código TRX es obligatorio'),
-        Length(min=1, max=100, message='El código debe tener entre 1 y 100 caracteres')
-    ])
-    
     tipeo_type = SelectField('Tipo de Tipeo', choices=[
         ('solicitar_tipeo', 'Solicitar Tipeo'),
         ('ganador_tipeo', 'Ganador Tipeo'),

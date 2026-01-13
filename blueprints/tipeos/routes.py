@@ -131,7 +131,6 @@ def formulario_tipeo():
             nueva_solicitud = TipeoRequest(
                 stake_username=stake_username,
                 trx_address=trx_address,
-                trx_code=form.trx_code.data.strip(),
                 tipeo_type=form.tipeo_type.data,
                 image_stake_user=image1_url,
                 image_sponsor_code=image2_url,
@@ -140,7 +139,8 @@ def formulario_tipeo():
                 viewer_id=viewer.id if viewer else None,
                 # Campos legacy para compatibilidad
                 nick_stake=stake_username,
-                red_crypto='TRX'
+                red_crypto='TRX',
+                direccion_crypto=trx_address
             )
             
             db.session.add(nueva_solicitud)

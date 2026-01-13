@@ -2406,14 +2406,10 @@
                             </li>
                             <li class="flex items-start gap-3">
                                 <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">3</span>
-                                <span>Ingresa tu <strong class="text-pink-400">código TRX</strong> de depósito de Stake</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">4</span>
                                 <span>Selecciona el <strong class="text-pink-400">tipo de solicitud</strong> según tu situación</span>
                             </li>
                             <li class="flex items-start gap-3">
-                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">5</span>
+                                <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">4</span>
                                 <span>Sube <strong class="text-pink-400">2 capturas</strong>: 1) Tu usuario Stake, 2) Código patrocinador YANGLEE</span>
                             </li>
                         </ol>
@@ -2439,25 +2435,15 @@
                             placeholder="Tu username exacto de Stake">
                     </div>
                     
-                    <!-- Dirección y Código TRX -->
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-pink-400 font-bold mb-2">
-                                <i class="fas fa-wallet mr-1"></i>Dirección TRX *
-                            </label>
-                            <input type="text" id="unificadoTrxAddress" name="trx_address" required
-                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all font-mono"
-                                placeholder="T..." pattern="^T[a-zA-Z0-9]{33}$" title="Debe empezar con T y tener 34 caracteres">
-                            <p class="text-xs text-gray-500 mt-1">Debe empezar con T y tener 34 caracteres</p>
-                        </div>
-                        <div>
-                            <label class="block text-pink-400 font-bold mb-2">
-                                <i class="fas fa-key mr-1"></i>Código TRX de Depósito *
-                            </label>
-                            <input type="text" id="unificadoTrxCode" name="trx_code" required
-                                class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all"
-                                placeholder="Tu código de depósito TRX en Stake">
-                        </div>
+                    <!-- Dirección TRX -->
+                    <div>
+                        <label class="block text-pink-400 font-bold mb-2">
+                            <i class="fas fa-wallet mr-1"></i>Dirección TRX *
+                        </label>
+                        <input type="text" id="unificadoTrxAddress" name="trx_address" required
+                            class="w-full px-4 py-3 rounded-xl bg-black/50 border border-gray-600 text-white focus:border-pink-500 focus:outline-none transition-all font-mono"
+                            placeholder="T..." pattern="^T[a-zA-Z0-9]{33}$" title="Debe empezar con T y tener 34 caracteres">
+                        <p class="text-xs text-gray-500 mt-1">Debe empezar con T y tener 34 caracteres</p>
                     </div>
                     
                     <!-- Tipo de Solicitud -->
