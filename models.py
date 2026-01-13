@@ -1222,27 +1222,38 @@ class TipeoRequest(db.Model):
     """Solicitud de tipeo con evidencia enviada por el usuario"""
     id = db.Column(db.Integer, primary_key=True)
     
-    # Referencia al tipeo disponible
-    tipeo_available_id = db.Column(db.Integer, db.ForeignKey('tipeo_available.id'), nullable=False)
+    # Referencia al tipeo disponible (ahora opcional para formulario unificado)
+    tipeo_available_id = db.Column(db.Integer, db.ForeignKey('tipeo_available.id'), nullable=True)
     
-    # Usuario que envía la solicitud
-    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=False)
+    # Usuario que envía la solicitud (opcional - para usuarios no registrados)
+    viewer_id = db.Column(db.Integer, db.ForeignKey('viewer.id'), nullable=True)
     
-    # Datos del formulario
-    nick_stake = db.Column(db.String(100), nullable=False)
-    nick_kick = db.Column(db.String(100), nullable=False)
-    red_crypto = db.Column(db.String(200), nullable=False)
+    # Datos del formulario unificado
+    stake_username = db.Column(db.String(100), nullable=False)  # Nombre usuario Stake
+    trx_address = db.Column(db.String(100), nullable=False)  # Dirección TRX
+    trx_code = db.Column(db.String(100), nullable=False)  # Código TRX
+    comments = db.Column(db.Text, nullable=True)  # Comentarios opcionales
+    
+    # Campos legacy (mantener compatibilidad)
+    nick_stake = db.Column(db.String(100), nullable=True)
+    nick_kick = db.Column(db.String(100), nullable=True)
+    red_crypto = db.Column(db.String(200), nullable=True)
     direccion_crypto = db.Column(db.String(500), nullable=True)
     instagram = db.Column(db.String(100), nullable=True)
     
-    # Imágenes de evidencia (2 imágenes)
-    image_url_1 = db.Column(db.String(500), nullable=False)
-    image_url_2 = db.Column(db.String(500), nullable=False)
+    # Imágenes de evidencia (2 imágenes obligatorias)
+    image_stake_user = db.Column(db.String(500), nullable=False)  # Imagen usuario Stake
+    image_sponsor_code = db.Column(db.String(500), nullable=False)  # Imagen código patrocinador
+    image_url_1 = db.Column(db.String(500), nullable=True)  # Legacy
+    image_url_2 = db.Column(db.String(500), nullable=True)  # Legacy
     
-    # Estado: submitted, reviewed, completed, rejected
+    # Estado: submitted, approved, rejected
     status = db.Column(db.String(20), default='submitted')
     
-    # Tipo de solicitud: normal (tipeo regular) o cuenta_nueva (nuevos usuarios Stake)
+    # Tipo de tipeo: solicitar_tipeo, ganador_tipeo, cuenta_nueva
+    tipeo_type = db.Column(db.String(30), default='solicitar_tipeo')
+    
+    # Campo legacy (mantener compatibilidad)
     tipo_solicitud = db.Column(db.String(20), default='normal')
     
     # Motivo de rechazo (si aplica)
