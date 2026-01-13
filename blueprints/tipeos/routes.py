@@ -117,6 +117,11 @@ def formulario_tipeo():
             image2_data = image2.read()
             image2_url = save_image_to_storage(image2_data, filename2)
             
+            # Buscar viewer existente por stake_username
+            viewer = Viewer.query.filter(
+                db.func.lower(Viewer.stake_username) == stake_username.lower()
+            ).first()
+            
             # Crear solicitud
             nueva_solicitud = TipeoRequest(
                 stake_username=stake_username,
@@ -127,6 +132,7 @@ def formulario_tipeo():
                 image_sponsor_code=image2_url,
                 comments=form.comments.data.strip() if form.comments.data else None,
                 status='submitted',
+                viewer_id=viewer.id if viewer else None,
                 # Campos legacy para compatibilidad
                 nick_stake=stake_username,
                 red_crypto='TRX'
@@ -467,17 +473,20 @@ def aprobar_tipeo(request_id):
     
     # VINCULAR AUTOMÁTICAMENTE las cuentas al aprobar
     viewer = solicitud.viewer
-    if viewer and solicitud.nick_stake:
-        viewer.stake_username = solicitud.nick_stake
+    stake_name = solicitud.stake_username or solicitud.nick_stake
+    if viewer and stake_name:
+        viewer.stake_username = stake_name
         viewer.stake_verified = True
     
-    notificacion = UserNotification(
-        viewer_id=solicitud.viewer_id,
-        title='✅ ¡Tu tipeo fue realizado!',
-        message=f'Tu solicitud de tipeo ha sido aprobada. Tu cuenta de Stake ({solicitud.nick_stake}) ha sido vinculada automáticamente.',
-        notification_type='success'
-    )
-    db.session.add(notificacion)
+    # Solo crear notificación si hay viewer asociado
+    if solicitud.viewer_id:
+        notificacion = UserNotification(
+            viewer_id=solicitud.viewer_id,
+            title='✅ ¡Tu tipeo fue aprobado!',
+            message=f'Tu solicitud de tipeo ha sido aprobada. Tu cuenta de Stake ({stake_name}) ha sido procesada.',
+            notification_type='success'
+        )
+        db.session.add(notificacion)
     
     db.session.commit()
     
@@ -509,21 +518,23 @@ def rechazar_tipeo(request_id):
             tipeo_available.status = 'available'
             tipeo_available.claimed_at = None
     
-    if rechazo_definitivo:
-        notificacion = UserNotification(
-            viewer_id=solicitud.viewer_id,
-            title='❌ Solicitud de tipeo rechazada definitivamente',
-            message=f'Tu solicitud fue rechazada. Motivo: {motivo}. Esta decisión es definitiva.',
-            notification_type='error'
-        )
-    else:
-        notificacion = UserNotification(
-            viewer_id=solicitud.viewer_id,
-            title='❌ Solicitud de tipeo rechazada',
-            message=f'Tu solicitud fue rechazada. Motivo: {motivo}. Puedes intentarlo nuevamente.',
-            notification_type='warning'
-        )
-    db.session.add(notificacion)
+    # Solo crear notificación si hay viewer asociado
+    if solicitud.viewer_id:
+        if rechazo_definitivo:
+            notificacion = UserNotification(
+                viewer_id=solicitud.viewer_id,
+                title='❌ Solicitud de tipeo rechazada definitivamente',
+                message=f'Tu solicitud fue rechazada. Motivo: {motivo}. Esta decisión es definitiva.',
+                notification_type='error'
+            )
+        else:
+            notificacion = UserNotification(
+                viewer_id=solicitud.viewer_id,
+                title='❌ Solicitud de tipeo rechazada',
+                message=f'Tu solicitud fue rechazada. Motivo: {motivo}. Puedes intentarlo nuevamente.',
+                notification_type='warning'
+            )
+        db.session.add(notificacion)
     
     db.session.commit()
     

@@ -54,13 +54,17 @@
                         <i class="fas fa-user me-2"></i>{{ solicitud.viewer.kick_username if solicitud.viewer else 'Usuario' }}
                     </span>
                     <div class="d-flex gap-2 align-items-center">
-                        {% if solicitud.tipo_solicitud == 'cuenta_nueva' %}
-                        <span class="badge bg-info">
+                        {% if solicitud.tipeo_type == 'cuenta_nueva' or solicitud.tipo_solicitud == 'cuenta_nueva' %}
+                        <span class="badge" style="background: #00FF7F; color: black;">
                             <i class="fas fa-user-plus me-1"></i>Cuenta Nueva
                         </span>
+                        {% elif solicitud.tipeo_type == 'ganador_tipeo' %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-trophy me-1"></i>Ganador
+                        </span>
                         {% else %}
-                        <span class="badge bg-secondary">
-                            <i class="fas fa-hand-holding-usd me-1"></i>Normal
+                        <span class="badge" style="background: #FF1493;">
+                            <i class="fas fa-coins me-1"></i>Solicitar
                         </span>
                         {% endif %}
                         <span class="badge bg-{% if solicitud.status == 'submitted' %}warning{% elif solicitud.status == 'completed' %}success{% elif solicitud.status == 'rejected' %}danger{% else %}secondary{% endif %}">
@@ -79,40 +83,60 @@
                         <span class="badge bg-success ms-2">{{ solicitud.viewer.stake_username }}</span>
                     </div>
                     {% endif %}
+                    
                     <div class="row mb-3">
                         <div class="col-6">
-                            <small class="text-muted">Nick Stake:</small>
-                            <div class="fw-bold">{{ solicitud.nick_stake }}</div>
+                            <small class="text-muted">Usuario Stake:</small>
+                            <div class="fw-bold">{{ solicitud.stake_username or solicitud.nick_stake }}</div>
                         </div>
                         <div class="col-6">
-                            <small class="text-muted">Nick Kick:</small>
-                            <div class="fw-bold">{{ solicitud.nick_kick }}</div>
+                            <small class="text-muted">Dirección TRX:</small>
+                            <div class="fw-bold text-break" style="font-size: 0.8rem;">{{ solicitud.trx_address or solicitud.direccion_crypto or '-' }}</div>
                         </div>
                     </div>
                     <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Código TRX:</small>
+                            <div class="fw-bold">{{ solicitud.trx_code or '-' }}</div>
+                        </div>
                         <div class="col-6">
                             <small class="text-muted">Red Crypto:</small>
-                            <div class="fw-bold">{{ solicitud.red_crypto }}</div>
-                        </div>
-                        <div class="col-6">
-                            <small class="text-muted">Instagram:</small>
-                            <div class="fw-bold">{{ solicitud.instagram or '-' }}</div>
+                            <div class="fw-bold">{{ solicitud.red_crypto or 'TRX' }}</div>
                         </div>
                     </div>
+                    
+                    {% if solicitud.comments %}
                     <div class="mb-3">
-                        <small class="text-muted">Dirección/Código Depósito:</small>
-                        <div class="fw-bold text-break" style="font-size: 0.85rem; word-break: break-all;">{{ solicitud.direccion_crypto or '-' }}</div>
+                        <small class="text-muted">Comentarios:</small>
+                        <div class="fw-bold small">{{ solicitud.comments }}</div>
                     </div>
+                    {% endif %}
                     
                     <div class="mb-3">
                         <small class="text-muted d-block mb-2">Imágenes de evidencia:</small>
-                        <div class="d-flex gap-2">
-                            <a href="{{ solicitud.image_url_1 }}" target="_blank" class="flex-grow-1">
-                                <img src="{{ solicitud.image_url_1 }}" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;" alt="Evidencia 1">
-                            </a>
-                            <a href="{{ solicitud.image_url_2 }}" target="_blank" class="flex-grow-1">
-                                <img src="{{ solicitud.image_url_2 }}" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;" alt="Evidencia 2">
-                            </a>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block mb-1">Usuario Stake:</small>
+                                {% set img1 = solicitud.image_stake_user or solicitud.image_url_1 %}
+                                {% if img1 %}
+                                <a href="{{ img1 }}" target="_blank">
+                                    <img src="{{ img1 }}" class="img-thumbnail w-100" style="height: 120px; object-fit: cover;" alt="Usuario Stake">
+                                </a>
+                                {% else %}
+                                <div class="bg-secondary text-center py-4 rounded">Sin imagen</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block mb-1">Código Patrocinador:</small>
+                                {% set img2 = solicitud.image_sponsor_code or solicitud.image_url_2 %}
+                                {% if img2 %}
+                                <a href="{{ img2 }}" target="_blank">
+                                    <img src="{{ img2 }}" class="img-thumbnail w-100" style="height: 120px; object-fit: cover;" alt="Código Patrocinador">
+                                </a>
+                                {% else %}
+                                <div class="bg-secondary text-center py-4 rounded">Sin imagen</div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     
