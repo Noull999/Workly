@@ -4517,15 +4517,18 @@
                 
                 navLinks.forEach(link => {
                     link.onclick = function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
                         const href = this.getAttribute('href');
                         console.log('Click en:', href);
+                        // Solo interceptar enlaces internos (que empiezan con #)
                         if (href && href.startsWith('#')) {
+                            e.preventDefault();
+                            e.stopPropagation();
                             const sectionId = href.substring(1);
                             navigateToSection(sectionId);
+                            return false;
                         }
-                        return false;
+                        // Para enlaces externos, permitir navegación normal
+                        return true;
                     };
                 });
                 
