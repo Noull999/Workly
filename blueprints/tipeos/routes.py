@@ -1,7 +1,8 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import render_template, redirect, url_for, flash, request, jsonify, current_app, send_file, Response
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from . import tipeos_bp
+from .forms import TipeoUnificadoForm
 from app import db
 from models import TipeoAvailable, TipeoRequest, UserNotification, Viewer, User, RankPeriod, RankPeriodUser, StakeKickLink
 from datetime import datetime
@@ -9,6 +10,7 @@ from blueprints.public.routes import get_wager_race_data
 import os
 import uuid
 import logging
+import re
 
 try:
     from replit.object_storage import Client as ObjectStorageClient
@@ -73,6 +75,109 @@ def get_image_from_storage(filename):
             return f.read()
     
     return None
+
+
+# ===== FORMULARIO UNIFICADO DE TIPEOS =====
+
+@tipeos_bp.route('/', methods=['GET', 'POST'])
+def formulario_tipeo():
+    """Formulario unificado para solicitar tipeos"""
+    form = TipeoUnificadoForm()
+    mis_solicitudes = []
+    
+    if form.validate_on_submit():
+        stake_username = form.stake_username.data.strip()
+        trx_address = form.trx_address.data.strip()
+        
+        # Validar formato TRX
+        if not re.match(r'^T[a-zA-Z0-9]{33}$', trx_address):
+            flash('El formato de la dirección TRX es inválido', 'error')
+            return render_template('tipeos/formulario.html', form=form, mis_solicitudes=mis_solicitudes)
+        
+        # Verificar si ya tiene una solicitud activa
+        solicitud_activa = TipeoRequest.query.filter(
+            TipeoRequest.stake_username == stake_username,
+            TipeoRequest.status == 'submitted'
+        ).first()
+        
+        if solicitud_activa:
+            flash('Ya tienes una solicitud pendiente. Espera a que sea procesada.', 'warning')
+            return render_template('tipeos/formulario.html', form=form, mis_solicitudes=mis_solicitudes)
+        
+        try:
+            # Guardar imagen 1 (usuario Stake)
+            image1 = form.image_stake_user.data
+            filename1 = f"{uuid.uuid4().hex}_{secure_filename(image1.filename)}"
+            image1_data = image1.read()
+            image1_url = save_image_to_storage(image1_data, filename1)
+            
+            # Guardar imagen 2 (código patrocinador)
+            image2 = form.image_sponsor_code.data
+            filename2 = f"{uuid.uuid4().hex}_{secure_filename(image2.filename)}"
+            image2_data = image2.read()
+            image2_url = save_image_to_storage(image2_data, filename2)
+            
+            # Crear solicitud
+            nueva_solicitud = TipeoRequest(
+                stake_username=stake_username,
+                trx_address=trx_address,
+                trx_code=form.trx_code.data.strip(),
+                tipeo_type=form.tipeo_type.data,
+                image_stake_user=image1_url,
+                image_sponsor_code=image2_url,
+                comments=form.comments.data.strip() if form.comments.data else None,
+                status='submitted',
+                # Campos legacy para compatibilidad
+                nick_stake=stake_username,
+                red_crypto='TRX'
+            )
+            
+            db.session.add(nueva_solicitud)
+            db.session.commit()
+            
+            flash('¡Solicitud enviada correctamente! Te notificaremos cuando sea procesada.', 'success')
+            return redirect(url_for('tipeos.formulario_tipeo'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error al crear solicitud de tipeo: {e}")
+            flash('Error al procesar la solicitud. Intenta nuevamente.', 'error')
+    
+    return render_template('tipeos/formulario.html', form=form, mis_solicitudes=mis_solicitudes)
+
+
+@tipeos_bp.route('/serve-tutorial-video')
+def serve_tutorial_video():
+    """Sirve el video tutorial desde Object Storage o local"""
+    video_paths = [
+        'videos/tipeo-tutorial.mp4',
+        'tipeo-tutorial.mp4',
+        'videos/tipeo-tutorial.mkv',
+        'tipeo-tutorial.mkv'
+    ]
+    
+    # Intentar desde Object Storage
+    if OBJECT_STORAGE_AVAILABLE and object_storage:
+        for path in video_paths:
+            try:
+                data = object_storage.download_as_bytes(path)
+                if data:
+                    content_type = 'video/mp4' if path.endswith('.mp4') else 'video/x-matroska'
+                    return Response(data, mimetype=content_type)
+            except Exception:
+                continue
+    
+    # Fallback a archivo local
+    local_paths = [
+        'static/videos/tipeo-tutorial.mp4',
+        'static/videos/tipeo-tutorial.mkv'
+    ]
+    for path in local_paths:
+        if os.path.exists(path):
+            return send_file(path)
+    
+    return 'Video no disponible', 404
+
 
 @tipeos_bp.route('/admin/usuarios')
 @login_required
