@@ -84,6 +84,7 @@ def formulario_tipeo():
     """Formulario unificado para solicitar tipeos"""
     form = TipeoUnificadoForm()
     mis_solicitudes = []
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'multipart/form-data'
     
     if form.validate_on_submit():
         stake_username = form.stake_username.data.strip()
@@ -91,6 +92,8 @@ def formulario_tipeo():
         
         # Validar formato TRX
         if not re.match(r'^T[a-zA-Z0-9]{33}$', trx_address):
+            if is_ajax:
+                return jsonify({'success': False, 'error': 'El formato de la dirección TRX es inválido'}), 400
             flash('El formato de la dirección TRX es inválido', 'error')
             return render_template('tipeos/formulario.html', form=form, mis_solicitudes=mis_solicitudes)
         
@@ -101,6 +104,8 @@ def formulario_tipeo():
         ).first()
         
         if solicitud_activa:
+            if is_ajax:
+                return jsonify({'success': False, 'error': 'Ya tienes una solicitud pendiente. Espera a que sea procesada.'}), 400
             flash('Ya tienes una solicitud pendiente. Espera a que sea procesada.', 'warning')
             return render_template('tipeos/formulario.html', form=form, mis_solicitudes=mis_solicitudes)
         
@@ -141,13 +146,26 @@ def formulario_tipeo():
             db.session.add(nueva_solicitud)
             db.session.commit()
             
+            if is_ajax:
+                return jsonify({'success': True, 'message': '¡Solicitud enviada correctamente! Te notificaremos cuando sea procesada.'})
+            
             flash('¡Solicitud enviada correctamente! Te notificaremos cuando sea procesada.', 'success')
             return redirect(url_for('tipeos.formulario_tipeo'))
             
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error al crear solicitud de tipeo: {e}")
+            if is_ajax:
+                return jsonify({'success': False, 'error': 'Error al procesar la solicitud. Intenta nuevamente.'}), 500
             flash('Error al procesar la solicitud. Intenta nuevamente.', 'error')
+    
+    # Manejar errores de validación para AJAX
+    if request.method == 'POST' and is_ajax and not form.validate():
+        errors = []
+        for field, errs in form.errors.items():
+            for err in errs:
+                errors.append(f"{field}: {err}")
+        return jsonify({'success': False, 'error': '; '.join(errors) if errors else 'Error de validación'}), 400
     
     return render_template('tipeos/formulario.html', form=form, mis_solicitudes=mis_solicitudes)
 
