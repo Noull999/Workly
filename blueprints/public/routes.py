@@ -187,6 +187,12 @@ def perfil_dinamico(email):
     # Decodificar email si viene URL-encoded
     email = unquote_plus(email)
     
+    # Lista de páginas en mantenimiento (agregar emails o slugs aquí)
+    PAGINAS_EN_MANTENIMIENTO = ['yanglee', 'yangprroo@gmail.com']
+    
+    if email.lower() in [p.lower() for p in PAGINAS_EN_MANTENIMIENTO]:
+        return render_template('public/mantenimiento.html', streamer_name='YANGLEE')
+    
     # Registrar visita para analytics
     try:
         page_visit = PageVisit(
