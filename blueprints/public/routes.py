@@ -188,7 +188,7 @@ def perfil_dinamico(email):
     email = unquote_plus(email)
     
     # Lista de páginas en mantenimiento (agregar emails o slugs aquí)
-    PAGINAS_EN_MANTENIMIENTO = ['yanglee', 'yangprroo@gmail.com']
+    PAGINAS_EN_MANTENIMIENTO = []
     
     if email.lower() in [p.lower() for p in PAGINAS_EN_MANTENIMIENTO]:
         return render_template('public/mantenimiento.html', streamer_name='YANGLEE')
