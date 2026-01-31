@@ -24,15 +24,13 @@ KICK_PUSHER_KEY = "32cbd69e4b950bf97679"
 KICK_PUSHER_CLUSTER = "us2"
 
 def get_api_base_url():
-    """Detecta la URL base de la API automáticamente"""
+    """Detecta la URL base de la API automáticamente
+    
+    Cuando el bot corre en el mismo servidor que la app Flask,
+    siempre usamos localhost para evitar problemas de DNS.
+    """
     if os.environ.get('API_BASE_URL'):
         return os.environ.get('API_BASE_URL')
-    
-    repl_slug = os.environ.get('REPL_SLUG')
-    repl_owner = os.environ.get('REPL_OWNER')
-    
-    if repl_slug and repl_owner:
-        return f"https://{repl_slug}.{repl_owner}.repl.co"
     
     return 'http://localhost:5000'
 
