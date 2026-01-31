@@ -15,6 +15,7 @@ def register_blueprints(app):
     from .notion import notion
     from .public import public
     from .reports import reports
+    from .twitch_bot import twitch_bot
     
     # Register blueprints with their URL prefixes
     app.register_blueprint(auth)
@@ -26,3 +27,4 @@ def register_blueprints(app):
     app.register_blueprint(notion, url_prefix='/notion')
     app.register_blueprint(public, url_prefix='/public')
     app.register_blueprint(reports, url_prefix='/reports')
+    app.register_blueprint(twitch_bot)
