@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app import db, csrf
+from app import db
 from models import KickBotConfig, KickBotCommand, KickRaffle, KickRaffleParticipant, StreamerConfig
 from datetime import datetime
 from functools import wraps
@@ -11,8 +11,6 @@ import hashlib
 import hmac
 
 from . import kick_bot
-
-csrf.exempt(kick_bot)
 
 COMMAND_COOLDOWNS = {}
 
@@ -260,7 +258,10 @@ def raffle_participants(raffle_id):
     })
 
 
+from app import csrf
+
 @kick_bot.route('/api/command-response', methods=['POST'])
+@csrf.exempt
 @validate_api_request
 def command_response():
     """API endpoint para consultar respuestas a comandos (usado por bot externo o webhook)

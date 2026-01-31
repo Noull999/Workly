@@ -20,11 +20,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger('KickChatBot')
 
-KICK_PUSHER_KEY = "eb1d5f283081a78b932c"
+KICK_PUSHER_KEY = "32cbd69e4b950bf97679"
 KICK_PUSHER_CLUSTER = "us2"
 
 API_BASE_URL = os.environ.get('API_BASE_URL', 'http://localhost:5000')
-BOT_API_SECRET = os.environ.get('KICK_BOT_API_SECRET', 'default-dev-secret')
+BOT_API_SECRET = os.environ.get('KICK_BOT_API_SECRET')
+if not BOT_API_SECRET:
+    logger.warning("KICK_BOT_API_SECRET no configurado - usando modo desarrollo")
+    BOT_API_SECRET = 'default-dev-secret'
 
 CHANNEL_USERNAME = os.environ.get('KICK_CHANNEL_USERNAME', 'yanglee')
 
@@ -100,9 +103,27 @@ class KickChatBot:
         return None
     
     def send_chat_message(self, message):
-        """Enviar mensaje al chat de Kick (requiere autenticación OAuth)"""
+        """Enviar mensaje al chat de Kick
+        
+        NOTA: Para enviar mensajes al chat de Kick se requiere:
+        1. Registro de aplicación en https://dev.kick.com
+        2. OAuth con scope 'chat:write'
+        3. Access token válido
+        
+        Por ahora, las respuestas se registran en logs.
+        Integra con un sistema externo para enviar al chat.
+        """
         logger.info(f"[BOT RESPONSE] {message}")
-        pass
+        
+        webhook_url = os.environ.get('KICK_RESPONSE_WEBHOOK')
+        if webhook_url:
+            try:
+                requests.post(webhook_url, json={
+                    'channel': self.channel_username,
+                    'message': message
+                }, timeout=5)
+            except Exception as e:
+                logger.error(f"Error enviando a webhook: {e}")
     
     def on_message(self, data):
         """Callback cuando se recibe un mensaje del chat"""
@@ -140,9 +161,14 @@ class KickChatBot:
             
             logger.info(f"Bot escuchando chat de {self.channel_username}")
     
-    def on_disconnect(self):
+    def on_disconnect(self, data=None):
         """Callback cuando se desconecta"""
         logger.warning("Desconectado de Pusher")
+        self.connected = False
+    
+    def on_subscription_error(self, data=None):
+        """Callback para errores de suscripción"""
+        logger.error(f"Error de suscripción: {data}")
         self.connected = False
     
     def on_error(self, error):
@@ -166,20 +192,37 @@ class KickChatBot:
         
         self.pusher.connection.bind('pusher:connection_established', self.on_connect)
         self.pusher.connection.bind('pusher:connection_failed', self.on_error)
+        self.pusher.connection.bind('pusher:error', self.on_error)
+        self.pusher.connection.bind('pusher:disconnected', self.on_disconnect)
         
         logger.info("Conectando a Kick via Pusher...")
         self.pusher.connect()
         
+        reconnect_attempts = 0
+        max_reconnect_delay = 60
+        
         while True:
             time.sleep(1)
             
-            if not self.connected and self.pusher:
-                logger.warning("Conexión perdida, reconectando...")
+            if not self.connected:
+                reconnect_attempts += 1
+                delay = min(5 * reconnect_attempts, max_reconnect_delay)
+                logger.warning(f"Conexión perdida, reconectando en {delay}s (intento {reconnect_attempts})...")
+                time.sleep(delay)
+                
                 try:
+                    self.pusher = pysher.Pusher(
+                        key=KICK_PUSHER_KEY,
+                        cluster=KICK_PUSHER_CLUSTER,
+                        daemon=False
+                    )
+                    self.pusher.connection.bind('pusher:connection_established', self.on_connect)
+                    self.pusher.connection.bind('pusher:connection_failed', self.on_error)
                     self.pusher.connect()
                 except Exception as e:
                     logger.error(f"Error reconectando: {e}")
-                    time.sleep(5)
+            else:
+                reconnect_attempts = 0
 
 
 def main():
