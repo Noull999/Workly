@@ -627,6 +627,7 @@ def register_all_blueprints():
     from blueprints.kick import kick_bp
     from blueprints.demos import demos_bp
     from blueprints.tipeos import tipeos_bp
+    from blueprints.kick_bot import kick_bot
     
     app.register_blueprint(auth)
     app.register_blueprint(admin, url_prefix='/admin')
@@ -641,6 +642,7 @@ def register_all_blueprints():
     app.register_blueprint(kick_bp)
     app.register_blueprint(demos_bp)
     app.register_blueprint(tipeos_bp)
+    app.register_blueprint(kick_bot)
 
 # Call blueprint registration
 register_all_blueprints()

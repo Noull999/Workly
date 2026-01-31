@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app import db
+from app import db, csrf
 from models import KickBotConfig, KickBotCommand, KickRaffle, KickRaffleParticipant, StreamerConfig
 from datetime import datetime
 from functools import wraps
@@ -11,6 +11,8 @@ import hashlib
 import hmac
 
 from . import kick_bot
+
+csrf.exempt(kick_bot)
 
 COMMAND_COOLDOWNS = {}
 
