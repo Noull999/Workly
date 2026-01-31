@@ -31,6 +31,7 @@
                 </div>
                 <div class="card-body">
                     <form action="{{ url_for('kick_bot.update_config') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label class="form-label">Canal de Kick</label>
                             <div class="input-group">
@@ -76,6 +77,7 @@
                         Comando: <code class="text-success">!{{ active_raffle.keyword }}</code>
                     </p>
                     <form action="{{ url_for('kick_bot.end_raffle', raffle_id=active_raffle.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-warning w-100">
                             <i class="fas fa-crown me-2"></i>Elegir Ganador y Finalizar
                         </button>
@@ -89,6 +91,7 @@
                 </div>
                 <div class="card-body">
                     <form action="{{ url_for('kick_bot.create_raffle') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label class="form-label">Título del Sorteo</label>
                             <input type="text" class="form-control bg-dark border-secondary text-white" 
@@ -174,6 +177,7 @@
                                     </td>
                                     <td class="text-center">
                                         <form action="{{ url_for('kick_bot.delete_command', command_id=cmd.id) }}" method="POST" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar este comando?')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -269,6 +273,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('kick_bot.add_command') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Comando</label>
