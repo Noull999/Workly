@@ -1329,39 +1329,37 @@ class StakeKickLink(db.Model):
         return f'<StakeKickLink {self.stake_username} -> Viewer {self.viewer_id}>'
 
 
-class TwitchBotConfig(db.Model):
-    """Configuración del bot de Twitch por streamer"""
+class KickBotConfig(db.Model):
+    """Configuración del bot de Kick por streamer"""
     id = db.Column(db.Integer, primary_key=True)
     
     streamer_email = db.Column(db.String(120), nullable=False, unique=True)
     channel_name = db.Column(db.String(100), nullable=False)
+    channel_id = db.Column(db.String(50), nullable=True)
     
     is_active = db.Column(db.Boolean, default=True)
-    
-    oauth_token = db.Column(db.String(500), nullable=True)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    commands = db.relationship('TwitchBotCommand', backref='config', lazy=True, cascade='all, delete-orphan')
-    raffles = db.relationship('TwitchRaffle', backref='config', lazy=True, cascade='all, delete-orphan')
+    commands = db.relationship('KickBotCommand', backref='config', lazy=True, cascade='all, delete-orphan')
+    raffles = db.relationship('KickRaffle', backref='config', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
-        return f'<TwitchBotConfig {self.channel_name}>'
+        return f'<KickBotConfig {self.channel_name}>'
 
 
-class TwitchBotCommand(db.Model):
-    """Comandos personalizados del bot"""
+class KickBotCommand(db.Model):
+    """Comandos personalizados del bot de Kick"""
     id = db.Column(db.Integer, primary_key=True)
     
-    config_id = db.Column(db.Integer, db.ForeignKey('twitch_bot_config.id'), nullable=False)
+    config_id = db.Column(db.Integer, db.ForeignKey('kick_bot_config.id'), nullable=False)
     
     command = db.Column(db.String(50), nullable=False)
     response = db.Column(db.Text, nullable=False)
     
     is_active = db.Column(db.Boolean, default=True)
     cooldown_seconds = db.Column(db.Integer, default=5)
-    user_level = db.Column(db.String(20), default='everyone')
     
     use_count = db.Column(db.Integer, default=0)
     last_used_at = db.Column(db.DateTime, nullable=True)
@@ -1369,14 +1367,14 @@ class TwitchBotCommand(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
-        return f'<TwitchBotCommand !{self.command}>'
+        return f'<KickBotCommand !{self.command}>'
 
 
-class TwitchRaffle(db.Model):
-    """Sorteos del bot de Twitch"""
+class KickRaffle(db.Model):
+    """Sorteos del bot de Kick"""
     id = db.Column(db.Integer, primary_key=True)
     
-    config_id = db.Column(db.Integer, db.ForeignKey('twitch_bot_config.id'), nullable=False)
+    config_id = db.Column(db.Integer, db.ForeignKey('kick_bot_config.id'), nullable=False)
     
     title = db.Column(db.String(200), nullable=False)
     prize = db.Column(db.String(200), nullable=False)
@@ -1391,25 +1389,25 @@ class TwitchRaffle(db.Model):
     ended_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    participants = db.relationship('TwitchRaffleParticipant', backref='raffle', lazy=True, cascade='all, delete-orphan')
+    participants = db.relationship('KickRaffleParticipant', backref='raffle', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
-        return f'<TwitchRaffle {self.title}>'
+        return f'<KickRaffle {self.title}>'
 
 
-class TwitchRaffleParticipant(db.Model):
-    """Participantes de sorteos"""
+class KickRaffleParticipant(db.Model):
+    """Participantes de sorteos de Kick"""
     id = db.Column(db.Integer, primary_key=True)
     
-    raffle_id = db.Column(db.Integer, db.ForeignKey('twitch_raffle.id'), nullable=False)
+    raffle_id = db.Column(db.Integer, db.ForeignKey('kick_raffle.id'), nullable=False)
     
     username = db.Column(db.String(100), nullable=False)
     
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     __table_args__ = (
-        db.UniqueConstraint('raffle_id', 'username', name='unique_participant_per_raffle'),
+        db.UniqueConstraint('raffle_id', 'username', name='unique_kick_participant_per_raffle'),
     )
     
     def __repr__(self):
-        return f'<TwitchRaffleParticipant {self.username}>'
+        return f'<KickRaffleParticipant {self.username}>'

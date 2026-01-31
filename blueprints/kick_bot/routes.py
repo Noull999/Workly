@@ -1,23 +1,61 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app import db
-from models import TwitchBotConfig, TwitchBotCommand, TwitchRaffle, TwitchRaffleParticipant, StreamerConfig
+from models import KickBotConfig, KickBotCommand, KickRaffle, KickRaffleParticipant, StreamerConfig
 from datetime import datetime
+from functools import wraps
 import random
 import json
 import os
+import hashlib
+import hmac
 
-from . import twitch_bot
+from . import kick_bot
+
+COMMAND_COOLDOWNS = {}
+
+def get_bot_api_secret():
+    """Obtener el secreto de API del bot desde variables de entorno"""
+    return os.environ.get('KICK_BOT_API_SECRET', 'default-dev-secret')
 
 
-@twitch_bot.route('/admin')
+def validate_api_request(f):
+    """Decorador para validar requests de API del bot"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        api_secret = request.headers.get('X-Bot-Secret', '')
+        expected_secret = get_bot_api_secret()
+        
+        if not hmac.compare_digest(api_secret, expected_secret):
+            return jsonify({'error': 'Unauthorized'}), 401
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def check_cooldown(config_id, command, cooldown_seconds):
+    """Verificar si el comando está en cooldown"""
+    key = f"{config_id}:{command}"
+    now = datetime.utcnow()
+    
+    if key in COMMAND_COOLDOWNS:
+        last_used = COMMAND_COOLDOWNS[key]
+        diff = (now - last_used).total_seconds()
+        if diff < cooldown_seconds:
+            return False
+    
+    COMMAND_COOLDOWNS[key] = now
+    return True
+
+
+@kick_bot.route('/admin')
 @login_required
 def admin_panel():
-    """Panel de administración del bot de Twitch"""
-    config = TwitchBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    """Panel de administración del bot de Kick"""
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
     
     if not config:
-        config = TwitchBotConfig(
+        config = KickBotConfig(
             streamer_email=current_user.email,
             channel_name=current_user.username,
             is_active=False
@@ -27,11 +65,11 @@ def admin_panel():
         
         default_commands = [
             ('comandos', 'Lista de comandos: !redes, !discord, !wager, !top, !sorteo'),
-            ('redes', 'Sígueme en todas mis redes: Twitter, Instagram, TikTok'),
+            ('redes', 'Sígueme en todas mis redes sociales'),
             ('discord', 'Únete a nuestro Discord: https://discord.gg/yanglee'),
         ]
         for cmd, resp in default_commands:
-            command = TwitchBotCommand(
+            command = KickBotCommand(
                 config_id=config.id,
                 command=cmd,
                 response=resp
@@ -39,59 +77,59 @@ def admin_panel():
             db.session.add(command)
         db.session.commit()
     
-    commands = TwitchBotCommand.query.filter_by(config_id=config.id).all()
-    raffles = TwitchRaffle.query.filter_by(config_id=config.id).order_by(TwitchRaffle.created_at.desc()).limit(10).all()
-    active_raffle = TwitchRaffle.query.filter_by(config_id=config.id, is_active=True).first()
+    commands = KickBotCommand.query.filter_by(config_id=config.id).all()
+    raffles = KickRaffle.query.filter_by(config_id=config.id).order_by(KickRaffle.created_at.desc()).limit(10).all()
+    active_raffle = KickRaffle.query.filter_by(config_id=config.id, is_active=True).first()
     
-    return render_template('twitch_bot/admin.html', 
+    return render_template('kick_bot/admin.html', 
                            config=config, 
                            commands=commands, 
                            raffles=raffles,
                            active_raffle=active_raffle)
 
 
-@twitch_bot.route('/config/update', methods=['POST'])
+@kick_bot.route('/config/update', methods=['POST'])
 @login_required
 def update_config():
     """Actualizar configuración del bot"""
-    config = TwitchBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
     if not config:
         flash('Configuración no encontrada', 'error')
-        return redirect(url_for('twitch_bot.admin_panel'))
+        return redirect(url_for('kick_bot.admin_panel'))
     
     config.channel_name = request.form.get('channel_name', config.channel_name)
+    config.channel_id = request.form.get('channel_id') or config.channel_id
     config.is_active = request.form.get('is_active') == 'on'
-    config.oauth_token = request.form.get('oauth_token') or config.oauth_token
     
     db.session.commit()
     flash('Configuración actualizada correctamente', 'success')
-    return redirect(url_for('twitch_bot.admin_panel'))
+    return redirect(url_for('kick_bot.admin_panel'))
 
 
-@twitch_bot.route('/command/add', methods=['POST'])
+@kick_bot.route('/command/add', methods=['POST'])
 @login_required
 def add_command():
     """Agregar nuevo comando"""
-    config = TwitchBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
     if not config:
         flash('Configuración no encontrada', 'error')
-        return redirect(url_for('twitch_bot.admin_panel'))
+        return redirect(url_for('kick_bot.admin_panel'))
     
     command_name = request.form.get('command', '').strip().lower()
     response = request.form.get('response', '').strip()
     
     if not command_name or not response:
         flash('Comando y respuesta son requeridos', 'error')
-        return redirect(url_for('twitch_bot.admin_panel'))
+        return redirect(url_for('kick_bot.admin_panel'))
     
     command_name = command_name.lstrip('!')
     
-    existing = TwitchBotCommand.query.filter_by(config_id=config.id, command=command_name).first()
+    existing = KickBotCommand.query.filter_by(config_id=config.id, command=command_name).first()
     if existing:
         flash(f'El comando !{command_name} ya existe', 'error')
-        return redirect(url_for('twitch_bot.admin_panel'))
+        return redirect(url_for('kick_bot.admin_panel'))
     
-    command = TwitchBotCommand(
+    command = KickBotCommand(
         config_id=config.id,
         command=command_name,
         response=response,
@@ -101,58 +139,62 @@ def add_command():
     db.session.commit()
     
     flash(f'Comando !{command_name} creado correctamente', 'success')
-    return redirect(url_for('twitch_bot.admin_panel'))
+    return redirect(url_for('kick_bot.admin_panel'))
 
 
-@twitch_bot.route('/command/<int:command_id>/delete', methods=['POST'])
+@kick_bot.route('/command/<int:command_id>/delete', methods=['POST'])
 @login_required
 def delete_command(command_id):
     """Eliminar comando"""
-    command = TwitchBotCommand.query.get_or_404(command_id)
-    config = TwitchBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    command = KickBotCommand.query.get_or_404(command_id)
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
     
     if command.config_id != config.id:
         flash('No tienes permiso para eliminar este comando', 'error')
-        return redirect(url_for('twitch_bot.admin_panel'))
+        return redirect(url_for('kick_bot.admin_panel'))
     
     db.session.delete(command)
     db.session.commit()
     
     flash(f'Comando !{command.command} eliminado', 'success')
-    return redirect(url_for('twitch_bot.admin_panel'))
+    return redirect(url_for('kick_bot.admin_panel'))
 
 
-@twitch_bot.route('/command/<int:command_id>/toggle', methods=['POST'])
+@kick_bot.route('/command/<int:command_id>/edit', methods=['POST'])
 @login_required
-def toggle_command(command_id):
-    """Activar/desactivar comando"""
-    command = TwitchBotCommand.query.get_or_404(command_id)
-    config = TwitchBotConfig.query.filter_by(streamer_email=current_user.email).first()
+def edit_command(command_id):
+    """Editar comando existente"""
+    command = KickBotCommand.query.get_or_404(command_id)
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
     
     if command.config_id != config.id:
-        return jsonify({'error': 'No autorizado'}), 403
+        flash('No autorizado', 'error')
+        return redirect(url_for('kick_bot.admin_panel'))
     
-    command.is_active = not command.is_active
+    command.response = request.form.get('response', command.response)
+    command.cooldown_seconds = int(request.form.get('cooldown', 5))
+    command.is_active = request.form.get('is_active') == 'on'
+    
     db.session.commit()
-    
-    return jsonify({'success': True, 'is_active': command.is_active})
+    flash(f'Comando !{command.command} actualizado', 'success')
+    return redirect(url_for('kick_bot.admin_panel'))
 
 
-@twitch_bot.route('/raffle/create', methods=['POST'])
+@kick_bot.route('/raffle/create', methods=['POST'])
 @login_required
 def create_raffle():
     """Crear nuevo sorteo"""
-    config = TwitchBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
     if not config:
         flash('Configuración no encontrada', 'error')
-        return redirect(url_for('twitch_bot.admin_panel'))
+        return redirect(url_for('kick_bot.admin_panel'))
     
-    active = TwitchRaffle.query.filter_by(config_id=config.id, is_active=True).first()
+    active = KickRaffle.query.filter_by(config_id=config.id, is_active=True).first()
     if active:
         flash('Ya hay un sorteo activo. Finálizalo primero.', 'error')
-        return redirect(url_for('twitch_bot.admin_panel'))
+        return redirect(url_for('kick_bot.admin_panel'))
     
-    raffle = TwitchRaffle(
+    raffle = KickRaffle(
         config_id=config.id,
         title=request.form.get('title', 'Sorteo'),
         prize=request.form.get('prize', 'Premio'),
@@ -164,21 +206,21 @@ def create_raffle():
     db.session.commit()
     
     flash(f'Sorteo "{raffle.title}" iniciado. Los usuarios pueden participar con !{raffle.keyword}', 'success')
-    return redirect(url_for('twitch_bot.admin_panel'))
+    return redirect(url_for('kick_bot.admin_panel'))
 
 
-@twitch_bot.route('/raffle/<int:raffle_id>/end', methods=['POST'])
+@kick_bot.route('/raffle/<int:raffle_id>/end', methods=['POST'])
 @login_required
 def end_raffle(raffle_id):
     """Finalizar sorteo y elegir ganador"""
-    raffle = TwitchRaffle.query.get_or_404(raffle_id)
-    config = TwitchBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    raffle = KickRaffle.query.get_or_404(raffle_id)
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
     
     if raffle.config_id != config.id:
         flash('No autorizado', 'error')
-        return redirect(url_for('twitch_bot.admin_panel'))
+        return redirect(url_for('kick_bot.admin_panel'))
     
-    participants = TwitchRaffleParticipant.query.filter_by(raffle_id=raffle.id).all()
+    participants = KickRaffleParticipant.query.filter_by(raffle_id=raffle.id).all()
     
     if participants:
         winner = random.choice(participants)
@@ -195,12 +237,34 @@ def end_raffle(raffle_id):
     else:
         flash('Sorteo finalizado sin participantes.', 'warning')
     
-    return redirect(url_for('twitch_bot.admin_panel'))
+    return redirect(url_for('kick_bot.admin_panel'))
 
 
-@twitch_bot.route('/api/bot-response', methods=['POST'])
-def bot_response():
-    """API endpoint para que el bot consulte respuestas a comandos"""
+@kick_bot.route('/raffle/<int:raffle_id>/participants')
+@login_required
+def raffle_participants(raffle_id):
+    """Ver participantes de un sorteo"""
+    raffle = KickRaffle.query.get_or_404(raffle_id)
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    
+    if raffle.config_id != config.id:
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    participants = KickRaffleParticipant.query.filter_by(raffle_id=raffle.id).all()
+    return jsonify({
+        'raffle': raffle.title,
+        'count': len(participants),
+        'participants': [p.username for p in participants]
+    })
+
+
+@kick_bot.route('/api/command-response', methods=['POST'])
+@validate_api_request
+def command_response():
+    """API endpoint para consultar respuestas a comandos (usado por bot externo o webhook)
+    
+    Requiere header: X-Bot-Secret con el secreto configurado en KICK_BOT_API_SECRET
+    """
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data'}), 400
@@ -209,31 +273,44 @@ def bot_response():
     command = data.get('command', '').lower().lstrip('!')
     username = data.get('username', '')
     
-    config = TwitchBotConfig.query.filter(
-        db.func.lower(TwitchBotConfig.channel_name) == channel,
-        TwitchBotConfig.is_active == True
+    if not channel or not command:
+        return jsonify({'error': 'Missing channel or command'}), 400
+    
+    if not username:
+        return jsonify({'error': 'Missing username'}), 400
+    
+    config = KickBotConfig.query.filter(
+        db.func.lower(KickBotConfig.channel_name) == channel,
+        KickBotConfig.is_active == True
     ).first()
     
     if not config:
         return jsonify({'response': None})
     
     if command == 'wager' or command == 'top':
+        if not check_cooldown(config.id, command, 10):
+            return jsonify({'response': None, 'cooldown': True})
         return get_wager_response(config, command, username)
     
     if command == 'sorteo':
+        if not check_cooldown(config.id, command, 5):
+            return jsonify({'response': None, 'cooldown': True})
         return get_raffle_info(config)
     
-    active_raffle = TwitchRaffle.query.filter_by(config_id=config.id, is_active=True).first()
+    active_raffle = KickRaffle.query.filter_by(config_id=config.id, is_active=True).first()
     if active_raffle and command == active_raffle.keyword:
         return join_raffle(active_raffle, username)
     
-    cmd = TwitchBotCommand.query.filter_by(
+    cmd = KickBotCommand.query.filter_by(
         config_id=config.id,
         command=command,
         is_active=True
     ).first()
     
     if cmd:
+        if not check_cooldown(config.id, command, cmd.cooldown_seconds):
+            return jsonify({'response': None, 'cooldown': True})
+        
         cmd.use_count += 1
         cmd.last_used_at = datetime.utcnow()
         db.session.commit()
@@ -278,10 +355,10 @@ def get_wager_response(config, command, username):
 
 def get_raffle_info(config):
     """Obtener información del sorteo activo"""
-    active = TwitchRaffle.query.filter_by(config_id=config.id, is_active=True).first()
+    active = KickRaffle.query.filter_by(config_id=config.id, is_active=True).first()
     
     if active:
-        participant_count = TwitchRaffleParticipant.query.filter_by(raffle_id=active.id).count()
+        participant_count = KickRaffleParticipant.query.filter_by(raffle_id=active.id).count()
         return jsonify({
             'response': f'Sorteo activo: "{active.title}" - Premio: {active.prize} - Participantes: {participant_count} - Escribe !{active.keyword} para participar'
         })
@@ -291,7 +368,7 @@ def get_raffle_info(config):
 
 def join_raffle(raffle, username):
     """Unirse a un sorteo"""
-    existing = TwitchRaffleParticipant.query.filter_by(
+    existing = KickRaffleParticipant.query.filter_by(
         raffle_id=raffle.id,
         username=username
     ).first()
@@ -299,12 +376,34 @@ def join_raffle(raffle, username):
     if existing:
         return jsonify({'response': f'@{username} ya estás participando en el sorteo.'})
     
-    participant = TwitchRaffleParticipant(
+    participant = KickRaffleParticipant(
         raffle_id=raffle.id,
         username=username
     )
     db.session.add(participant)
     db.session.commit()
     
-    count = TwitchRaffleParticipant.query.filter_by(raffle_id=raffle.id).count()
+    count = KickRaffleParticipant.query.filter_by(raffle_id=raffle.id).count()
     return jsonify({'response': f'@{username} te has unido al sorteo. Participantes: {count}'})
+
+
+@kick_bot.route('/api/commands/<channel>')
+def get_commands(channel):
+    """API para obtener lista de comandos de un canal"""
+    config = KickBotConfig.query.filter(
+        db.func.lower(KickBotConfig.channel_name) == channel.lower(),
+        KickBotConfig.is_active == True
+    ).first()
+    
+    if not config:
+        return jsonify({'commands': []})
+    
+    commands = KickBotCommand.query.filter_by(config_id=config.id, is_active=True).all()
+    
+    system_commands = ['!wager', '!top', '!sorteo']
+    custom_commands = [f'!{cmd.command}' for cmd in commands]
+    
+    return jsonify({
+        'channel': channel,
+        'commands': system_commands + custom_commands
+    })
