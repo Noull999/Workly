@@ -23,7 +23,20 @@ logger = logging.getLogger('KickChatBot')
 KICK_PUSHER_KEY = "32cbd69e4b950bf97679"
 KICK_PUSHER_CLUSTER = "us2"
 
-API_BASE_URL = os.environ.get('API_BASE_URL', 'http://localhost:5000')
+def get_api_base_url():
+    """Detecta la URL base de la API automáticamente"""
+    if os.environ.get('API_BASE_URL'):
+        return os.environ.get('API_BASE_URL')
+    
+    repl_slug = os.environ.get('REPL_SLUG')
+    repl_owner = os.environ.get('REPL_OWNER')
+    
+    if repl_slug and repl_owner:
+        return f"https://{repl_slug}.{repl_owner}.repl.co"
+    
+    return 'http://localhost:5000'
+
+API_BASE_URL = get_api_base_url()
 BOT_API_SECRET = os.environ.get('KICK_BOT_API_SECRET')
 if not BOT_API_SECRET:
     logger.warning("KICK_BOT_API_SECRET no configurado - usando modo desarrollo")
