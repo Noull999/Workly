@@ -1,7 +1,8 @@
 from flask import render_template, redirect, url_for, flash, request, session
 from datetime import datetime, timedelta
+import calendar
 from . import public
-from models import Company, Service, Appointment, User, PublicPage
+from models import Company, Service, Appointment, User, PublicPage, WagerRaceSnapshot
 from forms import PublicAppointmentForm
 from app import db
 import json
@@ -17,6 +18,62 @@ _wager_race_cache = {
 
 STAKE_CSV_URL = "https://app.trevor.io/share/view/6d12c9ec-8941-43a8-ba73-15cafbe6bb30/1d/YANGLEELOL_Affiliate_Stake_com_Wager_Race_Statistics_Auto_Update_Current_Past_Month.csv?seed=32"
 CACHE_DURATION = timedelta(minutes=5)
+
+def save_wager_race_snapshot(period_data, period_date_str):
+    """Guarda un snapshot del wager race al final del mes"""
+    try:
+        # Parsear la fecha del período (formato: YYYY-MM-DD)
+        period_date = datetime.strptime(period_date_str.split()[0], '%Y-%m-%d')
+        year = period_date.year
+        month = period_date.month
+        
+        # Verificar si ya existe un snapshot para este mes
+        existing = WagerRaceSnapshot.query.filter_by(
+            period_year=year,
+            period_month=month
+        ).first()
+        
+        if existing:
+            print(f"📦 SNAPSHOT: Ya existe snapshot para {year}-{month:02d}")
+            return False
+        
+        # Guardar cada entrada del período
+        saved_count = 0
+        for entry in period_data:
+            snapshot = WagerRaceSnapshot(
+                period_year=year,
+                period_month=month,
+                username=entry['username'],
+                wagered=entry['wagered'],
+                rank=entry['rank']
+            )
+            db.session.add(snapshot)
+            saved_count += 1
+        
+        db.session.commit()
+        print(f"✅ SNAPSHOT: Guardado {saved_count} entradas para {year}-{month:02d}")
+        return True
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ SNAPSHOT: Error guardando snapshot: {e}")
+        return False
+
+def check_and_save_month_end_snapshot(previous_period, previous_date_str):
+    """Verifica si el mes anterior terminó y guarda el snapshot"""
+    try:
+        now = datetime.now()
+        
+        # Parsear la fecha del período anterior
+        prev_date = datetime.strptime(previous_date_str.split()[0], '%Y-%m-%d')
+        
+        # Si estamos en un mes diferente al período anterior, guardar snapshot
+        if now.year != prev_date.year or now.month != prev_date.month:
+            print(f"🔄 SNAPSHOT: Detectado cambio de mes, guardando datos de {prev_date.year}-{prev_date.month:02d}")
+            save_wager_race_snapshot(previous_period, previous_date_str)
+            
+    except Exception as e:
+        print(f"⚠️ SNAPSHOT: Error verificando fin de mes: {e}")
 
 def get_wager_race_data():
     """Obtiene y parsea los datos del CSV de Stake Wager Race con cache"""
@@ -95,6 +152,10 @@ def get_wager_race_data():
         print(f"📊 WAGER RACE: CSV procesado - {processed_rows}/{total_rows} filas válidas")
         print(f"✅ WAGER RACE: Período actual: {sorted_periods[0] if sorted_periods else 'N/A'} ({len(current_period)} entradas)")
         print(f"✅ WAGER RACE: Período anterior: {sorted_periods[1] if len(sorted_periods) > 1 else 'N/A'} ({len(previous_period)} entradas)")
+        
+        # Guardar snapshot del mes anterior si corresponde
+        if len(sorted_periods) > 1 and previous_period:
+            check_and_save_month_end_snapshot(previous_period, sorted_periods[1])
         
         result = {
             'current': current_period,

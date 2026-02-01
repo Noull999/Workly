@@ -1411,3 +1411,24 @@ class KickRaffleParticipant(db.Model):
     
     def __repr__(self):
         return f'<KickRaffleParticipant {self.username}>'
+
+
+class WagerRaceSnapshot(db.Model):
+    """Snapshot mensual del Wager Race - guarda los datos del último día de cada mes"""
+    id = db.Column(db.Integer, primary_key=True)
+    
+    period_year = db.Column(db.Integer, nullable=False)
+    period_month = db.Column(db.Integer, nullable=False)
+    
+    username = db.Column(db.String(100), nullable=False)
+    wagered = db.Column(db.Float, nullable=False)
+    rank = db.Column(db.Integer, nullable=False)
+    
+    snapshot_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (
+        db.UniqueConstraint('period_year', 'period_month', 'username', name='unique_wager_snapshot'),
+    )
+    
+    def __repr__(self):
+        return f'<WagerRaceSnapshot {self.period_year}-{self.period_month} #{self.rank} {self.username}>'
