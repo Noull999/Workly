@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from . import tipeos_bp
 from .forms import TipeoUnificadoForm
 from app import db
-from models import TipeoAvailable, TipeoRequest, UserNotification, Viewer, User, RankPeriod, RankPeriodUser, StakeKickLink
+from models import TipeoAvailable, TipeoRequest, UserNotification, Viewer, User, RankPeriod, RankPeriodUser, StakeKickLink, KickRaffle
 from datetime import datetime
 from blueprints.public.routes import get_wager_race_data
 import os
@@ -469,7 +469,14 @@ def admin_solicitudes():
     
     solicitudes = TipeoRequest.query.order_by(TipeoRequest.created_at.desc()).all()
     
-    return render_template('tipeos/admin_solicitudes.html', solicitudes=solicitudes)
+    # Obtener premios de sorteo reclamados (pendientes de procesar)
+    premios_sorteo = KickRaffle.query.filter(
+        KickRaffle.prize_claimed == True,
+        KickRaffle.winner_stake_username.isnot(None),
+        KickRaffle.prize_processed == False
+    ).order_by(KickRaffle.claimed_at.desc()).all()
+    
+    return render_template('tipeos/admin_solicitudes.html', solicitudes=solicitudes, premios_sorteo=premios_sorteo)
 
 
 @tipeos_bp.route('/admin/aprobar/<int:request_id>', methods=['POST'])
@@ -509,6 +516,23 @@ def aprobar_tipeo(request_id):
     db.session.commit()
     
     return jsonify({'success': True, 'message': 'Tipeo aprobado y cuentas vinculadas'})
+
+
+@tipeos_bp.route('/admin/procesar-sorteo/<int:raffle_id>', methods=['POST'])
+@login_required
+def procesar_sorteo(raffle_id):
+    """Admin marca un premio de sorteo como procesado"""
+    if not is_streamer_or_admin():
+        return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
+    
+    raffle = KickRaffle.query.get_or_404(raffle_id)
+    
+    raffle.prize_processed = True
+    raffle.processed_at = datetime.utcnow()
+    raffle.processed_by_id = current_user.id
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Premio marcado como procesado'})
 
 
 @tipeos_bp.route('/admin/rechazar/<int:request_id>', methods=['POST'])

@@ -1409,6 +1409,10 @@ class KickRaffle(db.Model):
     winner_image2_path = db.Column(db.String(500), nullable=True)
     claimed_at = db.Column(db.DateTime, nullable=True)
     
+    prize_processed = db.Column(db.Boolean, default=False)
+    processed_at = db.Column(db.DateTime, nullable=True)
+    processed_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    
     started_at = db.Column(db.DateTime, nullable=True)
     ended_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
