@@ -30,12 +30,12 @@
         </li>
         <li class="nav-item">
             <a class="nav-link" data-status="submitted" href="#">
-                Pendientes <span class="badge bg-warning">{{ solicitudes|selectattr('status', 'equalto', 'submitted')|list|length + premios_sorteo|length }}</span>
+                Pendientes <span class="badge bg-warning">{{ solicitudes|selectattr('status', 'equalto', 'submitted')|list|length + premios_sorteo|rejectattr('prize_processed')|list|length }}</span>
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" data-status="completed" href="#">
-                Completadas <span class="badge bg-success">{{ solicitudes|selectattr('status', 'equalto', 'completed')|list|length }}</span>
+                Completadas <span class="badge bg-success">{{ solicitudes|selectattr('status', 'equalto', 'completed')|list|length + premios_sorteo|selectattr('prize_processed')|list|length }}</span>
             </a>
         </li>
         <li class="nav-item">
@@ -47,16 +47,22 @@
 
     <div class="row" id="solicitudesContainer">
         {% for premio in premios_sorteo %}
-        <div class="col-lg-6 col-xl-4 mb-4 solicitud-card" data-status="submitted">
-            <div class="card h-100 border-warning">
+        <div class="col-lg-6 col-xl-4 mb-4 solicitud-card" data-status="{{ 'completed' if premio.prize_processed else 'submitted' }}">
+            <div class="card h-100 border-{{ 'success' if premio.prize_processed else 'warning' }}">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>
                         <i class="fas fa-trophy text-warning me-2"></i>{{ premio.winner_kick_username }}
                     </span>
                     <div class="d-flex gap-2 align-items-center">
+                        {% if premio.prize_processed %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Completado
+                        </span>
+                        {% else %}
                         <span class="badge bg-warning">
                             <i class="fas fa-spinner fa-spin me-1"></i>Pendiente
                         </span>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card-body">
@@ -115,6 +121,14 @@
                     </div>
                 </div>
                 
+                {% if premio.prize_processed %}
+                <div class="card-footer bg-transparent">
+                    <div class="alert alert-success mb-0 py-2 small">
+                        <i class="fas fa-check-circle me-1"></i>
+                        Procesado el {{ premio.processed_at|chile_tz if premio.processed_at else 'N/A' }}
+                    </div>
+                </div>
+                {% else %}
                 <div class="card-footer bg-transparent">
                     <div class="d-flex gap-2">
                         <button class="btn btn-success btn-sm flex-grow-1 btn-aprobar-sorteo" data-id="{{ premio.id }}">
@@ -122,6 +136,7 @@
                         </button>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

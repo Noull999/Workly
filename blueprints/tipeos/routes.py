@@ -469,11 +469,10 @@ def admin_solicitudes():
     
     solicitudes = TipeoRequest.query.order_by(TipeoRequest.created_at.desc()).all()
     
-    # Obtener premios de sorteo reclamados (pendientes de procesar)
+    # Obtener premios de sorteo reclamados (todos, procesados y pendientes)
     premios_sorteo = KickRaffle.query.filter(
         KickRaffle.prize_claimed == True,
-        KickRaffle.winner_stake_username.isnot(None),
-        KickRaffle.prize_processed == False
+        KickRaffle.winner_stake_username.isnot(None)
     ).order_by(KickRaffle.claimed_at.desc()).all()
     
     return render_template('tipeos/admin_solicitudes.html', solicitudes=solicitudes, premios_sorteo=premios_sorteo)
