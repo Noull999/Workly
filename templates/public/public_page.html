@@ -4706,15 +4706,17 @@
                 .catch(error => console.error('Error verificando premio de sorteo:', error));
         }
         
+        let currentPrizeData = null;
+        
         function showRafflePrizeNotification(prizeData) {
             const existingNotif = document.getElementById('rafflePrizeNotification');
             if (existingNotif) return;
             
-            const claimUrl = `/kick-bot/claim-prize/${prizeData.claim_token}`;
+            currentPrizeData = prizeData;
             
             const notifHtml = `
                 <div id="rafflePrizeNotification" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50" style="animation: bounceNotif 2s infinite;">
-                    <div class="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-2xl p-6 shadow-2xl shadow-yellow-500/50 cursor-pointer max-w-md border-4 border-yellow-300" onclick="window.location.href='${claimUrl}';">
+                    <div class="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-2xl p-6 shadow-2xl shadow-yellow-500/50 cursor-pointer max-w-md border-4 border-yellow-300" onclick="openClaimPrizeModal()">
                         <div class="text-center">
                             <div class="text-6xl mb-3">🏆</div>
                             <div class="font-bold text-white text-2xl orbitron mb-2">¡FELICIDADES, GANADOR!</div>
@@ -4734,6 +4736,167 @@
             `;
             
             document.body.insertAdjacentHTML('beforeend', notifHtml);
+        }
+        
+        function openClaimPrizeModal() {
+            if (!currentPrizeData) return;
+            
+            const existingModal = document.getElementById('claimPrizeModal');
+            if (existingModal) existingModal.remove();
+            
+            const modalHtml = `
+                <div id="claimPrizeModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.95); backdrop-filter: blur(10px);">
+                    <div class="bg-gradient-to-b from-gray-900 to-black rounded-2xl border-2 border-yellow-500 max-w-lg w-full max-h-[90vh] overflow-y-auto" style="box-shadow: 0 0 60px rgba(255,193,7,0.4);">
+                        <div class="bg-gradient-to-r from-yellow-600 to-orange-600 p-4 rounded-t-2xl text-center relative">
+                            <button onclick="closeClaimPrizeModal()" class="absolute top-3 right-3 text-white/70 hover:text-white text-xl">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div class="text-5xl mb-2">🏆</div>
+                            <h2 class="text-2xl font-bold text-white orbitron">¡Felicidades, Ganador!</h2>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="text-center mb-6">
+                                <h3 class="text-xl font-bold text-white mb-2">${currentPrizeData.title}</h3>
+                                <p class="text-green-400 text-lg font-bold">
+                                    <i class="fas fa-gift mr-2"></i>Premio: ${currentPrizeData.prize}
+                                </p>
+                                <p class="text-gray-400 text-sm mt-2">
+                                    Usuario de Kick: <span class="text-cyan-400">${currentPrizeData.winner_username}</span>
+                                </p>
+                            </div>
+                            
+                            <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4 mb-6">
+                                <p class="text-cyan-300 text-sm">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <strong>Instrucciones:</strong> Completa el formulario con tus datos para recibir tu premio. 
+                                    Los tipeos se envían únicamente en red TRX (Tron).
+                                </p>
+                            </div>
+                            
+                            <form id="claimPrizeForm" enctype="multipart/form-data">
+                                <div class="mb-4">
+                                    <label class="block text-yellow-400 font-semibold mb-2">
+                                        <i class="fas fa-user mr-1"></i>Usuario de Stake *
+                                    </label>
+                                    <input type="text" name="stake_username" required 
+                                           class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-yellow-500 focus:outline-none"
+                                           placeholder="Tu username exacto de Stake">
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="block text-yellow-400 font-semibold mb-2">
+                                        <i class="fas fa-wallet mr-1"></i>Dirección TRX *
+                                    </label>
+                                    <input type="text" name="trx_address" required 
+                                           class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white font-mono focus:border-yellow-500 focus:outline-none"
+                                           placeholder="T..." pattern="^T[a-zA-Z0-9]{33}$" title="Debe empezar con T y tener 34 caracteres">
+                                    <p class="text-gray-500 text-xs mt-1">Debe empezar con T y tener 34 caracteres</p>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="block text-yellow-400 font-semibold mb-2">
+                                        <i class="fas fa-comment mr-1"></i>Comentarios (opcional)
+                                    </label>
+                                    <textarea name="comments" rows="2" 
+                                              class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-yellow-500 focus:outline-none"
+                                              placeholder="Información adicional..."></textarea>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label class="block text-yellow-400 font-semibold mb-2">
+                                            <i class="fas fa-image mr-1"></i>Captura Dirección TRX *
+                                        </label>
+                                        <input type="file" name="image_stake_user" accept="image/*" required
+                                               class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-500 focus:outline-none file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-yellow-600 file:text-white file:font-semibold file:cursor-pointer">
+                                        <p class="text-gray-500 text-xs mt-1">Tu dirección TRX en Stake</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-yellow-400 font-semibold mb-2">
+                                            <i class="fas fa-image mr-1"></i>Captura Código Patrocinador *
+                                        </label>
+                                        <input type="file" name="image_sponsor_code" accept="image/*" required
+                                               class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-500 focus:outline-none file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-yellow-600 file:text-white file:font-semibold file:cursor-pointer">
+                                        <p class="text-gray-500 text-xs mt-1">Mostrando código YANGLEE</p>
+                                    </div>
+                                </div>
+                                
+                                <div id="claimFormError" class="hidden mb-4 bg-red-500/20 border border-red-500 rounded-lg p-3 text-red-400 text-center"></div>
+                                
+                                <button type="submit" id="claimSubmitBtn" 
+                                        class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-4 rounded-xl hover:from-yellow-400 hover:to-orange-400 transition-all transform hover:scale-105 orbitron text-lg">
+                                    <i class="fas fa-paper-plane mr-2"></i>RECLAMAR PREMIO
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            document.getElementById('claimPrizeForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitClaimPrizeForm();
+            });
+        }
+        
+        function closeClaimPrizeModal() {
+            const modal = document.getElementById('claimPrizeModal');
+            if (modal) modal.remove();
+        }
+        
+        function submitClaimPrizeForm() {
+            if (!currentPrizeData) return;
+            
+            const form = document.getElementById('claimPrizeForm');
+            const submitBtn = document.getElementById('claimSubmitBtn');
+            const errorDiv = document.getElementById('claimFormError');
+            const originalHTML = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
+            errorDiv.classList.add('hidden');
+            
+            const formData = new FormData(form);
+            
+            fetch(`/kick-bot/api/claim-prize/${currentPrizeData.claim_token}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = document.getElementById('claimPrizeModal');
+                    if (modal) {
+                        modal.innerHTML = `
+                            <div class="bg-gradient-to-b from-gray-900 to-black rounded-2xl border-2 border-green-500 max-w-lg w-full p-8 text-center" style="box-shadow: 0 0 60px rgba(34,197,94,0.4);">
+                                <div class="text-7xl mb-4">✅</div>
+                                <h2 class="text-2xl font-bold text-white orbitron mb-4">¡Premio Reclamado!</h2>
+                                <p class="text-gray-300 mb-6">${data.message}</p>
+                                <button onclick="closeClaimPrizeModal(); document.getElementById('rafflePrizeNotification')?.remove();" 
+                                        class="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold py-3 px-8 rounded-xl hover:from-green-400 hover:to-emerald-400 transition-all">
+                                    <i class="fas fa-check mr-2"></i>Cerrar
+                                </button>
+                            </div>
+                        `;
+                    }
+                    currentPrizeData = null;
+                } else {
+                    errorDiv.textContent = data.error || 'Error al reclamar premio';
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorDiv.textContent = 'Error de conexión';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHTML;
+            });
         }
         
         function checkTipeoDisponible() {

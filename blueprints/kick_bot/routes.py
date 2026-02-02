@@ -711,3 +711,79 @@ def serve_claim_image(filename):
             return "No autorizado", 403
     
     return send_from_directory('uploads/raffle_claims', filename)
+
+
+@kick_bot.route('/api/claim-prize/<token>', methods=['POST'])
+@csrf.exempt
+def api_claim_prize(token):
+    """API endpoint para reclamar premio via AJAX desde la página pública"""
+    raffle = KickRaffle.query.filter_by(prize_claim_token=token, prize_claimed=False).first()
+    
+    if not raffle:
+        return jsonify({'success': False, 'error': 'Token de premio inválido o ya reclamado'}), 400
+    
+    stake_username = request.form.get('stake_username', '').strip()
+    trx_address = request.form.get('trx_address', '').strip()
+    
+    if not stake_username or not trx_address:
+        return jsonify({'success': False, 'error': 'Usuario de Stake y dirección TRX son requeridos'}), 400
+    
+    if not trx_address.startswith('T') or len(trx_address) != 34:
+        return jsonify({'success': False, 'error': 'Dirección TRX inválida. Debe empezar con T y tener 34 caracteres'}), 400
+    
+    file1 = request.files.get('image_stake_user')
+    file2 = request.files.get('image_sponsor_code')
+    
+    if not file1 or not file1.filename:
+        return jsonify({'success': False, 'error': 'La captura de dirección TRX es requerida'}), 400
+    
+    if not file2 or not file2.filename:
+        return jsonify({'success': False, 'error': 'La captura del código patrocinador es requerida'}), 400
+    
+    raffle.winner_stake_username = stake_username
+    raffle.winner_trx_address = trx_address
+    raffle.winner_comments = request.form.get('comments', '').strip()
+    
+    import os
+    
+    upload_folder = 'uploads/raffle_claims'
+    os.makedirs(upload_folder, exist_ok=True)
+    
+    if 'image_stake_user' in request.files:
+        file1 = request.files['image_stake_user']
+        if file1 and file1.filename:
+            if not allowed_file(file1.filename):
+                return jsonify({'success': False, 'error': 'Formato de imagen no permitido. Use PNG, JPG, JPEG, GIF o WEBP'}), 400
+            file1.seek(0, 2)
+            if file1.tell() > MAX_FILE_SIZE:
+                return jsonify({'success': False, 'error': 'La imagen es demasiado grande. Máximo 5MB'}), 400
+            file1.seek(0)
+            ext = file1.filename.rsplit('.', 1)[-1].lower()
+            filename1 = f"raffle_{raffle.id}_img1_{secrets.token_hex(8)}.{ext}"
+            filepath1 = os.path.join(upload_folder, filename1)
+            file1.save(filepath1)
+            raffle.winner_image1_path = filepath1
+    
+    if 'image_sponsor_code' in request.files:
+        file2 = request.files['image_sponsor_code']
+        if file2 and file2.filename:
+            if not allowed_file(file2.filename):
+                return jsonify({'success': False, 'error': 'Formato de imagen no permitido. Use PNG, JPG, JPEG, GIF o WEBP'}), 400
+            file2.seek(0, 2)
+            if file2.tell() > MAX_FILE_SIZE:
+                return jsonify({'success': False, 'error': 'La imagen es demasiado grande. Máximo 5MB'}), 400
+            file2.seek(0)
+            ext = file2.filename.rsplit('.', 1)[-1].lower()
+            filename2 = f"raffle_{raffle.id}_img2_{secrets.token_hex(8)}.{ext}"
+            filepath2 = os.path.join(upload_folder, filename2)
+            file2.save(filepath2)
+            raffle.winner_image2_path = filepath2
+    
+    raffle.prize_claimed = True
+    raffle.claimed_at = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify({
+        'success': True, 
+        'message': '¡Premio reclamado exitosamente! YANGLEE procesará tu tipeo pronto.'
+    })
