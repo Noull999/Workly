@@ -1397,6 +1397,17 @@ class KickRaffle(db.Model):
     keyword = db.Column(db.String(50), default='participar')
     
     winner_username = db.Column(db.String(100), nullable=True)
+    winner_kick_username = db.Column(db.String(100), nullable=True)
+    
+    prize_claimed = db.Column(db.Boolean, default=False)
+    prize_claim_token = db.Column(db.String(100), nullable=True)
+    
+    winner_stake_username = db.Column(db.String(100), nullable=True)
+    winner_trx_address = db.Column(db.String(50), nullable=True)
+    winner_comments = db.Column(db.Text, nullable=True)
+    winner_image1_path = db.Column(db.String(500), nullable=True)
+    winner_image2_path = db.Column(db.String(500), nullable=True)
+    claimed_at = db.Column(db.DateTime, nullable=True)
     
     started_at = db.Column(db.DateTime, nullable=True)
     ended_at = db.Column(db.DateTime, nullable=True)

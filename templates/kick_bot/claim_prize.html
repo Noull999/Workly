@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Reclamar Premio - {{ raffle.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card bg-dark border-warning">
+                <div class="card-header bg-warning bg-opacity-25 border-warning text-center">
+                    <h2 class="mb-0 text-warning">
+                        <i class="fas fa-crown me-2"></i>¡Felicidades, Ganador!
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-1 text-warning mb-3">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h3 class="text-white">{{ raffle.title }}</h3>
+                        <p class="lead text-success">
+                            <i class="fas fa-gift me-2"></i>Premio: {{ raffle.prize }}
+                        </p>
+                        <p class="text-muted">
+                            Usuario de Kick: <span class="text-info">{{ raffle.winner_kick_username }}</span>
+                        </p>
+                    </div>
+                    
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Instrucciones:</strong> Completa el formulario con tus datos para recibir tu premio. 
+                        Los tipeos se envían únicamente en red TRX (Tron).
+                    </div>
+                    
+                    <form action="{{ url_for('kick_bot.claim_prize', token=raffle.prize_claim_token) }}" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-warning">
+                                <i class="fas fa-user me-1"></i>Usuario de Stake *
+                            </label>
+                            <input type="text" class="form-control bg-dark border-secondary text-white" 
+                                   name="stake_username" required placeholder="Tu username exacto de Stake">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-warning">
+                                <i class="fas fa-wallet me-1"></i>Dirección TRX *
+                            </label>
+                            <input type="text" class="form-control bg-dark border-secondary text-white font-monospace" 
+                                   name="trx_address" required placeholder="T..." 
+                                   pattern="^T[a-zA-Z0-9]{33}$" title="Debe empezar con T y tener 34 caracteres">
+                            <small class="text-muted">Debe empezar con T y tener 34 caracteres</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-warning">
+                                <i class="fas fa-comment me-1"></i>Comentarios (opcional)
+                            </label>
+                            <textarea class="form-control bg-dark border-secondary text-white" 
+                                      name="comments" rows="3" placeholder="Información adicional..."></textarea>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-warning">
+                                    <i class="fas fa-image me-1"></i>Captura Dirección TRX *
+                                </label>
+                                <input type="file" class="form-control bg-dark border-secondary text-white" 
+                                       name="image_stake_user" accept="image/*" required>
+                                <small class="text-muted">Tu dirección TRX en Stake</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-warning">
+                                    <i class="fas fa-image me-1"></i>Captura Código Patrocinador *
+                                </label>
+                                <input type="file" class="form-control bg-dark border-secondary text-white" 
+                                       name="image_sponsor_code" accept="image/*" required>
+                                <small class="text-muted">Mostrando código YANGLEE</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Reclamar Premio
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

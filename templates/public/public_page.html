@@ -3758,6 +3758,7 @@
                 checkDailyVisit();
                 startAutoUpdates();
                 loadActiveRaffles();
+                checkRafflePrize();
                 
                 if (!localStorage.getItem('viewerId')) {
                     fetch('/kick/api/verify-username/' + encodeURIComponent(kickUsername))
@@ -3853,6 +3854,7 @@
                                         checkDailyVisit();
                                         startAutoUpdates();
                                         loadActiveRaffles();
+                                        checkRafflePrize();
                                         setTimeout(checkTipeoDisponible, 1000);
                                     }, stakeUsername && data.stake_verified ? 1500 : 0);
                                 } else {
@@ -4688,6 +4690,50 @@
                     resultDiv.classList.add('hidden');
                 }, 10000);
             }
+        }
+        
+        function checkRafflePrize() {
+            if (!kickUsername) return;
+            
+            fetch(`/kick-bot/api/check-winner/${encodeURIComponent(kickUsername)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.winner) {
+                        console.log('🏆 SORTEO: Usuario ganó un sorteo!', data);
+                        showRafflePrizeNotification(data);
+                    }
+                })
+                .catch(error => console.error('Error verificando premio de sorteo:', error));
+        }
+        
+        function showRafflePrizeNotification(prizeData) {
+            const existingNotif = document.getElementById('rafflePrizeNotification');
+            if (existingNotif) return;
+            
+            const claimUrl = `/kick-bot/claim-prize/${prizeData.claim_token}`;
+            
+            const notifHtml = `
+                <div id="rafflePrizeNotification" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50" style="animation: bounceNotif 2s infinite;">
+                    <div class="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-2xl p-6 shadow-2xl shadow-yellow-500/50 cursor-pointer max-w-md border-4 border-yellow-300" onclick="window.location.href='${claimUrl}';">
+                        <div class="text-center">
+                            <div class="text-6xl mb-3">🏆</div>
+                            <div class="font-bold text-white text-2xl orbitron mb-2">¡FELICIDADES, GANADOR!</div>
+                            <div class="text-yellow-100 text-lg mb-2">${prizeData.title}</div>
+                            <div class="bg-black/30 rounded-xl p-3 mb-3">
+                                <div class="text-white font-bold">Premio: ${prizeData.prize}</div>
+                            </div>
+                            <button class="bg-white text-orange-600 font-bold py-3 px-8 rounded-full hover:scale-105 transition-transform orbitron">
+                                <i class="fas fa-gift mr-2"></i>RECLAMAR PREMIO
+                            </button>
+                        </div>
+                        <button onclick="event.stopPropagation(); this.closest('#rafflePrizeNotification').remove();" class="absolute top-2 right-2 text-white/60 hover:text-white text-xl">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', notifHtml);
         }
         
         function checkTipeoDisponible() {

@@ -228,6 +228,8 @@ def end_raffle(raffle_id):
     if participants:
         winner = random.choice(participants)
         raffle.winner_username = winner.username
+        raffle.winner_kick_username = winner.username
+        raffle.prize_claim_token = secrets.token_urlsafe(32)
     else:
         raffle.winner_username = None
     
@@ -567,3 +569,145 @@ def api_get_token(channel):
         'token': config.kick_access_token,
         'expires_at': config.kick_token_expires_at.isoformat() if config.kick_token_expires_at else None
     })
+
+
+@kick_bot.route('/api/check-winner/<kick_username>')
+@csrf.exempt
+def api_check_winner(kick_username):
+    """API para verificar si un usuario de Kick ha ganado un sorteo pendiente de reclamar"""
+    pending_win = KickRaffle.query.filter(
+        KickRaffle.winner_kick_username.ilike(kick_username),
+        KickRaffle.prize_claimed == False,
+        KickRaffle.is_active == False
+    ).order_by(KickRaffle.ended_at.desc()).first()
+    
+    if pending_win:
+        return jsonify({
+            'winner': True,
+            'raffle_id': pending_win.id,
+            'title': pending_win.title,
+            'prize': pending_win.prize,
+            'claim_token': pending_win.prize_claim_token,
+            'winner_username': pending_win.winner_kick_username,
+            'ended_at': pending_win.ended_at.isoformat() if pending_win.ended_at else None
+        })
+    
+    return jsonify({'winner': False})
+
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@kick_bot.route('/claim-prize/<token>', methods=['GET', 'POST'])
+def claim_prize(token):
+    """Página para que el ganador reclame su premio"""
+    raffle = KickRaffle.query.filter_by(prize_claim_token=token, prize_claimed=False).first()
+    
+    if not raffle:
+        flash('Token de premio inválido o ya reclamado', 'error')
+        return redirect(url_for('public.public_page', streamer='yanglee'))
+    
+    if request.method == 'POST':
+        stake_username = request.form.get('stake_username', '').strip()
+        trx_address = request.form.get('trx_address', '').strip()
+        
+        if not stake_username or not trx_address:
+            flash('Usuario de Stake y dirección TRX son requeridos', 'error')
+            return render_template('kick_bot/claim_prize.html', raffle=raffle)
+        
+        if not trx_address.startswith('T') or len(trx_address) != 34:
+            flash('Dirección TRX inválida. Debe empezar con T y tener 34 caracteres', 'error')
+            return render_template('kick_bot/claim_prize.html', raffle=raffle)
+        
+        raffle.winner_stake_username = stake_username
+        raffle.winner_trx_address = trx_address
+        raffle.winner_comments = request.form.get('comments', '').strip()
+        
+        import os
+        
+        upload_folder = 'uploads/raffle_claims'
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        if 'image_stake_user' in request.files:
+            file1 = request.files['image_stake_user']
+            if file1 and file1.filename:
+                if not allowed_file(file1.filename):
+                    flash('Formato de imagen no permitido. Use PNG, JPG, JPEG, GIF o WEBP', 'error')
+                    return render_template('kick_bot/claim_prize.html', raffle=raffle)
+                file1.seek(0, 2)
+                if file1.tell() > MAX_FILE_SIZE:
+                    flash('La imagen es demasiado grande. Máximo 5MB', 'error')
+                    return render_template('kick_bot/claim_prize.html', raffle=raffle)
+                file1.seek(0)
+                ext = file1.filename.rsplit('.', 1)[-1].lower()
+                filename1 = f"raffle_{raffle.id}_img1_{secrets.token_hex(8)}.{ext}"
+                filepath1 = os.path.join(upload_folder, filename1)
+                file1.save(filepath1)
+                raffle.winner_image1_path = filepath1
+        
+        if 'image_sponsor_code' in request.files:
+            file2 = request.files['image_sponsor_code']
+            if file2 and file2.filename:
+                if not allowed_file(file2.filename):
+                    flash('Formato de imagen no permitido. Use PNG, JPG, JPEG, GIF o WEBP', 'error')
+                    return render_template('kick_bot/claim_prize.html', raffle=raffle)
+                file2.seek(0, 2)
+                if file2.tell() > MAX_FILE_SIZE:
+                    flash('La imagen es demasiado grande. Máximo 5MB', 'error')
+                    return render_template('kick_bot/claim_prize.html', raffle=raffle)
+                file2.seek(0)
+                ext = file2.filename.rsplit('.', 1)[-1].lower()
+                filename2 = f"raffle_{raffle.id}_img2_{secrets.token_hex(8)}.{ext}"
+                filepath2 = os.path.join(upload_folder, filename2)
+                file2.save(filepath2)
+                raffle.winner_image2_path = filepath2
+        
+        raffle.prize_claimed = True
+        raffle.claimed_at = datetime.utcnow()
+        db.session.commit()
+        
+        flash('¡Premio reclamado exitosamente! YANGLEE procesará tu tipeo pronto.', 'success')
+        return redirect(url_for('public.public_page', streamer='yanglee'))
+    
+    return render_template('kick_bot/claim_prize.html', raffle=raffle)
+
+
+@kick_bot.route('/admin/pending-claims')
+@login_required
+def pending_claims():
+    """Ver premios pendientes de procesar"""
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    if not config:
+        flash('Configuración no encontrada', 'error')
+        return redirect(url_for('kick_bot.admin_panel'))
+    
+    claims = KickRaffle.query.filter(
+        KickRaffle.config_id == config.id,
+        KickRaffle.prize_claimed == True,
+        KickRaffle.winner_stake_username.isnot(None)
+    ).order_by(KickRaffle.claimed_at.desc()).all()
+    
+    return render_template('kick_bot/pending_claims.html', claims=claims, config=config)
+
+
+@kick_bot.route('/claim-image/<path:filename>')
+@login_required
+def serve_claim_image(filename):
+    """Servir imágenes de claims solo a usuarios autorizados"""
+    from flask import send_from_directory
+    
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    if not config:
+        return "No autorizado", 403
+    
+    raffle_id = filename.split('_')[1] if filename.startswith('raffle_') else None
+    if raffle_id:
+        raffle = KickRaffle.query.get(int(raffle_id))
+        if raffle and raffle.config_id != config.id:
+            return "No autorizado", 403
+    
+    return send_from_directory('uploads/raffle_claims', filename)
