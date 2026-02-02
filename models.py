@@ -1339,11 +1339,24 @@ class KickBotConfig(db.Model):
     
     is_active = db.Column(db.Boolean, default=True)
     
+    kick_access_token = db.Column(db.String(500), nullable=True)
+    kick_refresh_token = db.Column(db.String(500), nullable=True)
+    kick_token_expires_at = db.Column(db.DateTime, nullable=True)
+    kick_user_id = db.Column(db.String(100), nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     commands = db.relationship('KickBotCommand', backref='config', lazy=True, cascade='all, delete-orphan')
     raffles = db.relationship('KickRaffle', backref='config', lazy=True, cascade='all, delete-orphan')
+    
+    def has_valid_token(self):
+        """Verificar si tiene un token OAuth válido"""
+        if not self.kick_access_token:
+            return False
+        if self.kick_token_expires_at and self.kick_token_expires_at < datetime.utcnow():
+            return False
+        return True
     
     def __repr__(self):
         return f'<KickBotConfig {self.channel_name}>'

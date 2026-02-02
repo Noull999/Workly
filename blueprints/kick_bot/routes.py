@@ -1,14 +1,17 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import login_required, current_user
 from app import db
 from models import KickBotConfig, KickBotCommand, KickRaffle, KickRaffleParticipant, StreamerConfig
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 import random
 import json
 import os
 import hashlib
 import hmac
+import requests
+import secrets
+import base64
 
 from . import kick_bot
 
@@ -409,4 +412,158 @@ def get_commands(channel):
     return jsonify({
         'channel': channel,
         'commands': system_commands + custom_commands
+    })
+
+
+KICK_OAUTH_AUTHORIZE_URL = "https://id.kick.com/oauth/authorize"
+KICK_OAUTH_TOKEN_URL = "https://id.kick.com/oauth/token"
+
+def get_kick_oauth_config():
+    """Obtener configuración OAuth de Kick desde variables de entorno"""
+    return {
+        'client_id': os.environ.get('KICK_BOT_CLIENT_ID'),
+        'client_secret': os.environ.get('KICK_BOT_CLIENT_SECRET'),
+        'redirect_uri': os.environ.get('KICK_REDIRECT_URI', 'https://workly.joseestebanasen.repl.app/kick-bot/oauth/callback')
+    }
+
+
+@kick_bot.route('/oauth/authorize')
+@login_required
+def oauth_authorize():
+    """Iniciar flujo OAuth con Kick"""
+    oauth_config = get_kick_oauth_config()
+    
+    if not oauth_config['client_id']:
+        flash('Error: Client ID de Kick no configurado', 'error')
+        return redirect(url_for('kick_bot.admin_panel'))
+    
+    state = secrets.token_urlsafe(32)
+    session['kick_oauth_state'] = state
+    
+    code_verifier = secrets.token_urlsafe(64)
+    session['kick_code_verifier'] = code_verifier
+    
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode()).digest()
+    ).decode().rstrip('=')
+    
+    scopes = "user:read channel:read chat:write"
+    
+    auth_url = (
+        f"{KICK_OAUTH_AUTHORIZE_URL}"
+        f"?client_id={oauth_config['client_id']}"
+        f"&redirect_uri={oauth_config['redirect_uri']}"
+        f"&response_type=code"
+        f"&scope={scopes}"
+        f"&state={state}"
+        f"&code_challenge={code_challenge}"
+        f"&code_challenge_method=S256"
+    )
+    
+    return redirect(auth_url)
+
+
+@kick_bot.route('/oauth/callback')
+@login_required
+def oauth_callback():
+    """Callback de OAuth de Kick"""
+    error = request.args.get('error')
+    if error:
+        flash(f'Error de autorización: {error}', 'error')
+        return redirect(url_for('kick_bot.admin_panel'))
+    
+    code = request.args.get('code')
+    state = request.args.get('state')
+    
+    if not code:
+        flash('No se recibió código de autorización', 'error')
+        return redirect(url_for('kick_bot.admin_panel'))
+    
+    stored_state = session.pop('kick_oauth_state', None)
+    if state != stored_state:
+        flash('Estado de OAuth inválido', 'error')
+        return redirect(url_for('kick_bot.admin_panel'))
+    
+    code_verifier = session.pop('kick_code_verifier', None)
+    if not code_verifier:
+        flash('Code verifier no encontrado', 'error')
+        return redirect(url_for('kick_bot.admin_panel'))
+    
+    oauth_config = get_kick_oauth_config()
+    
+    try:
+        token_response = requests.post(
+            KICK_OAUTH_TOKEN_URL,
+            data={
+                'grant_type': 'authorization_code',
+                'client_id': oauth_config['client_id'],
+                'client_secret': oauth_config['client_secret'],
+                'code': code,
+                'redirect_uri': oauth_config['redirect_uri'],
+                'code_verifier': code_verifier
+            },
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            timeout=30
+        )
+        
+        if token_response.status_code != 200:
+            print(f"❌ KICK OAUTH: Error {token_response.status_code}: {token_response.text}")
+            flash(f'Error obteniendo token: {token_response.status_code}', 'error')
+            return redirect(url_for('kick_bot.admin_panel'))
+        
+        token_data = token_response.json()
+        
+        config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
+        if not config:
+            flash('Configuración del bot no encontrada', 'error')
+            return redirect(url_for('kick_bot.admin_panel'))
+        
+        config.kick_access_token = token_data.get('access_token')
+        config.kick_refresh_token = token_data.get('refresh_token')
+        
+        expires_in = token_data.get('expires_in', 3600)
+        config.kick_token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+        
+        db.session.commit()
+        
+        print(f"✅ KICK OAUTH: Token guardado para {config.channel_name}")
+        flash('Bot autorizado correctamente. Ahora puede escribir en el chat.', 'success')
+        
+    except Exception as e:
+        print(f"❌ KICK OAUTH: Error: {e}")
+        flash(f'Error en OAuth: {str(e)}', 'error')
+    
+    return redirect(url_for('kick_bot.admin_panel'))
+
+
+@kick_bot.route('/oauth/revoke', methods=['POST'])
+@login_required
+def oauth_revoke():
+    """Revocar autorización OAuth"""
+    config = KickBotConfig.query.filter_by(streamer_email=current_user.email).first()
+    if config:
+        config.kick_access_token = None
+        config.kick_refresh_token = None
+        config.kick_token_expires_at = None
+        config.kick_user_id = None
+        db.session.commit()
+        flash('Autorización revocada correctamente', 'success')
+    return redirect(url_for('kick_bot.admin_panel'))
+
+
+@kick_bot.route('/api/get-token/<channel>')
+@validate_api_request
+def api_get_token(channel):
+    """API interna para que el bot obtenga el token OAuth"""
+    config = KickBotConfig.query.filter_by(channel_name=channel).first()
+    
+    if not config or not config.kick_access_token:
+        return jsonify({'token': None, 'error': 'No token available'})
+    
+    if config.kick_token_expires_at and config.kick_token_expires_at < datetime.utcnow():
+        return jsonify({'token': None, 'error': 'Token expired'})
+    
+    return jsonify({
+        'token': config.kick_access_token,
+        'expires_at': config.kick_token_expires_at.isoformat() if config.kick_token_expires_at else None
     })

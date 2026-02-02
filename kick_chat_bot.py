@@ -113,19 +113,54 @@ class KickChatBot:
         
         return None
     
+    def get_oauth_token(self):
+        """Obtener el token OAuth desde nuestra API"""
+        try:
+            url = f"{API_BASE_URL}/kick-bot/api/get-token/{self.channel_username}"
+            headers = {'X-Bot-Secret': BOT_API_SECRET}
+            response = requests.get(url, headers=headers, timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data.get('token')
+            else:
+                logger.debug(f"No hay token OAuth disponible")
+                return None
+        except Exception as e:
+            logger.error(f"Error obteniendo token OAuth: {e}")
+            return None
+    
     def send_chat_message(self, message):
-        """Enviar mensaje al chat de Kick
-        
-        NOTA: Para enviar mensajes al chat de Kick se requiere:
-        1. Registro de aplicación en https://dev.kick.com
-        2. OAuth con scope 'chat:write'
-        3. Access token válido
-        
-        Por ahora, las respuestas se registran en logs.
-        Integra con un sistema externo para enviar al chat.
-        """
+        """Enviar mensaje al chat de Kick usando OAuth"""
         logger.info(f"[BOT RESPONSE] {message}")
         
+        token = self.get_oauth_token()
+        
+        if token and self.chatroom_id:
+            try:
+                url = f"https://api.kick.com/public/v1/chat/{self.chatroom_id}/messages"
+                headers = {
+                    'Authorization': f'Bearer {token}',
+                    'Content-Type': 'application/json'
+                }
+                payload = {
+                    'content': message
+                }
+                
+                response = requests.post(url, json=payload, headers=headers, timeout=10)
+                
+                if response.status_code in [200, 201]:
+                    logger.info(f"✅ Mensaje enviado al chat exitosamente")
+                    return True
+                else:
+                    logger.warning(f"⚠️ Error enviando mensaje: {response.status_code} - {response.text}")
+                    
+            except Exception as e:
+                logger.error(f"❌ Error enviando mensaje al chat: {e}")
+        else:
+            if not token:
+                logger.debug("No hay token OAuth - mensaje solo en logs")
+            
         webhook_url = os.environ.get('KICK_RESPONSE_WEBHOOK')
         if webhook_url:
             try:
@@ -135,6 +170,8 @@ class KickChatBot:
                 }, timeout=5)
             except Exception as e:
                 logger.error(f"Error enviando a webhook: {e}")
+        
+        return False
     
     def on_message(self, data):
         """Callback cuando se recibe un mensaje del chat"""
