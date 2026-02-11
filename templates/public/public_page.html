@@ -1081,7 +1081,6 @@
                     <a href="#wager-race" class="nav-link orbitron">Leaderboard</a>
                     {% endif %}
                     <a href="#rangos" class="nav-link orbitron">Rangos</a>
-                    <a href="#tipeo-formulario" class="nav-link orbitron" style="background: linear-gradient(90deg, #FF1493, #00FF7F); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">Tipeos</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                 </div>
 
@@ -1145,7 +1144,6 @@
                     <a href="#wager-race" class="nav-link orbitron">Leaderboard</a>
                     {% endif %}
                     <a href="#rangos" class="nav-link orbitron">Rangos</a>
-                    <a href="#tipeo-formulario" class="nav-link orbitron" style="background: linear-gradient(90deg, #FF1493, #00FF7F); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">Tipeos</a>
                     <a href="#clips" class="nav-link orbitron">Clips</a>
                     
                     <!-- Login Button (Mobile) -->
@@ -1791,7 +1789,7 @@
                             </tr>
                         </thead>
                         <tbody id="wagerRaceTableBody">
-                            {% for player in wager_race.current[:20] %}
+                            {% for player in wager_race.current[:10] %}
                             <tr class="border-b border-gray-700/50 hover:bg-pink-900/20 transition-colors wager-race-row" data-username="{{ player.username }}">
                                 <td class="px-4 py-4">
                                     <span class="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold orbitron
@@ -1811,7 +1809,7 @@
                 
                 <!-- Mobile Cards -->
                 <div class="md:hidden space-y-4" id="wagerRaceMobileList">
-                    {% for player in wager_race.current[:20] %}
+                    {% for player in wager_race.current[:10] %}
                     <div class="bg-gray-800/80 rounded-xl p-4 border border-pink-500/30 wager-race-row" data-username="{{ player.username }}">
                         <div class="flex items-center justify-between mb-3">
                             <span class="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-xl orbitron
@@ -2137,6 +2135,7 @@
     </section>
 
 
+    {% if false %}{# Tipeos deshabilitados temporalmente #}
     <!-- TIPEOS INFO Section - Información general sobre tipeos -->
     <section id="tipeos-info" class="page-section py-20 px-4" style="background: linear-gradient(180deg, rgba(255,20,147,0.05), transparent, rgba(255,20,147,0.05));" data-animate="fade">
         <div class="container mx-auto max-w-6xl">
@@ -2669,6 +2668,7 @@
             </div>
         </div>
     </section>
+    {% endif %}{# Fin tipeos deshabilitados #}
 
 
     <!-- Featured Clips Section -->
@@ -5090,8 +5090,9 @@
                 });
             }
             
-            setTimeout(checkTipeoDisponible, 2000);
-            setTimeout(loadTipeoHistorial, 2500);
+            // Tipeos deshabilitados temporalmente
+            // setTimeout(checkTipeoDisponible, 2000);
+            // setTimeout(loadTipeoHistorial, 2500);
             
             // Handler para formulario de cuentas nuevas
             const tipeoNuevosForm = document.getElementById('tipeoNuevosForm');
