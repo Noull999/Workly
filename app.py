@@ -41,6 +41,9 @@ logging.info(f"Database configured: PostgreSQL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
+    "pool_size": 10,
+    "max_overflow": 20,
+    "pool_timeout": 30,
 }
 
 # Initialize extensions
