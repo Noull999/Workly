@@ -54,4 +54,3 @@ defaultBucketID = "replit-objstore-33611bf6-30cb-4746-9465-52e1b79c1d9a"
 [userenv]
 
 [userenv.shared]
-KICK_BOT_API_SECRET = "KcNvrnaznAlAkK56e0WC8nUmlkJBPzbLnLrPafZ_8Uc"
