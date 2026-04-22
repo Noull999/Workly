@@ -1210,6 +1210,16 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            opacity: 1;
+        }
+        /* Safety net: si JS/GSAP falla por cualquier motivo, las tarjetas
+           del podio y demás cards animadas siempre quedan visibles */
+        @media (prefers-reduced-motion: reduce) {
+            .podium-tier, .podium-card, .enhanced-card,
+            .points-info-card, .raffle-card, .clip-card, .social-btn {
+                opacity: 1 !important;
+                transform: none !important;
+            }
         }
         .podium-tier.podium-tier-gold   { min-height: 340px; }
         .podium-tier.podium-tier-silver { min-height: 300px; }
@@ -1689,7 +1699,7 @@
                             <i class="fas fa-gift mr-2"></i>Se darán
                         </div>
                         <div class="text-3xl sm:text-4xl font-extrabold orbitron bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 bg-clip-text text-transparent">
-                            $500 USD
+                            $300 USD
                         </div>
                         <div class="text-lg sm:text-xl text-yellow-400 font-bold mt-1">
                             en premios
@@ -1865,7 +1875,7 @@
                             <i class="fas fa-gift mr-2"></i>Se darán
                         </div>
                         <div class="text-4xl sm:text-5xl md:text-6xl font-extrabold orbitron bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 bg-clip-text text-transparent">
-                            $500 USD
+                            $300 USD
                         </div>
                         <div class="text-xl sm:text-2xl text-yellow-400 font-bold mt-2">
                             en premios
@@ -3158,14 +3168,19 @@
                 return;
             }
 
-            gsap.from(targets, {
-                scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none none' },
-                y: 40,
-                opacity: 0,
-                duration: 0.85,
-                ease: 'power3.out',
-                stagger: 0.12
-            });
+            gsap.fromTo(targets,
+                { y: 40, opacity: 0 },
+                {
+                    scrollTrigger: { trigger: section, start: 'top 85%', toggleActions: 'play none none none' },
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.85,
+                    ease: 'power3.out',
+                    stagger: 0.12,
+                    immediateRender: false,
+                    clearProps: 'opacity,transform'
+                }
+            );
         });
 
         // Scroll spy: marcar nav-link activo según sección visible
