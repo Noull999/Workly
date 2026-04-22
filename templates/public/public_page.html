@@ -1054,10 +1054,87 @@
 
         :root {
             --accent-color: #a855f7;
+            --highlight-color: #FFD700;
             --surface-1: rgba(20, 14, 32, 0.78);
             --surface-2: rgba(30, 22, 48, 0.85);
             --border-soft: rgba(255, 255, 255, 0.08);
             --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Unificación de paleta: remapear colores hardcodeados a variables.
+           Mantiene #FFD700 (oro) y rojos de "live" como semánticos. */
+        .gradient-text {
+            color: var(--primary-color) !important;
+            text-shadow: 0 0 20px color-mix(in srgb, var(--primary-color) 80%, transparent),
+                         0 0 40px color-mix(in srgb, var(--primary-color) 50%, transparent) !important;
+        }
+        .nav-username,
+        .points-increment-animation,
+        .nav-points { color: var(--primary-color) !important; }
+        .nav-points i,
+        .nav-gem-icon { color: var(--accent-color) !important; }
+        .points-info-title,
+        .modal-title {
+            background: linear-gradient(90deg, var(--accent-color), var(--primary-color)) !important;
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        .nav-user-widget,
+        .modal-content,
+        .modal-input { border-color: var(--accent-color) !important; }
+        .nav-social-btn {
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--accent-color) 35%, transparent),
+                color-mix(in srgb, var(--accent-color) 20%, transparent)) !important;
+            border-color: var(--accent-color) !important;
+        }
+        .nav-social-btn:hover {
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--accent-color) 55%, transparent),
+                color-mix(in srgb, var(--primary-color) 35%, transparent)) !important;
+            box-shadow: 0 6px 24px color-mix(in srgb, var(--accent-color) 45%, transparent) !important;
+        }
+        .modal-btn,
+        .raffle-btn:not(:disabled),
+        #navLoginBtn,
+        #navLoginBtnMobile {
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color)) !important;
+            box-shadow: 0 0 18px color-mix(in srgb, var(--accent-color) 50%, transparent) !important;
+        }
+        .modal-input:focus { border-color: var(--primary-color) !important; }
+        .points-info-card,
+        .raffle-card {
+            border-image: linear-gradient(135deg, var(--accent-color), var(--primary-color)) 1 !important;
+        }
+        .points-info-card::before,
+        .raffle-card::before {
+            background: linear-gradient(45deg, var(--accent-color), var(--primary-color), var(--accent-color)) !important;
+        }
+        .points-widget {
+            border-image: linear-gradient(135deg, var(--accent-color), var(--primary-color)) 1 !important;
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--accent-color) 28%, transparent),
+                color-mix(in srgb, var(--primary-color) 25%, transparent)) !important;
+        }
+        .stream-container {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 30px color-mix(in srgb, var(--primary-color) 45%, transparent),
+                        0 0 60px color-mix(in srgb, var(--primary-color) 25%, transparent) !important;
+        }
+        .stream-container::before {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color), var(--primary-color)) !important;
+        }
+        .clip-card::before {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color)) !important;
+        }
+        /* Particles: el segundo color usa accent en lugar de cian */
+        .particle:nth-child(even) {
+            background: var(--accent-color) !important;
+            box-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color) !important;
+        }
+        /* Animated border del avatar */
+        .animated-border {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color), var(--primary-color)) !important;
         }
 
         /* Tipografía: limitar Orbitron a títulos grandes */
@@ -1161,6 +1238,22 @@
         }
         .skeleton-row { height: 56px; margin-bottom: 8px; border-radius: 12px; }
         .skeleton-card { height: 220px; border-radius: 16px; }
+
+        /* Skeleton automático para leaderboards vacíos (recarga JS o sin datos).
+           Mantiene el layout y evita saltos. */
+        .leaderboard-table tbody:empty::before,
+        .leaderboard-mobile:empty::before {
+            content: "";
+            display: block;
+            height: 320px;
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0.04) 0%,
+                rgba(255,255,255,0.10) 50%,
+                rgba(255,255,255,0.04) 100%);
+            background-size: 800px 100%;
+            animation: shimmerSweep 1.6s linear infinite;
+            border-radius: 12px;
+        }
 
         /* Animación de entrada de hijos dentro de secciones con data-animate="fade" */
         [data-animate="fade"] .gsap-stagger { will-change: transform, opacity; }
@@ -1664,7 +1757,7 @@
                 </h3>
                 
                 <!-- Desktop Table -->
-                <div class="hidden md:block overflow-x-auto">
+                <div class="hidden md:block overflow-x-auto leaderboard-table">
                     <table class="w-full">
                         <thead>
                             <tr class="border-b-2 border-pink-500/50">
@@ -1693,7 +1786,7 @@
                 </div>
                 
                 <!-- Mobile Cards -->
-                <div class="md:hidden space-y-3" id="wagerRaceHomeMobileList">
+                <div class="md:hidden space-y-3 leaderboard-mobile" id="wagerRaceHomeMobileList">
                     {% for player in wager_race.current[:10] %}
                     <div class="bg-gray-800/80 rounded-xl p-3 border border-pink-500/30 wager-race-home-row" data-username="{{ player.username }}">
                         <div class="flex items-center justify-between mb-2">
@@ -1899,7 +1992,7 @@
                 </h3>
                 
                 <!-- Desktop Table -->
-                <div class="hidden md:block overflow-x-auto">
+                <div class="hidden md:block overflow-x-auto leaderboard-table">
                     <table class="w-full">
                         <thead>
                             <tr class="border-b-2 border-pink-500/50">
@@ -1928,7 +2021,7 @@
                 </div>
                 
                 <!-- Mobile Cards -->
-                <div class="md:hidden space-y-4" id="wagerRaceMobileList">
+                <div class="md:hidden space-y-4 leaderboard-mobile" id="wagerRaceMobileList">
                     {% for player in wager_race.current[:10] %}
                     <div class="bg-gray-800/80 rounded-xl p-4 border border-pink-500/30 wager-race-row" data-username="{{ player.username }}">
                         <div class="flex items-center justify-between mb-3">
