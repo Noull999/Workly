@@ -1047,6 +1047,134 @@
             font-weight: 600;
             color: #a78bfa;
         }
+
+        /* ============================================================
+           POLISH OVERRIDES — Mejora visual profesional
+           ============================================================ */
+
+        :root {
+            --accent-color: #a855f7;
+            --surface-1: rgba(20, 14, 32, 0.78);
+            --surface-2: rgba(30, 22, 48, 0.85);
+            --border-soft: rgba(255, 255, 255, 0.08);
+            --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Tipografía: limitar Orbitron a títulos grandes */
+        .orbitron { letter-spacing: 0.02em; }
+        p.orbitron, span.orbitron, td.orbitron, button.orbitron,
+        .nav-link.orbitron, .nav-social-btn,
+        .raffle-badge { font-family: 'Rajdhani', sans-serif !important; letter-spacing: normal; }
+
+        /* Sticky nav: blur fuerte, borde sutil, sin línea rosa dura */
+        .sticky-nav {
+            background: linear-gradient(180deg, rgba(10, 6, 20, 0.85), rgba(10, 6, 20, 0.65)) !important;
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            border-bottom: 1px solid var(--border-soft) !important;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45) !important;
+        }
+        .sticky-nav.scrolled {
+            background: linear-gradient(180deg, rgba(8, 4, 16, 0.95), rgba(8, 4, 16, 0.85)) !important;
+            border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        /* Nav links: hover y active usan paleta primaria */
+        .nav-link { transition: color 0.25s var(--ease-smooth); }
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+            text-shadow: 0 0 18px color-mix(in srgb, var(--primary-color) 60%, transparent);
+        }
+        .nav-link::after {
+            background: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+            transition: width 0.3s var(--ease-smooth);
+        }
+        .nav-link.active { color: var(--primary-color) !important; }
+        .nav-link.active::after { width: 80%; }
+
+        /* Focus accesible para nav y botones */
+        .nav-link:focus-visible,
+        .nav-social-btn:focus-visible,
+        .social-btn:focus-visible,
+        .raffle-btn:focus-visible,
+        .modal-btn:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 3px;
+            border-radius: 8px;
+        }
+
+        /* Microinteracción consistente: lift con sombra dinámica */
+        .social-btn,
+        .nav-social-btn,
+        .raffle-btn,
+        .modal-btn,
+        .enhanced-card,
+        .points-info-card,
+        .raffle-card,
+        .clip-card {
+            transition: transform 0.35s var(--ease-smooth),
+                        box-shadow 0.35s var(--ease-smooth),
+                        border-color 0.35s var(--ease-smooth);
+        }
+        .social-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px -10px color-mix(in srgb, var(--primary-color) 55%, transparent),
+                        0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+        .enhanced-card:hover {
+            box-shadow: 0 24px 50px -12px color-mix(in srgb, var(--primary-color) 50%, transparent),
+                        0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Podio responsive: quitar alturas fijas, usar min-height adaptativa */
+        .podium-tier {
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .podium-tier.podium-tier-gold   { min-height: 340px; }
+        .podium-tier.podium-tier-silver { min-height: 300px; }
+        .podium-tier.podium-tier-bronze { min-height: 260px; }
+        @media (max-width: 768px) {
+            .podium-tier,
+            .podium-tier.podium-tier-gold,
+            .podium-tier.podium-tier-silver,
+            .podium-tier.podium-tier-bronze { min-height: auto; }
+        }
+
+        /* Skeleton screens (shimmer) */
+        @keyframes shimmerSweep {
+            0% { background-position: -400px 0; }
+            100% { background-position: 400px 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0.04) 0%,
+                rgba(255,255,255,0.10) 50%,
+                rgba(255,255,255,0.04) 100%);
+            background-size: 800px 100%;
+            animation: shimmerSweep 1.6s linear infinite;
+            border-radius: 10px;
+            display: block;
+        }
+        .skeleton-row { height: 56px; margin-bottom: 8px; border-radius: 12px; }
+        .skeleton-card { height: 220px; border-radius: 16px; }
+
+        /* Animación de entrada de hijos dentro de secciones con data-animate="fade" */
+        [data-animate="fade"] .gsap-stagger { will-change: transform, opacity; }
+
+        /* Reducir motion para usuarios sensibles */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1408,7 +1536,7 @@
 
     <!-- Stream de Kick Embebido -->
     {% if kick_data and kick_data['username'] %}
-    <section id="stream-live" class="py-16 px-4" style="position: relative; z-index: 10;">
+    <section id="stream-live" class="py-16 px-4" style="position: relative; z-index: 10;" data-animate="fade">
         <div class="container mx-auto max-w-5xl">
             <div class="text-center mb-8">
                 <h2 class="text-3xl sm:text-4xl font-extrabold orbitron gradient-text tracking-wider mb-2">
@@ -1452,7 +1580,7 @@
 
     <!-- Wager Race Mini Section (debajo del stream) -->
     {% if wager_race and wager_race.current %}
-    <section id="wager-race-home" class="py-16 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent">
+    <section id="wager-race-home" class="py-16 px-4 bg-gradient-to-b from-transparent via-pink-900/10 to-transparent" data-animate="fade">
         <div class="container mx-auto">
             <!-- Header -->
             <div class="text-center mb-12">
@@ -1482,8 +1610,8 @@
                 {% for player in wager_race.current[:3] %}
                 {% if player.rank == 2 %}
                 <!-- 2do Lugar - Plata -->
-                <div class="p-5 rounded-2xl text-center transform transition-all hover:scale-105 w-full md:w-64 border-2 border-gray-400 relative"
-                     style="height: 280px; background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(30,30,30,0.95));">
+                <div class="podium-tier podium-tier-silver p-5 rounded-2xl text-center transform transition-all hover:scale-105 w-full md:w-64 border-2 border-gray-400 relative"
+                     style="background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(30,30,30,0.95));">
                     <div class="mb-3"><div class="text-5xl">🥈</div></div>
                     <div class="text-3xl font-extrabold orbitron mb-2 text-gray-300">#2</div>
                     <div class="text-lg font-bold text-white mb-3 break-words">{{ player.username }}</div>
@@ -1498,8 +1626,8 @@
                 {% for player in wager_race.current[:3] %}
                 {% if player.rank == 1 %}
                 <!-- 1er Lugar - Oro -->
-                <div class="p-6 rounded-2xl text-center transform transition-all hover:scale-105 w-full md:w-72 border-2 border-yellow-500 relative"
-                     style="height: 340px; background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(30,30,30,0.95));">
+                <div class="podium-tier podium-tier-gold p-6 rounded-2xl text-center transform transition-all hover:scale-105 w-full md:w-72 border-2 border-yellow-500 relative"
+                     style="background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(30,30,30,0.95));">
                     <div class="mb-3"><div class="text-6xl">🏆</div></div>
                     <div class="text-4xl font-extrabold orbitron mb-2 text-yellow-400">#1</div>
                     <div class="text-xl font-bold text-white mb-4 break-words">{{ player.username }}</div>
@@ -1514,8 +1642,8 @@
                 {% for player in wager_race.current[:3] %}
                 {% if player.rank == 3 %}
                 <!-- 3er Lugar - Bronce -->
-                <div class="p-5 rounded-2xl text-center transform transition-all hover:scale-105 w-full md:w-64 border-2 border-orange-600 relative"
-                     style="height: 240px; background: linear-gradient(135deg, rgba(205,127,50,0.1), rgba(30,30,30,0.95));">
+                <div class="podium-tier podium-tier-bronze p-5 rounded-2xl text-center transform transition-all hover:scale-105 w-full md:w-64 border-2 border-orange-600 relative"
+                     style="background: linear-gradient(135deg, rgba(205,127,50,0.1), rgba(30,30,30,0.95));">
                     <div class="mb-3"><div class="text-4xl">🥉</div></div>
                     <div class="text-3xl font-extrabold orbitron mb-2 text-orange-500">#3</div>
                     <div class="text-lg font-bold text-white mb-3 break-words">{{ player.username }}</div>
@@ -1611,10 +1739,10 @@
 
             <!-- Raffles Grid -->
             <div id="rafflesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-                <!-- Loading message -->
-                <div class="col-span-full text-center text-gray-400 text-xl">
-                    <i class="fas fa-spinner fa-spin mr-2"></i> Cargando sorteos...
-                </div>
+                <!-- Skeleton placeholders mientras cargan los sorteos -->
+                <div class="skeleton skeleton-card" aria-hidden="true"></div>
+                <div class="skeleton skeleton-card" aria-hidden="true"></div>
+                <div class="skeleton skeleton-card" aria-hidden="true"></div>
             </div>
 
             <!-- No raffles message (hidden by default) -->
@@ -1658,8 +1786,8 @@
                 {% for player in wager_race.current[:3] %}
                 {% if player.rank == 2 %}
                 <!-- 2do Lugar - Plata (Izquierda) -->
-                <div class="podium-card podium-silver enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-72 border-2 border-gray-400 relative"
-                     style="height: 320px; background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(30,30,30,0.95));">
+                <div class="podium-card podium-silver podium-tier podium-tier-silver enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-72 border-2 border-gray-400 relative"
+                     style="background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(30,30,30,0.95));">
                     <!-- Sparkles -->
                     <div class="sparkle" style="top: 10%; left: 20%; animation-delay: 0.2s;"></div>
                     <div class="sparkle" style="top: 30%; right: 15%; animation-delay: 0.8s;"></div>
@@ -1693,8 +1821,8 @@
                 {% for player in wager_race.current[:3] %}
                 {% if player.rank == 1 %}
                 <!-- 1er Lugar - Oro (Centro, más alto) -->
-                <div class="podium-card podium-gold enhanced-card p-8 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-80 border-2 border-yellow-500 relative"
-                     style="height: 380px; background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(30,30,30,0.95));">
+                <div class="podium-card podium-gold podium-tier podium-tier-gold enhanced-card p-8 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-80 border-2 border-yellow-500 relative"
+                     style="background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(30,30,30,0.95));">
                     <!-- Sparkles dorados -->
                     <div class="sparkle" style="top: 5%; left: 15%; animation-delay: 0s; background: #FFD700;"></div>
                     <div class="sparkle" style="top: 15%; right: 10%; animation-delay: 0.5s; background: #FFD700;"></div>
@@ -1730,8 +1858,8 @@
                 {% for player in wager_race.current[:3] %}
                 {% if player.rank == 3 %}
                 <!-- 3er Lugar - Bronce (Derecha) -->
-                <div class="podium-card podium-bronze enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-72 border-2 border-orange-600 relative"
-                     style="height: 280px; background: linear-gradient(135deg, rgba(205,127,50,0.1), rgba(30,30,30,0.95));">
+                <div class="podium-card podium-bronze podium-tier podium-tier-bronze enhanced-card p-6 rounded-3xl text-center transform transition-all hover:scale-105 w-full md:w-72 border-2 border-orange-600 relative"
+                     style="background: linear-gradient(135deg, rgba(205,127,50,0.1), rgba(30,30,30,0.95));">
                     <!-- Sparkles -->
                     <div class="sparkle" style="top: 15%; right: 20%; animation-delay: 0.4s; background: #CD7F32;"></div>
                     <div class="sparkle" style="top: 35%; left: 10%; animation-delay: 1.2s; background: #CD7F32;"></div>
@@ -2918,20 +3046,65 @@
             delay: 0.2
         });
 
-        // Scroll animations
-        document.querySelectorAll('[data-animate="fade"]').forEach(element => {
-            gsap.from(element, {
-                scrollTrigger: {
-                    trigger: element,
-                    start: 'top 80%',
-                    toggleActions: 'play none none none'
-                },
-                y: 50,
+        // Scroll animations: stagger del título + tarjetas hijas
+        document.querySelectorAll('[data-animate="fade"]').forEach(section => {
+            // Buscar children animables: heading, primer container, tarjetas
+            const heading = section.querySelector('h1, h2, h3');
+            const cardSelectors = '.enhanced-card, .points-info-card, .raffle-card, .clip-card, .podium-tier, .podium-card, .social-btn';
+            const cards = Array.from(section.querySelectorAll(cardSelectors));
+
+            const targets = [];
+            if (heading) targets.push(heading);
+            cards.forEach(c => targets.push(c));
+
+            if (targets.length === 0) {
+                gsap.from(section, {
+                    scrollTrigger: { trigger: section, start: 'top 85%', toggleActions: 'play none none none' },
+                    y: 40, opacity: 0, duration: 0.9, ease: 'power2.out'
+                });
+                return;
+            }
+
+            gsap.from(targets, {
+                scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none none' },
+                y: 40,
                 opacity: 0,
-                duration: 1,
-                ease: 'power2.out'
+                duration: 0.85,
+                ease: 'power3.out',
+                stagger: 0.12
             });
         });
+
+        // Scroll spy: marcar nav-link activo según sección visible
+        (function () {
+            const navLinks = Array.from(document.querySelectorAll('.nav-link[href^="#"]'));
+            const sections = navLinks
+                .map(l => document.querySelector(l.getAttribute('href')))
+                .filter(Boolean);
+            if (!sections.length) return;
+
+            const setActive = (id) => {
+                navLinks.forEach(l => {
+                    l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+                });
+            };
+
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) setActive(entry.target.id);
+                });
+            }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+            sections.forEach(s => io.observe(s));
+        })();
+
+        // Sticky nav: clase 'scrolled' tras 40px
+        (function () {
+            const nav = document.querySelector('.sticky-nav');
+            if (!nav) return;
+            const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        })();
 
         // Counters with ScrollTrigger
         document.querySelectorAll('.counter').forEach(counter => {
